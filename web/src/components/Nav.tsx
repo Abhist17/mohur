@@ -10,7 +10,7 @@ import { useAnon } from "./Providers";
 const LINKS = [
   ["/swap", "Swap"],
   ["/book", "Live book"],
-  ["/launch", "Launch an index"],
+  ["/my", "My index"],
   ["/arbitrage", "Arbitrage me"],
   ["/privacy", "Privacy"],
   ["/how", "How it works"],

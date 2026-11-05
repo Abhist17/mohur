@@ -34,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <b>Product</b>
                 <Link href="/swap">Swap</Link>
                 <Link href="/book">Live book</Link>
+                <Link href="/my">My index</Link>
                 <Link href="/create">Launch an index</Link>
                 <Link href="/arbitrage">Arbitrage me</Link>
               </div>

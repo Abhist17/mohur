@@ -77,7 +77,7 @@ export default function LaunchPage() {
       if (poolsOk && cnt > 0) st[4] = "done";
       let shipped = true;
       for (const p of pairs) {
-        const [, , hash] = (await c.readContract({ address: d.lens, abi: MohurLensAbi, functionName: "aquaOrder", args: [h, p[0], p[1], 0n] })) as [unknown, Hex, Hex];
+        const [, , hash] = (await c.readContract({ address: d.lens, abi: MohurLensAbi, functionName: "activeAquaOrder", args: [h, p[0], p[1]] })) as [unknown, Hex, Hex];
         const [, n] = (await c.readContract({ address: d.aqua, abi: AquaAbi, functionName: "rawBalances", args: [w.account, d.swapVM, hash, p[0]] })) as [bigint, number];
         if (n === 0) shipped = false;
       }
@@ -122,13 +122,14 @@ export default function LaunchPage() {
           await w.write({ address: d.poolManager, abi: pmAbi, functionName: "initialize", args: [poolKey(h, p), SQRT_PRICE_1_1], label: "open v4 pool" });
         }
         setMsg("Shipping the Uniswap venue's Aqua strategy…");
-        const strat = (await c.readContract({ address: h, abi: MohurHookAbi, functionName: "strategy", args: [0n] })) as Hex;
+        const nonce = (await c.readContract({ address: h, abi: MohurHookAbi, functionName: "venueNonce" })) as bigint;
+        const strat = (await c.readContract({ address: h, abi: MohurHookAbi, functionName: "strategy", args: [nonce] })) as Hex;
         const amts = await Promise.all(tokens.map(async (t) => ((await c.readContract({ address: t.a, abi: MohurTestTokenAbi, functionName: "balanceOf", args: [w.account!] })) as bigint) / 2n));
         await w.write({ address: d.aqua, abi: AquaAbi, functionName: "ship", args: [h, strat, tokens.map((t) => t.a), amts], label: "ship Uniswap venue" });
       }
       if (i === 5) {
         for (const p of pairs) {
-          const [, strat] = (await c.readContract({ address: d.lens, abi: MohurLensAbi, functionName: "aquaOrder", args: [hook!, p[0], p[1], 0n] })) as [unknown, Hex, Hex];
+          const [, strat] = (await c.readContract({ address: d.lens, abi: MohurLensAbi, functionName: "activeAquaOrder", args: [hook!, p[0], p[1]] })) as [unknown, Hex, Hex];
           const amts = await Promise.all(p.map(async (a) => ((await c.readContract({ address: a, abi: MohurTestTokenAbi, functionName: "balanceOf", args: [w.account!] })) as bigint) / 4n));
           setMsg("Shipping 1inch Aqua strategy…");
           await w.write({ address: d.aqua, abi: AquaAbi, functionName: "ship", args: [d.swapVM, strat, [p[0], p[1]], amts], label: "ship Aqua strategy" });

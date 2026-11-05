@@ -111,3 +111,44 @@ input[type="range"] { accent-color: var(--gold); width: 100%; }
 .err { color: var(--bad); font-size: 13px; word-break: break-word; }
 hr.sep { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
 .foot { border-top: 1px solid var(--line); padding: 28px 0 48px; color: var(--faint); font-size: 13px; }
+
+/* toasts */
+.toasts { position: fixed; right: 16px; bottom: 16px; z-index: 100; display: flex; flex-direction: column; gap: 10px; width: min(360px, calc(100vw - 32px)); }
+.toast { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: #1c1915; border: 1px solid var(--line-2); box-shadow: 0 12px 32px #0008; animation: toast-in .18s ease-out; }
+.toast.success { border-color: #2f5140; }
+.toast.error { border-color: #5a2b24; }
+.toast-icon { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; background: var(--bg-2); flex: 0 0 auto; }
+.toast.success .toast-icon { background: #1f3a2c; color: var(--good); }
+.toast.error .toast-icon { background: #3a1f1a; color: var(--bad); }
+.toast-title { font-weight: 600; font-size: 14px; }
+.toast-body { color: var(--muted); font-size: 13px; margin-top: 2px; word-break: break-word; }
+.toast-link { color: var(--gold); font-size: 13px; display: inline-block; margin-top: 4px; }
+.toast-x { background: none; border: 0; color: var(--faint); cursor: pointer; font-size: 18px; line-height: 1; padding: 0 2px; }
+@keyframes toast-in { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+.spinner { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--line-2); border-top-color: var(--gold); display: inline-block; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* skeletons */
+.skel { display: block; border-radius: 6px; background: linear-gradient(90deg, var(--bg-2) 0%, #221e19 50%, var(--bg-2) 100%); background-size: 200% 100%; animation: shimmer 1.4s infinite linear; height: 14px; }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* swap widget */
+.swap { max-width: 480px; margin: 0 auto; }
+.swap-box { background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.swap-box:focus-within { border-color: var(--line-2); }
+.swap-amt { background: none; border: 0; padding: 0; font-family: var(--sans); font-size: 32px; width: 100%; color: var(--text); outline: none; }
+.swap-amt::placeholder { color: var(--faint); }
+.tok-btn { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line-2); color: var(--text); cursor: pointer; font-size: 16px; white-space: nowrap; }
+.tok-btn:hover { border-color: var(--gold); }
+.flip { display: grid; place-items: center; width: 36px; height: 36px; margin: -12px auto; position: relative; z-index: 2; border-radius: 10px; background: var(--panel); border: 3px solid var(--bg); color: var(--muted); cursor: pointer; }
+.flip:hover { color: var(--gold); }
+.venues { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.venue { text-align: left; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg-2); color: var(--text); cursor: pointer; }
+.venue.on { border-color: var(--gold); background: #1d170c; }
+.venue:disabled { opacity: .5; cursor: not-allowed; }
+.kv { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); padding: 3px 0; }
+.kv b { color: var(--text); font-weight: 500; font-family: var(--mono); font-size: 12.5px; }
+.btn.block { width: 100%; padding: 14px; font-size: 16px; border-radius: 12px; }
+.menu { position: absolute; z-index: 20; background: var(--panel); border: 1px solid var(--line-2); border-radius: 12px; padding: 6px; box-shadow: 0 12px 32px #0008; min-width: 200px; }
+.menu button { display: flex; width: 100%; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; background: none; border: 0; color: var(--text); cursor: pointer; font-size: 14px; }
+.menu button:hover { background: var(--bg-2); }

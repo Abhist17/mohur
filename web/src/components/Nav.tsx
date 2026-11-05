@@ -8,9 +8,9 @@ import { NETWORK, WORKERS } from "@/lib/config";
 import { useAnon } from "./Providers";
 
 const LINKS = [
-  ["/create", "Create"],
-  ["/launch", "Launch"],
+  ["/swap", "Swap"],
   ["/book", "Live book"],
+  ["/launch", "Launch an index"],
   ["/arbitrage", "Arbitrage me"],
   ["/privacy", "Privacy"],
 ] as const;

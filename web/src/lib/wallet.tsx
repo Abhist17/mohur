@@ -3,7 +3,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { createWalletClient, custom, http, numberToHex, type Abi, type Address, type Hash, type WalletClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { CHAIN, NETWORK, RPC_URLS } from "./config";
+import { CHAIN, EXPLORER, NETWORK, RPC_URLS } from "./config";
+import { ALL_ERRORS, prettyError } from "./errors";
+import { useToast } from "@/components/Toast";
 import { keys, readClient } from "./anon";
 
 /** Anvil's well-known dev keys - only offered on the local fork. */
@@ -37,6 +39,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [client, setClient] = useState<WalletClient>();
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string>();
+  const toast = useToast();
 
   const connectLocal = useCallback((i: number) => {
     const acct = privateKeyToAccount(LOCAL_KEYS[i].key);
@@ -99,15 +102,24 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const write = useCallback<Wallet["write"]>(
     async ({ address, abi, functionName, args, label }) => {
       if (!client || !account) throw new Error("Connect a wallet first");
-      const reader = readClient(`tx receipt: ${label}`, keys.maker(account));
-      // simulate first through the read path (gives readable revert reasons)
-      await reader.simulateContract({ address, abi, functionName, args, account });
-      const hash = await client.writeContract({ address, abi, functionName, args, account, chain: CHAIN } as never);
-      const receipt = await reader.waitForTransactionReceipt({ hash });
-      if (receipt.status !== "success") throw new Error(`${label} reverted`);
-      return hash;
+      const id = toast.push({ kind: "pending", title: label, body: kind === "local" ? "Sending…" : "Confirm in your wallet…" });
+      try {
+        const reader = readClient(`tx receipt: ${label}`, keys.maker(account));
+        // simulate first through the read path: a revert surfaces as a readable reason, before any signature
+        await reader.simulateContract({ address, abi: [...abi, ...ALL_ERRORS], functionName, args, account } as never);
+        const hash = await client.writeContract({ address, abi, functionName, args, account, chain: CHAIN } as never);
+        toast.update(id, { body: "Submitted. Waiting for confirmation…", href: EXPLORER ? `${EXPLORER}/tx/${hash}` : undefined });
+        const receipt = await reader.waitForTransactionReceipt({ hash });
+        if (receipt.status !== "success") throw new Error(`${label} reverted`);
+        toast.update(id, { kind: "success", body: "Confirmed" });
+        return hash;
+      } catch (e) {
+        const msg = prettyError(e);
+        toast.update(id, { kind: "error", body: msg });
+        throw new Error(msg);
+      }
     },
-    [client, account],
+    [client, account, kind, toast],
   );
 
   const value = useMemo<Wallet>(

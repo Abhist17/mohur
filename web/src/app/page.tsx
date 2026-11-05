@@ -135,8 +135,8 @@ export default function Landing() {
             the same coins, at the same price, with no oracle.
           </p>
           <div className="row" style={{ marginTop: 20 }}>
-            <Link href="/create" className="btn primary">Create an index</Link>
-            <Link href="/book" className="btn">See the live book</Link>
+            <Link href="/swap" className="btn primary">Start trading</Link>
+            <Link href="/create" className="btn">Launch your own index</Link>
             <a href="#story" className="btn">How it works ↓</a>
           </div>
         </section>
@@ -261,8 +261,8 @@ export default function Landing() {
         <h2 style={{ marginBottom: 20 }}>Pick a way in</h2>
         <div className="grid g4" style={{ marginBottom: 40 }}>
           {[
-            ["/create", "Create", "Design an index and preview its quotes."],
-            ["/book", "Live book", "Weights, identical quotes, venue limits, fills."],
+            ["/swap", "Swap", "Trade against the index on either venue."],
+            ["/create", "Launch an index", "Pick weights, then six transactions from your wallet."],
             ["/arbitrage", "Arbitrage me", "Build a loop across venues. Watch it lose."],
             ["/privacy", "Privacy", "Every read, its route and isolation key."],
           ].map(([href, t, s]) => (

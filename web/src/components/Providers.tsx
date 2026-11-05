@@ -2,6 +2,7 @@
 
 import { useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { WalletProvider } from "@/lib/wallet";
+import { ToastProvider } from "./Toast";
 import { getAnonStatus, getReadLog, startWorker, subscribe } from "@/lib/anon";
 import { NETWORK } from "@/lib/config";
 
@@ -9,7 +10,11 @@ export function Providers({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (NETWORK === "base-sepolia") startWorker().catch(() => {});
   }, []);
-  return <WalletProvider>{children}</WalletProvider>;
+  return (
+    <ToastProvider>
+      <WalletProvider>{children}</WalletProvider>
+    </ToastProvider>
+  );
 }
 
 const emptyLog: ReturnType<typeof getReadLog> = [];

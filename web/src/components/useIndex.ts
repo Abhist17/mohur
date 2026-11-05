@@ -6,8 +6,9 @@ import { deployment } from "@/lib/config";
 import { hookOf } from "@/lib/mohur";
 import { useWallet } from "@/lib/wallet";
 
-/** The index being viewed: the connected maker's own hook if they launched one, else the demo index. */
-export function useIndex() {
+/** The index being viewed: the connected maker's own hook if they launched one, else the demo index.
+ *  `preferDemo` (e.g. on Swap, where you want a counterparty) shows the demo index unless asked otherwise. */
+export function useIndex(preferDemo = false) {
   const { account } = useWallet();
   const d = deployment();
   const [own, setOwn] = useState<Address>();
@@ -15,9 +16,10 @@ export function useIndex() {
     setOwn(undefined);
     if (account) hookOf(account).then(setOwn).catch(() => {});
   }, [account]);
-  const hook = own ?? d?.demoHook;
-  const maker = own ? account : d?.demoMaker;
-  return { hook, maker, isOwn: !!own, deployed: !!d };
+  const useOwn = !!own && (!preferDemo || !d?.demoHook);
+  const hook = useOwn ? own : d?.demoHook ?? own;
+  const maker = useOwn ? account : d?.demoMaker;
+  return { hook, maker, isOwn: useOwn, hasOwn: !!own, ownHook: own, deployed: !!d };
 }
 
 export function usePoll(fn: () => void | Promise<void>, ms: number, deps: unknown[]) {

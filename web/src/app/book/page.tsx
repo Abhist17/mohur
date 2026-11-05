@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { parseUnits, type Address } from "viem";
 import { MohurHookAbi } from "@/generated/abis";
@@ -8,6 +9,7 @@ import { fmt, quoteBoth, readBook, readFills, TOKEN_STYLE, units, type Book, typ
 import { useWallet } from "@/lib/wallet";
 import { usePoll, useIndex } from "@/components/useIndex";
 import { NotDeployed } from "@/components/NotDeployed";
+import { TokenIcon } from "@/components/TokenIcon";
 
 type PairQuote = { a: Address; b: Address; amt: string; v4Out: bigint; aquaOut: bigint; v4Ok: boolean; aquaOk: boolean };
 
@@ -81,7 +83,10 @@ export default function BookPage() {
             {(feeRate * 100).toFixed(2)}%
           </p>
         </div>
-        <span className="tag live">live</span>
+        <div className="row">
+          <span className="tag live">live</span>
+          <Link href="/swap" className="btn small primary">Trade this index</Link>
+        </div>
       </div>
       {err && <div className="err" style={{ marginBottom: 16 }}>{err}</div>}
 
@@ -99,13 +104,19 @@ export default function BookPage() {
               </label>
             ))}
           </div>
+          {!book && [0, 1, 2].map((i) => (
+            <div key={i} style={{ marginBottom: 18 }}>
+              <span className="skel" style={{ width: "40%" }} />
+              <span className="skel" style={{ height: 8, marginTop: 10 }} />
+            </div>
+          ))}
           {book?.tokens.map((t, i) => {
             const actual = total ? values[i] / total : 0;
             const target = Number(t.weight) / 1e18;
             return (
               <div key={t.token} style={{ marginBottom: 14 }}>
                 <div className="spread" style={{ fontSize: 14 }}>
-                  <span><span style={{ color: TOKEN_STYLE[t.symbol]?.color }}>●</span> {t.symbol}</span>
+                  <span className="row" style={{ gap: 8 }}><TokenIcon symbol={t.symbol} size={18} /> {TOKEN_STYLE[t.symbol]?.name ?? t.symbol} <span className="faint mono" style={{ fontSize: 12 }}>{t.symbol}</span></span>
                   <span className="mono">
                     {(actual * 100).toFixed(2)}% <span className="faint">/ {(target * 100).toFixed(0)}%</span>{" "}
                     <span className={Math.abs(actual - target) < 0.005 ? "good" : "bad"}>
@@ -138,6 +149,9 @@ export default function BookPage() {
                 <tr><th>Sell</th><th className="num">Uniswap v4</th><th className="num">1inch Aqua</th><th className="num">Δ</th></tr>
               </thead>
               <tbody>
+                {quotes.length === 0 && [0, 1, 2].map((i) => (
+                  <tr key={i}><td colSpan={4}><span className="skel" /></td></tr>
+                ))}
                 {quotes.map((q) => (
                   <tr key={q.a + q.b}>
                     <td>{q.amt} {sym(q.a)} → {sym(q.b)}</td>
@@ -162,7 +176,7 @@ export default function BookPage() {
             <tbody>
               {book?.tokens.map((t) => (
                 <tr key={t.token}>
-                  <td>{t.symbol}</td>
+                  <td><span className="row" style={{ gap: 8 }}><TokenIcon symbol={t.symbol} size={18} />{TOKEN_STYLE[t.symbol]?.name}</span></td>
                   <td className="num">{fmt(units(t.v4Limit, t.decimals))}</td>
                   <td className="num">{fmt(units(t.aquaLimit, t.decimals))}</td>
                   <td className="num">{fmt(units(t.walletBalance, t.decimals))}</td>

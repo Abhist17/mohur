@@ -9,6 +9,7 @@ import { fmt, quoteRoute, TOKEN_STYLE } from "@/lib/mohur";
 import { useWallet } from "@/lib/wallet";
 import { useIndex } from "@/components/useIndex";
 import { NotDeployed } from "@/components/NotDeployed";
+import { Concept } from "@/components/Concept";
 
 type Leg = { venue: 0 | 1; to: string };
 const SYMS = ["tWETH", "tWBTC", "tUSDC"] as const;
@@ -91,6 +92,7 @@ export default function ArbitragePage() {
         <h2>Try to beat the price</h2>
         <p>Build any route through the wallet, on either venue, leg by leg. The quote is exact (both venues share one formula over one inventory), and you can run it for real in one transaction. Every loop back to where you started loses.</p>
       </div>
+      <Concept caption={<><b>Try to play one stall against the other.</b> There is only one shelf, so there is no gap between them to exploit: every round trip pays the fee back to the wallet.</>} />
       <div className="grid g2">
         <div className="card stack">
           <h3>Route</h3>

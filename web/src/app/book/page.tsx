@@ -10,6 +10,7 @@ import { useWallet } from "@/lib/wallet";
 import { usePoll, useIndex } from "@/components/useIndex";
 import { NotDeployed } from "@/components/NotDeployed";
 import { TokenIcon } from "@/components/TokenIcon";
+import { Concept } from "@/components/Concept";
 
 type PairQuote = { a: Address; b: Address; amt: string; v4Out: bigint; aquaOut: bigint; v4Ok: boolean; aquaOk: boolean };
 
@@ -79,7 +80,7 @@ export default function BookPage() {
           <h2>One wallet, two venues</h2>
           <p>
             Everything below is read from chain{NETWORK === "base-sepolia" ? " through Anon-RPC" : ""}. Maker{" "}
-            <span className="mono">{maker?.slice(0, 10)}…</span> · hook <span className="mono">{hook.slice(0, 10)}…</span> · fee{" "}
+            <span className="addr">{maker?.slice(0, 10)}…</span> · hook <span className="addr">{hook.slice(0, 10)}…</span> · fee{" "}
             {(feeRate * 100).toFixed(2)}%
           </p>
         </div>
@@ -88,6 +89,7 @@ export default function BookPage() {
           <Link href="/swap" className="btn small primary">Trade this index</Link>
         </div>
       </div>
+      <Concept highlight="wallet" caption={<><b>This is the stockroom.</b> The one shelf both stalls sell from: what the wallet holds, how far it sits from its weights, what each stall may still sell, and every sale from either stall in one feed.</>} />
       {err && <div className="err" style={{ marginBottom: 16 }}>{err}</div>}
 
       <div className="grid g2">

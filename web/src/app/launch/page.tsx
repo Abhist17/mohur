@@ -10,6 +10,7 @@ import { hookOf, mineHookSalt, TOKEN_STYLE } from "@/lib/mohur";
 import { loadDraft, type Draft } from "@/lib/draft";
 import { useWallet } from "@/lib/wallet";
 import { NotDeployed } from "@/components/NotDeployed";
+import { Concept } from "@/components/Concept";
 
 const pmAbi = parseAbi([
   "function initialize((address currency0,address currency1,uint24 fee,int24 tickSpacing,address hooks) key, uint160 sqrtPriceX96) returns (int24)",
@@ -154,6 +155,7 @@ export default function LaunchPage() {
           Index: {tokens.map((t) => `${draft?.weights[t.s]}% ${TOKEN_STYLE[t.s].name}`).join(" / ")} (<Link href="/create" className="gold">edit</Link>).
         </p>
       </div>
+      <Concept caption={<><b>Open your stockroom.</b> Your wallet becomes the shelf, Uniswap and 1inch become your two stalls, and your weights set the price. The coins never leave your wallet until someone buys them.</>} />
       {!w.account && <div className="banner">Connect a wallet to launch{NETWORK === "local" ? " (on the local fork, use Dev #3 for a fresh maker)" : ""}.</div>}
       <div className="stack" style={{ marginTop: 16 }}>
         {STEPS.map(([title, body], i) => (
@@ -165,7 +167,7 @@ export default function LaunchPage() {
                 {state[i] === "done" && <span className="tag live">done</span>}
               </div>
               <p className="muted" style={{ margin: "6px 0 0", fontSize: 14 }}>{body}</p>
-              {i === 0 && hook && <p className="mono faint" style={{ fontSize: 12, margin: "6px 0 0" }}>hook {hook}</p>}
+              {i === 0 && hook && <p className="addr faint" style={{ fontSize: 12, margin: "6px 0 0" }}>hook {hook}</p>}
             </div>
             <button className={`btn ${i === next ? "primary" : ""}`} disabled={!w.account || running || state[i] === "done" || i !== next} onClick={() => run(i)}>
               {state[i] === "running" ? "Working…" : state[i] === "done" ? "Done" : "Run"}

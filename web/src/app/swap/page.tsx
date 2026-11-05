@@ -11,6 +11,7 @@ import { quoteBoth, readBook, TOKEN_STYLE, type Book } from "@/lib/mohur";
 import { useWallet } from "@/lib/wallet";
 import { TokenIcon } from "@/components/TokenIcon";
 import { NotDeployed } from "@/components/NotDeployed";
+import { Concept } from "@/components/Concept";
 import { usePoll, useIndex } from "@/components/useIndex";
 
 const SYMS = ["tWETH", "tWBTC", "tUSDC"] as const;
@@ -264,9 +265,7 @@ export default function SwapPage() {
           {err && <div className="err" style={{ textAlign: "center" }}>{err}</div>}
         </div>
 
-        <p className="faint" style={{ fontSize: 12, textAlign: "center" }}>
-          Testnet tokens with no value. Both venues price from the same wallet with the same formula, so the venue choice only decides whose selling limit you use.
-        </p>
+        <Concept caption={<><b>You&apos;re buying from one wallet.</b> Both stalls sell from the same shelf at the same price, so pick either: the venue only decides whose selling limit you use. Testnet tokens, no value.</>} />
       </div>
     </div>
   );

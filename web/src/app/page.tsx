@@ -111,7 +111,7 @@ export default function Landing() {
         .story-text section { min-height: 88vh; display: flex; flex-direction: column; justify-content: center; padding: 40px 0; }
         .story-text section p { color: var(--muted); font-size: 17px; max-width: 470px; }
         .stage { position: sticky; top: 60px; height: calc(100vh - 60px); }
-        .tagbox { position: absolute; top: 18%; padding: 10px 14px; border-radius: 12px; background: rgba(23,21,18,.85); border: 1px solid var(--line-2); font-family: var(--mono); font-size: 13px; }
+        .tagbox { position: absolute; top: 18%; padding: 10px 14px; border-radius: 12px; background: rgba(23,21,18,.85); border: 1px solid var(--line-2); font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; }
         .hero { min-height: calc(92vh - 60px); display: flex; flex-direction: column; justify-content: center; position: relative; }
         .hero p { font-size: 20px; color: var(--muted); max-width: 620px; }
         @media (max-width: 860px) {

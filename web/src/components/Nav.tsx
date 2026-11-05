@@ -13,6 +13,7 @@ const LINKS = [
   ["/launch", "Launch an index"],
   ["/arbitrage", "Arbitrage me"],
   ["/privacy", "Privacy"],
+  ["/how", "How it works"],
 ] as const;
 
 export function RoutePill() {
@@ -39,7 +40,7 @@ export function ConnectButton() {
   if (w.account)
     return (
       <button className="btn small" onClick={w.disconnect} title="Disconnect">
-        <span className="mono">{w.account.slice(0, 6)}…{w.account.slice(-4)}</span>
+        <span className="addr">{w.account.slice(0, 6)}…{w.account.slice(-4)}</span>
       </button>
     );
   return (

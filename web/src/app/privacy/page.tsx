@@ -146,7 +146,7 @@ export default function PrivacyPage() {
                   </td>
                   <td className="mono">{e.method}</td>
                   <td className="muted">{e.label}{e.note && <span className="faint"> · {e.note}</span>}</td>
-                  <td className="mono faint" style={{ fontSize: 12 }}>{e.isolationKey}</td>
+                  <td className="addr faint" style={{ fontSize: 12 }}>{e.isolationKey}</td>
                   <td className={`num ${e.ok ? "" : "bad"}`}>{e.ms}</td>
                 </tr>
               ))}

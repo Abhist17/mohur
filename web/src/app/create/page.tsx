@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { DEFAULT_DRAFT, loadDraft, saveDraft, setWeight, type Draft } from "@/lib/draft";
 import { fmt, sim, TOKEN_STYLE } from "@/lib/mohur";
 import { TokenIcon } from "@/components/TokenIcon";
+import { Concept } from "@/components/Concept";
 
 const SYMS = ["tWETH", "tWBTC", "tUSDC"];
 
@@ -44,6 +45,7 @@ export default function CreatePage() {
         <h2>Design your index</h2>
         <p>Pick the assets and target weights. The weights are the whole strategy: both venues price every trade so that, at Mohur&apos;s own prices, your wallet always sits exactly on these weights.</p>
       </div>
+      <Concept highlight="wallet" caption={<><b>Decide what&apos;s on the shelf.</b> The weights are the whole strategy: both stalls price every trade so that, at Mohur&apos;s prices, your wallet always sits exactly on them.</>} />
       <div className="grid g2">
         <div className="card stack">
           <h3>Assets &amp; weights</h3>

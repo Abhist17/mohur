@@ -1,0 +1,211 @@
+"use client";
+
+import { useState } from "react";
+import { parseUnits, type Address } from "viem";
+import { MohurHookAbi } from "@/generated/abis";
+import { EXPLORER, NETWORK } from "@/lib/config";
+import { fmt, quoteBoth, readBook, readFills, TOKEN_STYLE, units, type Book, type FillRow } from "@/lib/mohur";
+import { useWallet } from "@/lib/wallet";
+import { usePoll, useIndex } from "@/components/useIndex";
+import { NotDeployed } from "@/components/NotDeployed";
+
+type PairQuote = { a: Address; b: Address; amt: string; v4Out: bigint; aquaOut: bigint; v4Ok: boolean; aquaOk: boolean };
+
+export default function BookPage() {
+  const { hook, maker, isOwn, deployed } = useIndex();
+  const w = useWallet();
+  const [book, setBook] = useState<Book>();
+  const [fills, setFills] = useState<FillRow[]>([]);
+  const [quotes, setQuotes] = useState<PairQuote[]>([]);
+  const [px, setPx] = useState<Record<string, number>>({ tWETH: 4000, tWBTC: 100000, tUSDC: 1 });
+  const [err, setErr] = useState<string>();
+  const [busy, setBusy] = useState(false);
+
+  usePoll(
+    async () => {
+      if (!hook || !maker) return;
+      try {
+        const b = await readBook(hook, maker);
+        setBook(b);
+        const qs: PairQuote[] = [];
+        for (const p of b.pairs) {
+          const ta = b.tokens.find((t) => t.token === p.tokenA)!;
+          const tb = b.tokens.find((t) => t.token === p.tokenB)!;
+          const amt = ta.symbol === "tWETH" ? "0.1" : ta.symbol === "tWBTC" ? "0.003" : "300";
+          const q = await quoteBoth(hook, ta.token, tb.token, parseUnits(amt, ta.decimals));
+          qs.push({ a: ta.token, b: tb.token, amt, v4Out: q.v4Out, aquaOut: q.aquaOut, v4Ok: q.v4Ok, aquaOk: q.aquaOk });
+        }
+        setQuotes(qs);
+        setFills(await readFills(hook, maker));
+        setErr(undefined);
+      } catch (e) {
+        setErr((e as Error).message.slice(0, 200));
+      }
+    },
+    NETWORK === "local" ? 5000 : 20000,
+    [hook, maker],
+  );
+
+  if (!deployed) return <NotDeployed />;
+  if (!hook) return <div className="wrap page">No index yet. <a className="gold" href="/launch">Launch one →</a></div>;
+
+  const sym = (a: Address) => book?.tokens.find((t) => t.token === a)?.symbol ?? a.slice(0, 6);
+  const dec = (a: Address) => book?.tokens.find((t) => t.token === a)?.decimals ?? 18;
+  const values = book?.tokens.map((t) => units(t.effectiveBalance, t.decimals) * (px[t.symbol] ?? 0)) ?? [];
+  const total = values.reduce((a, b) => a + b, 0);
+  const pendingAny = book?.tokens.some((t) => t.pending > 0n);
+  const feeRate = book ? Number(book.fee) / 1e18 : 0.003;
+  const feesBy: Record<string, number> = {};
+  for (const f of fills) feesBy[sym(f.tokenIn)] = (feesBy[sym(f.tokenIn)] ?? 0) + units(f.amountIn, dec(f.tokenIn)) * feeRate;
+  const feesUsd = Object.entries(feesBy).reduce((a, [s, v]) => a + v * (px[s] ?? 0), 0);
+
+  const flush = async () => {
+    setBusy(true);
+    try {
+      await w.write({ address: hook, abi: MohurHookAbi, functionName: "flush", label: "flush claims" });
+    } catch (e) {
+      setErr((e as Error).message.slice(0, 200));
+    }
+    setBusy(false);
+  };
+
+  return (
+    <div className="wrap page">
+      <div className="page-head spread">
+        <div>
+          <div className="eyebrow">Live book {isOwn ? "· your index" : "· demo index"}</div>
+          <h2>One wallet, two venues</h2>
+          <p>
+            Everything below is read from chain{NETWORK === "base-sepolia" ? " through Anon-RPC" : ""}. Maker{" "}
+            <span className="mono">{maker?.slice(0, 10)}…</span> · hook <span className="mono">{hook.slice(0, 10)}…</span> · fee{" "}
+            {(feeRate * 100).toFixed(2)}%
+          </p>
+        </div>
+        <span className="tag live">live</span>
+      </div>
+      {err && <div className="err" style={{ marginBottom: 16 }}>{err}</div>}
+
+      <div className="grid g2">
+        <div className="card">
+          <div className="spread">
+            <h3>Weights vs target</h3>
+            <span className="faint" style={{ fontSize: 12 }}>drift at the prices you type in</span>
+          </div>
+          <div className="row" style={{ margin: "10px 0 16px" }}>
+            {["tWETH", "tWBTC"].map((s) => (
+              <label key={s} className="row" style={{ gap: 6, fontSize: 13 }}>
+                {TOKEN_STYLE[s].name} $
+                <input type="number" value={px[s]} style={{ width: 110 }} onChange={(e) => setPx({ ...px, [s]: Number(e.target.value) })} />
+              </label>
+            ))}
+          </div>
+          {book?.tokens.map((t, i) => {
+            const actual = total ? values[i] / total : 0;
+            const target = Number(t.weight) / 1e18;
+            return (
+              <div key={t.token} style={{ marginBottom: 14 }}>
+                <div className="spread" style={{ fontSize: 14 }}>
+                  <span><span style={{ color: TOKEN_STYLE[t.symbol]?.color }}>●</span> {t.symbol}</span>
+                  <span className="mono">
+                    {(actual * 100).toFixed(2)}% <span className="faint">/ {(target * 100).toFixed(0)}%</span>{" "}
+                    <span className={Math.abs(actual - target) < 0.005 ? "good" : "bad"}>
+                      {actual - target >= 0 ? "+" : ""}{((actual - target) * 100).toFixed(2)}
+                    </span>
+                  </span>
+                </div>
+                <div className="bar" style={{ marginTop: 6 }}>
+                  <span style={{ width: `${actual * 100}%`, background: TOKEN_STYLE[t.symbol]?.color }} />
+                </div>
+                <div className="faint mono" style={{ fontSize: 12, marginTop: 4 }}>
+                  {fmt(units(t.walletBalance, t.decimals))} in wallet
+                  {t.pending > 0n && ` + ${fmt(units(t.pending, t.decimals))} as claims`} · ${fmt(values[i])}
+                </div>
+              </div>
+            );
+          })}
+          <div className="spread" style={{ borderTop: "1px solid var(--line)", paddingTop: 12 }}>
+            <span className="muted">Total</span>
+            <span className="mono">${fmt(total)}</span>
+          </div>
+        </div>
+
+        <div className="card">
+          <h3>Same quote on both venues</h3>
+          <p className="muted" style={{ marginTop: 0, fontSize: 14 }}>Both venues call one price() over the same balances.</p>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Sell</th><th className="num">Uniswap v4</th><th className="num">1inch Aqua</th><th className="num">Δ</th></tr>
+              </thead>
+              <tbody>
+                {quotes.map((q) => (
+                  <tr key={q.a + q.b}>
+                    <td>{q.amt} {sym(q.a)} → {sym(q.b)}</td>
+                    <td className="num">{q.v4Ok ? fmt(units(q.v4Out, dec(q.b)), 8) : <span className="faint">limit</span>}</td>
+                    <td className="num">{q.aquaOk ? fmt(units(q.aquaOut, dec(q.b)), 8) : <span className="faint">limit</span>}</td>
+                    <td className="num good">{q.v4Ok && q.aquaOk ? (q.v4Out - q.aquaOut).toString() : "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="faint" style={{ fontSize: 12 }}>Δ is in the output token&apos;s smallest units.</p>
+        </div>
+      </div>
+
+      <div className="grid g2" style={{ marginTop: 16 }}>
+        <div className="card">
+          <h3>Venue limits</h3>
+          <p className="muted" style={{ marginTop: 0, fontSize: 14 }}>What each venue may still sell, tracked by Aqua. The wallet keeps the rest.</p>
+          <table>
+            <thead><tr><th>Token</th><th className="num">Uniswap</th><th className="num">1inch</th><th className="num">Wallet</th></tr></thead>
+            <tbody>
+              {book?.tokens.map((t) => (
+                <tr key={t.token}>
+                  <td>{t.symbol}</td>
+                  <td className="num">{fmt(units(t.v4Limit, t.decimals))}</td>
+                  <td className="num">{fmt(units(t.aquaLimit, t.decimals))}</td>
+                  <td className="num">{fmt(units(t.walletBalance, t.decimals))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="spread" style={{ marginTop: 14 }}>
+            <span className="muted" style={{ fontSize: 13 }}>
+              {pendingAny ? "Uniswap input is waiting as claims (already priced in)." : "No claims waiting."}
+            </span>
+            <button className="btn small" disabled={!pendingAny || !w.account || busy} onClick={flush}>
+              {busy ? "Flushing…" : "Flush claims → wallet"}
+            </button>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="spread">
+            <h3>Fills, both venues</h3>
+            <span className="mono gold">fees ≈ ${fmt(feesUsd)}</span>
+          </div>
+          <div className="table-scroll" style={{ maxHeight: 320, overflowY: "auto" }}>
+            <table>
+              <thead><tr><th>Venue</th><th>Trade</th><th className="num">Block</th></tr></thead>
+              <tbody>
+                {fills.length === 0 && <tr><td colSpan={3} className="faint">No fills yet.</td></tr>}
+                {fills.slice(0, 50).map((f) => (
+                  <tr key={f.tx + f.venue + f.amountIn}>
+                    <td><span className="tag" style={{ color: f.venue === "Uniswap v4" ? "#ff8ad8" : "#7fb3ff" }}>{f.venue}</span></td>
+                    <td className="mono" style={{ fontSize: 13 }}>
+                      {fmt(units(f.amountIn, dec(f.tokenIn)))} {sym(f.tokenIn)} → {fmt(units(f.amountOut, dec(f.tokenOut)))} {sym(f.tokenOut)}
+                    </td>
+                    <td className="num">
+                      {EXPLORER ? <a href={`${EXPLORER}/tx/${f.tx}`} target="_blank" rel="noreferrer" className="gold">{f.block.toString()}</a> : f.block.toString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

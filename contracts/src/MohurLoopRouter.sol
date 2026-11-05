@@ -17,6 +17,10 @@ import { IMohurPricer } from "./interfaces/IMohurPricer.sol";
 import { MohurPools } from "./libraries/MohurPools.sol";
 import { MohurStrategy } from "./aqua/MohurStrategy.sol";
 
+interface IMohurEpoch {
+    function venueNonce() external view returns (uint256);
+}
+
 /// @title MohurLoopRouter
 /// @notice Runs a multi-leg exact-in route across both venues of one Mohur wallet in a single transaction
 ///         (the "Arbitrage me" demo). venues[k]: 0 = Uniswap v4 (through the real PoolManager), 1 = 1inch Aqua.
@@ -104,7 +108,8 @@ contract MohurLoopRouter is IUnlockCallback {
     }
 
     function _aqua(address hook, address tokenIn, address tokenOut, uint256 amount) internal returns (uint256 out) {
-        ISwapVM.Order memory o = MohurStrategy.order(IMohurPricer(hook).maker(), hook, tokenIn, tokenOut, 0);
+        ISwapVM.Order memory o =
+            MohurStrategy.order(IMohurPricer(hook).maker(), hook, tokenIn, tokenOut, uint64(IMohurEpoch(hook).venueNonce()));
         IERC20(tokenIn).forceApprove(address(swapVM), amount);
         (, out,) = swapVM.swap(o, amount, MohurStrategy.takerData(address(this), tokenIn, tokenOut, true));
     }

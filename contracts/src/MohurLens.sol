@@ -61,6 +61,16 @@ contract MohurLens {
         strategyHash = keccak256(strategy);
     }
 
+    /// @notice The pair's order for the hook's current epoch (venueNonce doubles as the Aqua order salt, so
+    ///         re-shipping after a pause or top-up only needs setVenueNonce(n + 1)).
+    function activeAquaOrder(MohurHook hook, address tokenA, address tokenB)
+        public
+        view
+        returns (ISwapVM.Order memory order, bytes memory strategy, bytes32 strategyHash)
+    {
+        return aquaOrder(hook, tokenA, tokenB, uint64(hook.venueNonce()));
+    }
+
     // ------------------------------------------------------------------------------------------
     // The book
     // ------------------------------------------------------------------------------------------
@@ -82,8 +92,7 @@ contract MohurLens {
             t.token = ts[i];
             t.symbol = IERC20Metadata(ts[i]).symbol();
             t.decimals = IERC20Metadata(ts[i]).decimals();
-            (, , uint256 w,) = hook.tokenInfo(ts[i]);
-            t.weight = w;
+            t.weight = hook.weightOf(ts[i]);
             t.walletBalance = IERC20Metadata(ts[i]).balanceOf(maker);
             t.pending = hook.pending(ts[i]);
             t.effectiveBalance = t.walletBalance + t.pending;
@@ -96,7 +105,7 @@ contract MohurLens {
                 (address t0, address t1) = ts[i] < ts[j] ? (ts[i], ts[j]) : (ts[j], ts[i]);
                 p.tokenA = t0;
                 p.tokenB = t1;
-                (,, p.aquaStrategyHash) = aquaOrder(hook, t0, t1, 0);
+                (,, p.aquaStrategyHash) = activeAquaOrder(hook, t0, t1);
                 (uint256 la, uint8 ca) = aqua.rawBalances(maker, swapVM, p.aquaStrategyHash, t0);
                 (uint256 lb, uint8 cb) = aqua.rawBalances(maker, swapVM, p.aquaStrategyHash, t1);
                 if (ca != 0 && ca != type(uint8).max) p.aquaLimitA = la;
@@ -128,7 +137,7 @@ contract MohurLens {
             (v4In, v4Out) = (i, o);
             v4Ok = o <= hook.venueLimit(tokenOut);
         } catch { }
-        (ISwapVM.Order memory order,,) = aquaOrder(hook, tokenIn, tokenOut, 0);
+        (ISwapVM.Order memory order,,) = activeAquaOrder(hook, tokenIn, tokenOut);
         try swapVM.quote(order, amount, _takerData(tokenIn, tokenOut, exactIn)) returns (uint256 i, uint256 o, bytes32) {
             (aquaIn, aquaOut, aquaOk) = (i, o, true);
         } catch { }
@@ -153,14 +162,30 @@ contract MohurLens {
         withinLimits = true;
         uint256 fee = hook.fee();
         for (uint256 k; k < venues.length; ++k) {
-            address tIn = path[k];
-            address tOut = path[k + 1];
-            (uint256 bIn, uint256 bOut) = (_bal(path, bal, tIn), _bal(path, bal, tOut));
-            amounts[k + 1] = _out(hook, tIn, tOut, bIn, bOut, amounts[k], fee);
-            _setBal(path, bal, tIn, bIn + amounts[k]);
-            _setBal(path, bal, tOut, bOut - amounts[k + 1]);
-            if (!_withinLimit(hook, swapVM, venues[k], tIn, tOut, amounts[k + 1])) withinLimits = false;
+            bool ok;
+            (amounts[k + 1], ok) = _leg(hook, swapVM, path, bal, k, venues[k], amounts[k], fee);
+            if (!ok) withinLimits = false;
         }
+    }
+
+    function _leg(
+        MohurHook hook,
+        address swapVM,
+        address[] calldata path,
+        uint256[] memory bal,
+        uint256 k,
+        uint8 venue,
+        uint256 amountIn,
+        uint256 fee
+    ) internal view returns (uint256 out, bool ok) {
+        address tIn = path[k];
+        address tOut = path[k + 1];
+        uint256 bIn = _bal(path, bal, tIn);
+        uint256 bOut = _bal(path, bal, tOut);
+        out = _out(hook, tIn, tOut, bIn, bOut, amountIn, fee);
+        _setBal(path, bal, tIn, bIn + amountIn);
+        _setBal(path, bal, tOut, bOut - out);
+        ok = _withinLimit(hook, swapVM, venue, tIn, tOut, out);
     }
 
     function _out(MohurHook hook, address tIn, address tOut, uint256 bIn, uint256 bOut, uint256 a, uint256 fee)
@@ -168,9 +193,9 @@ contract MohurLens {
         view
         returns (uint256)
     {
-        (, , uint256 wIn, uint256 sIn) = hook.tokenInfo(tIn);
-        (, , uint256 wOut, uint256 sOut) = hook.tokenInfo(tOut);
-        uint256 o = MohurMath.outGivenIn(bIn * sIn, wIn, bOut * sOut, wOut, a * sIn, fee);
+        (,,, uint256 sIn) = hook.tokenInfo(tIn);
+        (,,, uint256 sOut) = hook.tokenInfo(tOut);
+        uint256 o = MohurMath.outGivenIn(bIn * sIn, hook.weightOf(tIn), bOut * sOut, hook.weightOf(tOut), a * sIn, fee);
         return MohurMath.fromScaledDown(o, sOut);
     }
 
@@ -180,7 +205,7 @@ contract MohurLens {
         returns (bool)
     {
         if (venue == 0) return out <= hook.venueLimit(tOut);
-        (,, bytes32 h) = aquaOrder(hook, tIn, tOut, 0);
+        (,, bytes32 h) = activeAquaOrder(hook, tIn, tOut);
         (uint256 lim,) = hook.aqua().rawBalances(hook.maker(), swapVM, h, tOut);
         return out <= lim;
     }

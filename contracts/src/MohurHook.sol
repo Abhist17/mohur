@@ -62,6 +62,7 @@ contract MohurHook is IHooks, IUnlockCallback, IMohurPricer {
         uint256 fee
     );
     event Flushed(address indexed token, uint256 amount);
+    event WeightsScheduled(uint256[] fromWeights, uint256[] toWeights, uint64 start, uint64 end);
 
     // ---------------------------------------------------------------------------------------------
     // Storage
@@ -74,7 +75,7 @@ contract MohurHook is IHooks, IUnlockCallback, IMohurPricer {
     struct TokenInfo {
         bool listed;
         uint64 index;
-        uint256 weight; // 1e18 = 100%
+        uint256 weight; // weight at the start of the current re-weight window (1e18 = 100%); see weightOf()
         uint256 scale; // 10^(18 - decimals)
     }
 
@@ -84,6 +85,11 @@ contract MohurHook is IHooks, IUnlockCallback, IMohurPricer {
     uint256 public fee;
     /// @notice Aqua strategy nonce for this venue; strategy bytes are abi.encode(address(this), nonce).
     uint256 public venueNonce;
+    /// @notice Weight each token glides to by `reweightEnd` (equal to tokenInfo.weight when not re-weighting).
+    mapping(address token => uint256) public targetWeight;
+    /// @notice Gradual re-weight window: weights move linearly from tokenInfo.weight to targetWeight.
+    uint64 public reweightStart;
+    uint64 public reweightEnd;
     /// @notice Uniswap input held as ERC-6909 claims for the maker, not yet flushed to the wallet.
     mapping(address token => uint256) public pending;
 
@@ -156,10 +162,32 @@ contract MohurHook is IHooks, IUnlockCallback, IMohurPricer {
                 weight: newWeights[i],
                 scale: MohurMath.scaleFactor(IERC20Metadata(t).decimals())
             });
+            targetWeight[t] = newWeights[i];
             _tokens.push(t);
         }
+        (reweightStart, reweightEnd) = (0, 0);
         fee = _fee;
         emit IndexSet(newTokens, newWeights, _fee);
+    }
+
+    /// @notice Gradually move to new target weights over `duration` seconds, for both venues at once.
+    /// @dev Instead of one big mispricing (an instant change hands arbitrageurs the whole gap), the weights glide,
+    ///      so each moment's gap stays small and the market walks the wallet to its new allocation through
+    ///      ordinary fee-paying trades. Same tokens, same order as the current index.
+    function scheduleWeights(uint256[] calldata newWeights, uint64 duration) external onlyMaker {
+        uint256 n = _tokens.length;
+        if (newWeights.length != n || duration == 0) revert BadIndex();
+        MohurMath.validateWeights(newWeights);
+        uint256[] memory from = new uint256[](n);
+        for (uint256 i; i < n; ++i) {
+            address t = _tokens[i];
+            from[i] = weightOf(t);
+            tokenInfo[t].weight = from[i];
+            targetWeight[t] = newWeights[i];
+        }
+        reweightStart = uint64(block.timestamp);
+        reweightEnd = uint64(block.timestamp) + duration;
+        emit WeightsScheduled(from, newWeights, reweightStart, reweightEnd);
     }
 
     /// @notice Point this venue at a new Aqua strategy (e.g. after shipping a topped-up one).
@@ -176,10 +204,28 @@ contract MohurHook is IHooks, IUnlockCallback, IMohurPricer {
         return _tokens;
     }
 
+    /// @notice The weight both venues price with right now (interpolated during a re-weight window).
+    function weightOf(address token) public view returns (uint256) {
+        uint256 w0 = tokenInfo[token].weight;
+        uint256 w1 = targetWeight[token];
+        uint64 end = reweightEnd;
+        if (block.timestamp >= end || w0 == w1) return w1;
+        uint256 elapsed = block.timestamp - reweightStart;
+        uint256 span = end - reweightStart;
+        return w1 > w0 ? w0 + (w1 - w0) * elapsed / span : w0 - (w0 - w1) * elapsed / span;
+    }
+
     function weights() external view returns (uint256[] memory w) {
         w = new uint256[](_tokens.length);
         for (uint256 i; i < w.length; ++i) {
-            w[i] = tokenInfo[_tokens[i]].weight;
+            w[i] = weightOf(_tokens[i]);
+        }
+    }
+
+    function targetWeights() external view returns (uint256[] memory w) {
+        w = new uint256[](_tokens.length);
+        for (uint256 i; i < w.length; ++i) {
+            w[i] = targetWeight[_tokens[i]];
         }
     }
 
@@ -348,6 +394,8 @@ contract MohurHook is IHooks, IUnlockCallback, IMohurPricer {
         b = tokenInfo[tokenOut];
         if (!a.listed) revert TokenNotInIndex(tokenIn);
         if (!b.listed) revert TokenNotInIndex(tokenOut);
+        a.weight = weightOf(tokenIn);
+        b.weight = weightOf(tokenOut);
     }
 
     function _contains(address[] calldata list, address t) private pure returns (bool) {

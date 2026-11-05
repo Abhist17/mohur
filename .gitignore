@@ -16,3 +16,4 @@ out/
 .DS_Store
 *.log
 .vscode/
+contracts/deployments/local.json

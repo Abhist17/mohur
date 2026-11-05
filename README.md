@@ -95,8 +95,11 @@ python3 reference/mohur_math.py              # regenerates the 80-digit referenc
 ## The app (`web/`)
 
 Next.js 15 + viem + three.js. Everything shown comes from the chain or is labelled *simulated* / *example*.
+Every transaction gets a toast (confirm in wallet → submitted, with explorer link → confirmed), and contract
+reverts are decoded into plain sentences ("Trade too large: one trade can move at most 30% of a balance").
 
 - **Landing:** a scroll-told 3D scene. The wallet is three stacks of coins (gold ETH, copper BTC, silver USDC) feeding two counters (Uniswap, 1inch) that show the same live price. Stages cover: the problem (two piles, drifting prices), one pile, one price, drag the market (rebalancing with the contracts' formula and the honest LVR cost), loops lose (a live on-chain loop quote), and private.
+- **Swap:** the everyday screen. Pay / receive, both venues' quotes side by side (identical, with each venue's remaining limit), rate, price impact, fee, minimum received (0.5% slippage), and one button that walks you through *get test tokens → approve → swap*. Defaults to the demo index so you trade against a real counterparty; makers can switch to their own.
 - **Create:** assets and weights (sliders always sum to 100%), simulated quote preview per pair.
 - **Launch:** six real steps from your wallet (deploy your own hook with an address mined in the browser, test tokens, approve Aqua only, set weights, open v4 pools + ship the Uniswap venue, ship 1inch Aqua strategies). Each step resumes from chain state.
 - **Live book:** weights vs target, identical quotes on both venues per pair, remaining venue limits, one fill feed for both venues, fees earned, flush button.

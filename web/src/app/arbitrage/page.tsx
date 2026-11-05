@@ -98,7 +98,7 @@ export default function ArbitragePage() {
             <span className="muted" style={{ width: 56 }}>Start</span>
             <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} style={{ width: 120 }} />
             <select value={start} onChange={(e) => setStart(e.target.value)}>
-              {SYMS.map((s) => <option key={s}>{s}</option>)}
+              {SYMS.map((s) => <option key={s} value={s}>{TOKEN_STYLE[s].name}</option>)}
             </select>
           </div>
           {legs.map((l, i) => (
@@ -110,7 +110,7 @@ export default function ArbitragePage() {
               </select>
               <span className="faint">→</span>
               <select value={l.to} onChange={(e) => setLegs(legs.map((x, k) => (k === i ? { ...x, to: e.target.value } : x)))}>
-                {SYMS.map((s) => <option key={s}>{s}</option>)}
+                {SYMS.map((s) => <option key={s} value={s}>{TOKEN_STYLE[s].name}</option>)}
               </select>
               <button className="btn small" onClick={() => setLegs(legs.filter((_, k) => k !== i))}>✕</button>
             </div>
@@ -132,7 +132,7 @@ export default function ArbitragePage() {
                 {path.map((s, i) => (
                   <tr key={i}>
                     <td className="faint">{i === 0 ? "in" : VENUE[legs[i - 1].venue]}</td>
-                    <td className="num">{fmt(Number(formatUnits(quote.amounts[i], dec(s))), 8)} {s}</td>
+                    <td className="num">{fmt(Number(formatUnits(quote.amounts[i], dec(s))), 8)} {TOKEN_STYLE[s].name}</td>
                     
                   </tr>
                 ))}

@@ -17,3 +17,4 @@ out/
 *.log
 .vscode/
 contracts/deployments/local.json
+.next-check/

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { DEFAULT_DRAFT, loadDraft, saveDraft, setWeight, type Draft } from "@/lib/draft";
 import { fmt, sim, TOKEN_STYLE } from "@/lib/mohur";
+import { TokenIcon } from "@/components/TokenIcon";
 
 const SYMS = ["tWETH", "tWBTC", "tUSDC"];
 
@@ -51,7 +52,7 @@ export default function CreatePage() {
               <div className="spread">
                 <label className="row" style={{ gap: 8, cursor: "pointer" }}>
                   <input type="checkbox" checked={d.weights[s] > 0} onChange={() => toggle(s)} />
-                  <span style={{ color: TOKEN_STYLE[s].color }}>●</span> {TOKEN_STYLE[s].name} <span className="faint mono">{s}</span>
+                  <TokenIcon symbol={s} size={20} /> {TOKEN_STYLE[s].name} <span className="faint mono">{s}</span>
                 </label>
                 <span className="mono" style={{ fontSize: 20 }}>{d.weights[s]}%</span>
               </div>

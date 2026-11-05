@@ -126,7 +126,7 @@ cd contracts
 npm install                                  # @1inch/solidity-utils, @openzeppelin (as upstream does)
 git submodule update --init --recursive
 npm run build:v4                             # builds the real v4 PoolManager artifact (solc 0.8.26)
-forge test --no-match-path 'test/fork/*'     # 45 tests
+forge test --no-match-path 'test/fork/*'     # 52 tests (incl. invariant suite + audit PoC)
 forge test --match-path 'test/fork/*'        # 2 fork tests against live Uniswap v4 on Base Sepolia
 python3 reference/mohur_math.py              # regenerates the 80-digit reference vectors
 ```
@@ -139,6 +139,8 @@ python3 reference/mohur_math.py              # regenerates the 80-digit referenc
 | `CrossVenue.t.sol` | Same price (6 directions × 2 modes), fills move the other venue, loops lose (fixed + fuzzed), self-rebalancing, only Aqua is approved. |
 | `Reweight.t.sol` | Weights glide linearly and both venues follow; gradual vs instant re-weight cost with a fee-aware arbitrageur. |
 | `Manage.t.sol` | Pause stops both venues (wallet untouched); resume with a top-up under a new epoch; epoch 0 orders unchanged. |
+| `invariant/MohurInvariant.t.sol` | 64 runs × 40 random actions (swaps on both venues, exact-in/out, flushes, donations): same price both venues, wallet changes only by fills, claims fully backed, invariant never falls, only Aqua approved. |
+| `audit/CrossVenueReentrancy.t.sol`, `audit/FillLock.t.sol` | Audit finding C-1: the callback double-dip PoC (now blocked) and the fill-lock guarantees. See [AUDIT.md](AUDIT.md). |
 | `LensLoop.t.sol` | A cross-venue loop returns exactly its Lens quote leg by leg; quoteBoth; book; minOut. |
 | `fork/V4BaseSepolia.t.sol` | Official V4Quoter == hook quote; a real Universal Router swap pays from the maker wallet. |
 
@@ -193,6 +195,17 @@ cd web && NEXT_PUBLIC_MOHUR_NETWORK=base-sepolia npm run dev   # every read thro
 # optional: UPSTREAM=https://sepolia.base.org node proxy/server.mjs, expose it, set NEXT_PUBLIC_MOHUR_PROXY_URL
 ```
 
+## Security
+
+An internal review is in [AUDIT.md](AUDIT.md). It found and fixed one critical issue: a cross-venue reentrancy through
+SwapVM taker callbacks, where a PoC extracted $752.92 from the maker. The fix is a fail-closed fill lock shared by both
+venues, and the PoC is kept as a regression test. `scripts/smoke.sh` checks any deployment on-chain (36 checks).
+
+## Try it
+
+- **Live app:** https://abhist17.github.io/mohur/ (GitHub Pages, every read through Anon-RPC; trading screens go live once the contracts are deployed to Base Sepolia).
+- **Deploy to Base Sepolia:** `cast wallet import mohur-deployer --interactive`, fund it with ~0.01 test ETH, then `./scripts/deploy-base-sepolia.sh`. It deploys, launches the demo index, makes fills on both venues, runs the smoke test, and pushes the addresses (the live site rebuilds).
+
 ## Honest limits
 
 - Mohur does not reduce LVR against the outside market; it earns the fee on the trades that rebalance it.
@@ -205,7 +218,7 @@ cd web && NEXT_PUBLIC_MOHUR_NETWORK=base-sepolia npm run dev   # every read thro
 
 | Folder | Contents |
 | --- | --- |
-| `contracts/` | Foundry project: `src`, `test` (45 + 2 fork), `script` (DeployMohur, LaunchIndex, DemoTrades), `reference` (Python math) |
+| `contracts/` | Foundry project: `src`, `test` (52 + 2 fork), `script` (DeployMohur, LaunchIndex, DemoTrades), `reference` (Python math) |
 | `web/` | Next.js dashboard; `src/lib/anon.ts` is the Anon-RPC transport |
 | `proxy/` | Logging JSON-RPC proxy |
 | `docs/` | PortfolioPrice write-up, Anon-RPC notes, demo script |

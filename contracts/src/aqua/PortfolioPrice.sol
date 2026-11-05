@@ -25,16 +25,19 @@ library PortfolioPrice {
         return abi.encodePacked(OPCODE, uint8(20), pricer);
     }
 
-    function exec(Context memory ctx, bytes calldata args) internal view {
+    function exec(Context memory ctx, bytes calldata args) internal {
         if (args.length != 20) revert PortfolioPriceBadArgs();
         IMohurPricer pricer = IMohurPricer(address(bytes20(args)));
         address pricerMaker = pricer.maker();
         if (pricerMaker != ctx.query.maker) revert PortfolioPriceWrongMaker(pricerMaker, ctx.query.maker);
 
         bool exactIn = ctx.query.isExactIn;
-        (uint256 amountIn, uint256 amountOut) = pricer.quote(
-            ctx.query.tokenIn, ctx.query.tokenOut, exactIn ? ctx.swap.amountIn : ctx.swap.amountOut, exactIn
-        );
+        uint256 amount = exactIn ? ctx.swap.amountIn : ctx.swap.amountOut;
+        // A real fill (not SwapVM.quote) also locks the pricer until the coins have moved: SwapVM calls taker
+        // callbacks between pricing and transfers, and nothing may trade against stale balances in that window.
+        (uint256 amountIn, uint256 amountOut) = ctx.vm.isStaticContext
+            ? pricer.quote(ctx.query.tokenIn, ctx.query.tokenOut, amount, exactIn)
+            : pricer.quoteAndLock(ctx.query.tokenIn, ctx.query.tokenOut, amount, exactIn);
         // Aqua's virtual balance for this strategy = what this venue may still sell.
         if (amountOut > ctx.swap.balanceOut) revert PortfolioPriceVenueLimit(amountOut, ctx.swap.balanceOut);
 

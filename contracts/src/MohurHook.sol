@@ -16,6 +16,7 @@ import { BeforeSwapDelta, toBeforeSwapDelta } from "v4-core/types/BeforeSwapDelt
 import { ModifyLiquidityParams, SwapParams } from "v4-core/types/PoolOperation.sol";
 
 import { IAqua } from "@1inch/aqua/contracts/interfaces/IAqua.sol";
+import { IMakerHooks } from "@1inch/swap-vm/contracts/interfaces/IMakerHooks.sol";
 
 import { MohurMath } from "./libraries/MohurMath.sol";
 import { IMohurPricer } from "./interfaces/IMohurPricer.sol";
@@ -32,7 +33,7 @@ import { IMohurPricer } from "./interfaces/IMohurPricer.sol";
 ///           into the wallet via Aqua.push on the next swap or a permissionless {flush}.
 ///         - Exposes {quote}/{price}/{effectiveBalance} - the 1inch SwapVM instruction prices through these
 ///           same functions, so both venues quote identically by construction.
-contract MohurHook is IHooks, IUnlockCallback, IMohurPricer {
+contract MohurHook is IHooks, IUnlockCallback, IMohurPricer, IMakerHooks {
     using SafeERC20 for IERC20;
 
     // ---------------------------------------------------------------------------------------------
@@ -49,6 +50,8 @@ contract MohurHook is IHooks, IUnlockCallback, IMohurPricer {
     error BadIndex();
     error SameToken();
     error PendingClaims(address token);
+    error NotSwapVM();
+    error FillInProgress();
 
     event IndexSet(address[] tokens, uint256[] weights, uint256 fee);
     event VenueStrategySet(uint256 nonce, bytes32 strategyHash);
@@ -95,12 +98,20 @@ contract MohurHook is IHooks, IUnlockCallback, IMohurPricer {
 
     /// @dev transient: claims minted in the current transaction (cannot be flushed yet).
     bytes32 private constant _MINTED_THIS_TX_SLOT = keccak256("mohur.hook.mintedThisTx");
+    /// @dev transient: a 1inch fill has been priced but its coins have not finished moving (see quoteAndLock).
+    bytes32 private constant _FILL_LOCK_SLOT = keccak256("mohur.hook.fillLock");
+    /// @dev transient: how many of the fill's two transfers (in, out) have completed.
+    bytes32 private constant _FILL_DONE_SLOT = keccak256("mohur.hook.fillDone");
+
+    /// @notice The Mohur SwapVM router: the only caller of quoteAndLock and of the maker hooks.
+    address public immutable swapVM;
 
     uint256 internal constant MAX_TOKENS = 8;
 
-    constructor(IPoolManager _poolManager, IAqua _aqua, address _maker) {
+    constructor(IPoolManager _poolManager, IAqua _aqua, address _swapVM, address _maker) {
         poolManager = _poolManager;
         aqua = _aqua;
+        swapVM = _swapVM;
         maker = _maker;
         Hooks.validateHookPermissions(IHooks(address(this)), getHookPermissions());
     }
@@ -260,6 +271,8 @@ contract MohurHook is IHooks, IUnlockCallback, IMohurPricer {
         override
         returns (uint256 amountIn, uint256 amountOut)
     {
+        // A 1inch fill has been priced but its coins haven't moved yet: any price now would be stale.
+        if (_fillLocked()) revert FillInProgress();
         (TokenInfo memory a, TokenInfo memory b) = _pair(tokenIn, tokenOut);
         uint256 bi = effectiveBalance(tokenIn) * a.scale;
         uint256 bo = effectiveBalance(tokenOut) * b.scale;
@@ -271,6 +284,82 @@ contract MohurHook is IHooks, IUnlockCallback, IMohurPricer {
             amountOut = amount;
             uint256 inScaled = MohurMath.inGivenOut(bi, a.weight, bo, b.weight, amount * b.scale, fee);
             amountIn = MohurMath.fromScaledUp(inScaled, a.scale);
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // 1inch fills: price, then lock until the coins have moved
+    // ---------------------------------------------------------------------------------------------
+
+    /// @notice Called by the PortfolioPrice instruction when SwapVM executes a real fill. Prices it, then locks
+    ///         quoting for the rest of the fill: SwapVM runs taker callbacks after pricing but before moving coins,
+    ///         and a trade on either venue inside that window would price off balances that are about to change.
+    ///         The order's postTransferIn/postTransferOut maker hooks clear the lock once both transfers are done.
+    ///         An order without those hooks leaves the lock set for the rest of the transaction (fails closed).
+    function quoteAndLock(address tokenIn, address tokenOut, uint256 amount, bool isExactIn)
+        external
+        returns (uint256 amountIn, uint256 amountOut)
+    {
+        if (msg.sender != swapVM) revert NotSwapVM();
+        (amountIn, amountOut) = quote(tokenIn, tokenOut, amount, isExactIn);
+        bytes32 l = _FILL_LOCK_SLOT;
+        bytes32 d = _FILL_DONE_SLOT;
+        assembly ("memory-safe") {
+            tstore(l, 1)
+            tstore(d, 0)
+        }
+    }
+
+    function fillLocked() external view returns (bool) {
+        return _fillLocked();
+    }
+
+    function postTransferIn(address m, address, address, address, uint256, uint256, uint256, bytes32, bytes calldata, bytes calldata)
+        external
+    {
+        _fillStepDone(m);
+    }
+
+    function postTransferOut(address m, address, address, address, uint256, uint256, uint256, bytes32, bytes calldata, bytes calldata)
+        external
+    {
+        _fillStepDone(m);
+    }
+
+    function preTransferIn(address, address, address, address, uint256, uint256, bytes32, bytes calldata, bytes calldata)
+        external
+        view
+    {
+        if (msg.sender != swapVM) revert NotSwapVM();
+    }
+
+    function preTransferOut(address, address, address, address, uint256, uint256, bytes32, bytes calldata, bytes calldata)
+        external
+        view
+    {
+        if (msg.sender != swapVM) revert NotSwapVM();
+    }
+
+    function _fillStepDone(address m) internal {
+        if (msg.sender != swapVM) revert NotSwapVM();
+        if (m != maker) revert NotMaker();
+        bytes32 l = _FILL_LOCK_SLOT;
+        bytes32 d = _FILL_DONE_SLOT;
+        assembly ("memory-safe") {
+            let done := add(tload(d), 1)
+            switch lt(done, 2)
+            case 1 { tstore(d, done) }
+            default {
+                tstore(l, 0)
+                tstore(d, 0)
+            }
+        }
+    }
+
+    function _fillLocked() internal view returns (bool locked) {
+        bytes32 l = _FILL_LOCK_SLOT;
+        assembly ("memory-safe") {
+            locked := tload(l)
         }
     }
 

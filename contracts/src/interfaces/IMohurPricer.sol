@@ -13,6 +13,12 @@ interface IMohurPricer {
         view
         returns (uint256 amountIn, uint256 amountOut);
 
+    /// @notice Like quote(), for a real 1inch fill: also locks quoting until the fill's coins have moved.
+    ///         Only callable by the Mohur SwapVM router.
+    function quoteAndLock(address tokenIn, address tokenOut, uint256 amount, bool isExactIn)
+        external
+        returns (uint256 amountIn, uint256 amountOut);
+
     /// @notice Spot price of 1 tokenIn in tokenOut, 18 decimals, fee excluded, decimals normalised.
     function price(address tokenIn, address tokenOut) external view returns (uint256);
 

@@ -31,6 +31,11 @@ library MohurStrategy {
         a.tokenA = t0;
         a.tokenB = t1;
         a.useAquaInsteadOfSignature = true;
+        // the hook clears its fill lock once both transfers are done (see MohurHook.quoteAndLock)
+        a.hasPostTransferInHook = true;
+        a.postTransferInTarget = hook;
+        a.hasPostTransferOutHook = true;
+        a.postTransferOutTarget = hook;
         a.program = program(hook, salt);
         return MakerTraitsLib.build(a);
     }

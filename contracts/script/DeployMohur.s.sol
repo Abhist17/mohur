@@ -28,7 +28,7 @@ contract DeployMohur is MohurScriptBase {
 
         Aqua aqua = new Aqua();
         MohurSwapVMRouter swapVM = new MohurSwapVMRouter(address(aqua), BASE_SEPOLIA_WETH, deployer);
-        MohurHookFactory factory = new MohurHookFactory(pm, IAqua(address(aqua)));
+        MohurHookFactory factory = new MohurHookFactory(pm, IAqua(address(aqua)), address(swapVM));
         MohurLens lens = new MohurLens();
         MohurLoopRouter loop = new MohurLoopRouter(pm, ISwapVM(address(swapVM)));
         MohurTestToken tWETH = new MohurTestToken("Mohur Test WETH (testnet, no value)", "tWETH", 18, 10e18);

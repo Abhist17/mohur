@@ -78,7 +78,7 @@ abstract contract MohurFixture is Test {
         wbtc = new MohurTestToken("Mohur Test WBTC", "tWBTC", 8, 0.3e8);
         usdc = new MohurTestToken("Mohur Test USDC", "tUSDC", 6, 30_000e6);
         swapVM = new MohurSwapVMRouter(address(aqua), address(weth), address(this));
-        factory = new MohurHookFactory(manager, IAqua(address(aqua)));
+        factory = new MohurHookFactory(manager, IAqua(address(aqua)), address(swapVM));
 
         tokens = [address(weth), address(wbtc), address(usdc)];
         weights = [uint256(0.4e18), 0.3e18, 0.3e18];

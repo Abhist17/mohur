@@ -3,6 +3,7 @@ pragma solidity 0.8.30;
 
 import { ISwapVM } from "@1inch/swap-vm/contracts/interfaces/ISwapVM.sol";
 import { MakerTraitsLib } from "@1inch/swap-vm/contracts/libs/MakerTraits.sol";
+import { TakerTraitsLib } from "@1inch/swap-vm/contracts/libs/TakerTraits.sol";
 import { PortfolioPrice } from "./PortfolioPrice.sol";
 
 /// @title MohurStrategy
@@ -40,5 +41,20 @@ library MohurStrategy {
 
     function strategyHash(ISwapVM.Order memory o) internal pure returns (bytes32) {
         return keccak256(abi.encode(o));
+    }
+
+    /// @notice Taker data for a full (non-partial) fill where the router pulls the taker's input and
+    ///         Aqua.push-es it straight into the maker wallet.
+    function takerData(address taker, address tokenIn, address tokenOut, bool exactIn)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        TakerTraitsLib.Args memory t;
+        t.taker = taker;
+        t.isExactIn = exactIn;
+        t.useTransferFromAndAquaPush = true;
+        t.isAToB = tokenIn < tokenOut;
+        return TakerTraitsLib.build(t);
     }
 }

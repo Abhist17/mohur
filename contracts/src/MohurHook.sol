@@ -132,28 +132,30 @@ contract MohurHook is IHooks, IUnlockCallback, IMohurPricer {
     // ---------------------------------------------------------------------------------------------
 
     /// @notice Set (or re-set) the index: tokens, target weights (sum 1e18) and flat fee.
-    function setIndex(address[] calldata tokens, uint256[] calldata weights, uint256 _fee) external onlyMaker {
-        if (tokens.length != weights.length || tokens.length < 2 || tokens.length > MAX_TOKENS) revert BadIndex();
-        MohurMath.validateWeights(weights);
+    function setIndex(address[] calldata newTokens, uint256[] calldata newWeights, uint256 _fee) external onlyMaker {
+        if (newTokens.length != newWeights.length || newTokens.length < 2 || newTokens.length > MAX_TOKENS) {
+            revert BadIndex();
+        }
+        MohurMath.validateWeights(newWeights);
         MohurMath.validateFee(_fee);
         for (uint256 i; i < _tokens.length; ++i) {
             delete tokenInfo[_tokens[i]];
         }
         delete _tokens;
-        for (uint256 i; i < tokens.length; ++i) {
-            address t = tokens[i];
+        for (uint256 i; i < newTokens.length; ++i) {
+            address t = newTokens[i];
             if (t == address(0)) revert NativeNotSupported();
             if (tokenInfo[t].listed) revert BadIndex();
             tokenInfo[t] = TokenInfo({
                 listed: true,
                 index: uint64(i),
-                weight: weights[i],
+                weight: newWeights[i],
                 scale: MohurMath.scaleFactor(IERC20Metadata(t).decimals())
             });
             _tokens.push(t);
         }
         fee = _fee;
-        emit IndexSet(tokens, weights, _fee);
+        emit IndexSet(newTokens, newWeights, _fee);
     }
 
     /// @notice Point this venue at a new Aqua strategy (e.g. after shipping a topped-up one).

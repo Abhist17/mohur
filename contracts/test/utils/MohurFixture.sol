@@ -70,7 +70,7 @@ abstract contract MohurFixture is Test {
     uint256 internal constant USDC0 = 30_000e6;
 
     function setUpMohur() internal {
-        manager = IPoolManager(deployCode(string.concat(V4_OUT, "PoolManager.sol/PoolManager.json"), abi.encode(address(this))));
+        manager = _poolManager();
         v4Router = IPoolSwapTest(deployCode(string.concat(V4_OUT, "PoolSwapTest.sol/PoolSwapTest.json"), abi.encode(address(manager))));
         aqua = new Aqua();
 
@@ -116,6 +116,11 @@ abstract contract MohurFixture is Test {
             IERC20(tokens[i]).approve(address(swapVM), type(uint256).max);
         }
         vm.stopPrank();
+    }
+
+    /// @dev Local tests deploy a fresh PoolManager; fork tests override this with the live one.
+    function _poolManager() internal virtual returns (IPoolManager) {
+        return IPoolManager(deployCode(string.concat(V4_OUT, "PoolManager.sol/PoolManager.json"), abi.encode(address(this))));
     }
 
     function _shipV4Venue(uint256 bps) internal {

@@ -60,7 +60,6 @@ export default function MyIndex() {
     // glide progress follows chain time (what both venues actually price with), not the browser clock
     setNow(Number((await c.getBlock()).timestamp));
     setFills(await fillsP);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, w.account]);
 
   useEffect(() => {

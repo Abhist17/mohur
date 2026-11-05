@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "sync": "node scripts/sync.mjs"
+    "sync": "node scripts/sync.mjs",
+    "e2e": "node --no-warnings scripts/e2e-flows.mjs"
   },
   "dependencies": {
     "@anon-rpc/browser-harness": "^0.4.0",

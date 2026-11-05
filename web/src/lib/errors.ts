@@ -1,4 +1,4 @@
-import { BaseError, ContractFunctionRevertedError, type Abi } from "viem";
+import { BaseError, ContractFunctionRevertedError, decodeErrorResult, parseAbi, type Abi, type Hex } from "viem";
 import {
   AquaAbi,
   MohurHookAbi,
@@ -18,7 +18,24 @@ export const ALL_ERRORS: Abi = [
   ...MohurSwapVMRouterAbi,
   ...MohurTestTokenAbi,
   ...AquaAbi,
+  // Uniswap v4's PoolManager wraps a hook's revert in WrappedError(target, selector, reason, details)
+  ...parseAbi(["error WrappedError(address target, bytes4 selector, bytes reason, bytes details)"]),
 ].filter((x) => x.type === "error") as Abi;
+
+/** Unwrap Uniswap's WrappedError (possibly nested) down to the hook's own error name. */
+export function innerErrorName(name: string | undefined, args: readonly unknown[] | undefined): string | undefined {
+  let n = name, a = args;
+  for (let depth = 0; n === "WrappedError" && a && depth < 4; depth++) {
+    try {
+      const d = decodeErrorResult({ abi: ALL_ERRORS, data: a[2] as Hex });
+      n = d.errorName;
+      a = d.args as readonly unknown[] | undefined;
+    } catch {
+      break;
+    }
+  }
+  return n;
+}
 
 const HUMAN: Record<string, string> = {
   MaxInRatio: "Trade too large: one trade can move at most 30% of a balance.",
@@ -47,7 +64,7 @@ export function prettyError(e: unknown): string {
   if (/insufficient funds/i.test(msg)) return "Not enough ETH for gas.";
   if (e instanceof BaseError) {
     const rev = e.walk((x) => x instanceof ContractFunctionRevertedError) as ContractFunctionRevertedError | null;
-    const name = rev?.data?.errorName;
+    const name = innerErrorName(rev?.data?.errorName, rev?.data?.args as readonly unknown[] | undefined);
     if (name) return HUMAN[name] ?? `Reverted: ${name}`;
     if (rev?.reason) return `Reverted: ${rev.reason}`;
     return e.shortMessage;

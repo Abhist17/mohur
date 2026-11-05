@@ -10,8 +10,7 @@ import { usePoll } from "@/components/useIndex";
 
 const BASE = { eth: 10, btc: 0.3, usdc: 30000 }; // $100k at $4,000 / $100,000
 const W = [0.4, 0.3, 0.3];
-const STAGES = ["hero", "problem", "mohur", "oneprice", "market", "loops", "private"] as const;
-type Stage = (typeof STAGES)[number];
+type Stage = "hero" | "problem" | "mohur" | "oneprice" | "market" | "loops" | "private";
 
 export default function Landing() {
   const d = deployment();

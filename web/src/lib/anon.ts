@@ -63,7 +63,6 @@ type AnonWorker = {
   fetch: (input: string, init?: RequestInit & { anonOptions?: { isolationKey?: string } }) => Promise<Response>;
   close(): void;
 };
-let worker: AnonWorker | undefined;
 let workerPromise: Promise<AnonWorker> | undefined;
 
 function storedWorker(): WorkerId {
@@ -110,7 +109,6 @@ export function startWorker(id: WorkerId = storedWorker(), isFallback = false): 
   if (workerPromise && status.worker === id) return workerPromise;
   instance?.close(); // tear down the previous sandbox, even if it never became ready
   instance = undefined;
-  worker = undefined;
   const gen = ++generation;
   status = { worker: id, state: "booting" };
   emit();
@@ -142,7 +140,6 @@ export function startWorker(id: WorkerId = storedWorker(), isFallback = false): 
       throw e;
     }
     if (gen !== generation) throw new Error("superseded");
-    worker = w;
     status = { worker: id, state: "ready", bootMs: Math.round(performance.now() - t0) };
     emit();
     return w;

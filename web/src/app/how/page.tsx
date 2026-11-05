@@ -106,6 +106,22 @@ export default function How() {
         the wallet back to 40.0 / 30.0 / 30.0. You earn the fee on every one of those trades.
       </Section>
 
+      <Section n="5½" title="Change your mind, cheaply">
+        <p>
+          Want 50/25/25 instead of 40/30/30? Flip the weights instantly and the whole price gap opens at once: arbitrageurs take it in one go.
+          Or let Mohur <b>glide</b> the weights on both venues over an hour, a day, or three days. Each moment&apos;s gap stays near the fee, so
+          the market walks your wallet to the new allocation through ordinary, fee-paying trades.
+        </p>
+        <p>
+          In the tests, moving a $100,000 index from 40/30/30 to 50/25/25 at constant prices cost <b>$1,991</b> instantly and <b>$25</b> gradually.
+          Both ended at 50% ETH. Doing it yourself on a DEX would cost about $30 in fees plus slippage, plus the work.
+        </p>
+        <p>
+          And you stay in control: pause both stalls in one click, top them up, or change how much each may sell, from{" "}
+          <Link href="/my" className="gold">My index</Link>.
+        </p>
+      </Section>
+
       <Section n="6" title="Nobody watching">
         Every chain read the app makes goes through the Ethereum Foundation&apos;s Anon-RPC (over Tor, or the Nym mixnet), with a separate isolation
         key for each strategy, each maker and each trader, so the RPC sees an exit node, not you, and can&apos;t stitch your activity together.

@@ -20,6 +20,8 @@ The name is the Mohur, a Mughal gold coin. Built at ETHGlobal (hack day 5–6 No
 | **One inventory, two venues.** A v4 hook and a custom 1inch SwapVM instruction call the same pricing function over the wallet's real balances. | 0 units of difference between venues, all 6 directions, exact-in and exact-out (`CrossVenue.t.sol`). Official **V4Quoter** on Base Sepolia returns exactly the hook's quote (`test/fork`). |
 | **It can't be gamed.** Any loop through the wallet, on one venue or across both, loses. | 3-leg loop ETH→USDC (Uniswap) → BTC (1inch) → ETH (Uniswap) of 0.1 ETH loses **88 bps**; fuzzed loops over any venue mix always lose; round trips lose at least the proven floor `a·f·B/(B + a(1−f))`. |
 | **It rebalances itself.** When the market moves, traders buy what is cheap from you until the mix is back on target. | ETH 4,000 → 5,000, arbitrage alone restores **40.01 / 29.99 / 29.99**. |
+| **New: change your allocation without paying to rebalance.** `scheduleWeights` glides the target weights on both venues at once, so the market walks the wallet to the new mix through small, fee-paying trades. | Moving a $100k index 40/30/30 → 50/25/25 at constant prices: instant switch costs **$1,991** to arbitrage, a 50-step glide costs **$25**; both reach 50% ETH (`Reweight.t.sol`). |
+| **The maker stays in control.** Pause both venues in one click; resume, top up or re-split under a new epoch. | `Manage.t.sol`: pause stops both venues and leaves the wallet untouched; resume re-opens both with identical quotes. |
 | **Nobody watches you.** | 100% of app reads go through Anon-RPC (Tor by default) on Base Sepolia, keys per maker / strategy / trader, live read log, logging proxy. |
 | **Honest limit.** Mohur does not reduce LVR against the outside market. The traders who rebalance you capture the move; you earn the fee. | The landing page states the cost: at ETH $6,400 a $100k index trails holding by ~$3,316 before fees. |
 
@@ -124,7 +126,7 @@ cd contracts
 npm install                                  # @1inch/solidity-utils, @openzeppelin (as upstream does)
 git submodule update --init --recursive
 npm run build:v4                             # builds the real v4 PoolManager artifact (solc 0.8.26)
-forge test --no-match-path 'test/fork/*'     # 38 tests
+forge test --no-match-path 'test/fork/*'     # 45 tests
 forge test --match-path 'test/fork/*'        # 2 fork tests against live Uniswap v4 on Base Sepolia
 python3 reference/mohur_math.py              # regenerates the 80-digit reference vectors
 ```
@@ -135,6 +137,8 @@ python3 reference/mohur_math.py              # regenerates the 80-digit referenc
 | `MohurHook.t.sol` | Pays from wallet, prices from wallet, exact-out, claims flush via Aqua (re-crediting the venue limit), permissionless flush, a token cannot leave the index with claims pending, venue limit stops at the Aqua cap while the wallet keeps the rest, no LP, maker-only pools, scoped approvals. |
 | `PortfolioPrice.t.sol` | Program layout, quote == hook quote, real Aqua push/pull, exact-out, venue limit = Aqua virtual balance, refuses another maker's hook. |
 | `CrossVenue.t.sol` | Same price (6 directions × 2 modes), fills move the other venue, loops lose (fixed + fuzzed), self-rebalancing, only Aqua is approved. |
+| `Reweight.t.sol` | Weights glide linearly and both venues follow; gradual vs instant re-weight cost with a fee-aware arbitrageur. |
+| `Manage.t.sol` | Pause stops both venues (wallet untouched); resume with a top-up under a new epoch; epoch 0 orders unchanged. |
 | `LensLoop.t.sol` | A cross-venue loop returns exactly its Lens quote leg by leg; quoteBoth; book; minOut. |
 | `fork/V4BaseSepolia.t.sol` | Official V4Quoter == hook quote; a real Universal Router swap pays from the maker wallet. |
 
@@ -148,7 +152,8 @@ reverts are decoded into plain sentences ("Trade too large: one trade can move a
 - **Swap:** the everyday screen. Pay / receive, both venues' quotes side by side (identical, with each venue's remaining limit), rate, price impact, fee, minimum received (0.5% slippage), and one button that walks you through *get test tokens → approve → swap*. Defaults to the demo index so you trade against a real counterparty; makers can switch to their own.
 - **Create:** assets and weights (sliders always sum to 100%), simulated quote preview per pair.
 - **Launch:** six real steps from your wallet (deploy your own hook with an address mined in the browser, test tokens, approve Aqua only, set weights, open v4 pools + ship the Uniswap venue, ship 1inch Aqua strategies). Each step resumes from chain state.
-- **Live book:** weights vs target, identical quotes on both venues per pair, remaining venue limits, one fill feed for both venues, fees earned, flush button.
+- **My index** (the maker's home): performance vs just holding (start reconstructed from fills), fees earned, volume per venue; change allocation instantly or gradually (1 hour to 3 days) with the measured cost difference; pause both venues, resume, top up or re-split.
+- **Live book:** weights vs target, a live rebalancing panel at the market prices you type (what the wallet will buy/sell, arbitrage available, "be that trader" → prefilled Swap),, identical quotes on both venues per pair, remaining venue limits, one fill feed for both venues, fees earned, flush button.
 - **Arbitrage me:** build any route across venues, quote it exactly, run it for real.
 - **Privacy:** every chain read live (route, label, isolation key, latency), worker switcher (Tor / Nym / passthrough), who-learns-what, logging-proxy view.
 
@@ -200,7 +205,7 @@ cd web && NEXT_PUBLIC_MOHUR_NETWORK=base-sepolia npm run dev   # every read thro
 
 | Folder | Contents |
 | --- | --- |
-| `contracts/` | Foundry project: `src`, `test` (38 + 2 fork), `script` (DeployMohur, LaunchIndex, DemoTrades), `reference` (Python math) |
+| `contracts/` | Foundry project: `src`, `test` (45 + 2 fork), `script` (DeployMohur, LaunchIndex, DemoTrades), `reference` (Python math) |
 | `web/` | Next.js dashboard; `src/lib/anon.ts` is the Anon-RPC transport |
 | `proxy/` | Logging JSON-RPC proxy |
 | `docs/` | PortfolioPrice write-up, Anon-RPC notes, demo script |

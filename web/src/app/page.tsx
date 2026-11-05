@@ -231,7 +231,7 @@ export default function Landing() {
             ["0 units", "price difference between venues, all 6 directions, exact-in and exact-out"],
             ["−88 bps", "a 3-leg loop across venues (0.1 ETH); fuzzed loops always lose"],
             ["40.0 / 30.0 / 30.0", "weights after ETH 4,000 → 5,000, restored by arbitrage alone"],
-            ["3×10⁻¹⁴", "max error vs an 80-digit Python reference, always on the maker's side"],
+            ["$25 vs $1,991", "moving $100k from 40/30/30 to 50/25/25 gradually vs instantly: the market walks you there"],
           ].map(([n, t]) => (
             <div key={n} className="card">
               <div className="serif gold" style={{ fontSize: 40 }}>{n}</div>
@@ -240,7 +240,7 @@ export default function Landing() {
           ))}
         </div>
         <p className="faint" style={{ fontSize: 13 }}>
-          From the Foundry suite in <span className="mono">contracts/test</span>, including fork tests against the real Uniswap v4 PoolManager, V4Quoter and Universal Router on Base Sepolia.
+          From the Foundry suite in <span className="mono">contracts/test</span> (math within 3×10⁻¹⁴ of an 80-digit reference, always on the maker&apos;s side), including fork tests against the real Uniswap v4 PoolManager, V4Quoter and Universal Router on Base Sepolia.
         </p>
 
         <hr className="sep" />

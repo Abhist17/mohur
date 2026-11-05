@@ -128,6 +128,23 @@ contract MohurHookTest is MohurFixture {
         assertGt(hook.price(address(weth), address(usdc)), p0);
     }
 
+    function test_cannotDropTokenWithPendingClaims() public {
+        swapV4(trader, address(usdc), address(weth), 1_000e6, true); // USDC input now held as claims
+        address[] memory t2 = new address[](2);
+        t2[0] = address(weth);
+        t2[1] = address(wbtc);
+        uint256[] memory w2 = new uint256[](2);
+        w2[0] = 0.5e18;
+        w2[1] = 0.5e18;
+        vm.prank(maker);
+        vm.expectRevert(abi.encodeWithSelector(MohurHook.PendingClaims.selector, address(usdc)));
+        hook.setIndex(t2, w2, FEE);
+        hook.flush();
+        vm.prank(maker);
+        hook.setIndex(t2, w2, FEE); // fine once flushed into the wallet
+        assertEq(usdc.balanceOf(maker), USDC0 + 1_000e6, "claims reached the wallet");
+    }
+
     function test_makerOnlyApprovesAqua() public view {
         for (uint256 i; i < 3; ++i) {
             IERC20 t = IERC20(tokens[i]);

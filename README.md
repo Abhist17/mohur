@@ -78,7 +78,7 @@ cd contracts
 npm install                                  # @1inch/solidity-utils, @openzeppelin (as upstream does)
 git submodule update --init --recursive
 npm run build:v4                             # builds the real v4 PoolManager artifact (solc 0.8.26)
-forge test --no-match-path 'test/fork/*'     # 37 tests
+forge test --no-match-path 'test/fork/*'     # 38 tests
 forge test --match-path 'test/fork/*'        # 2 fork tests against live Uniswap v4 on Base Sepolia
 python3 reference/mohur_math.py              # regenerates the 80-digit reference vectors
 ```
@@ -86,7 +86,7 @@ python3 reference/mohur_math.py              # regenerates the 80-digit referenc
 | Suite | Covers |
 | --- | --- |
 | `MohurMath.t.sol` | 111 vectors from an 80-digit Python reference (within 3×10⁻¹⁴ of balance, always on the maker's side); fuzzed round-trip floor; fee-free invariant never decreases; donation-then-swap never profits; guards. |
-| `MohurHook.t.sol` | Pays from wallet, prices from wallet, exact-out, claims flush via Aqua (re-crediting the venue limit), permissionless flush, venue limit stops at the Aqua cap while the wallet keeps the rest, no LP, maker-only pools, scoped approvals. |
+| `MohurHook.t.sol` | Pays from wallet, prices from wallet, exact-out, claims flush via Aqua (re-crediting the venue limit), permissionless flush, a token cannot leave the index with claims pending, venue limit stops at the Aqua cap while the wallet keeps the rest, no LP, maker-only pools, scoped approvals. |
 | `PortfolioPrice.t.sol` | Program layout, quote == hook quote, real Aqua push/pull, exact-out, venue limit = Aqua virtual balance, refuses another maker's hook. |
 | `CrossVenue.t.sol` | Same price (6 directions × 2 modes), fills move the other venue, loops lose (fixed + fuzzed), self-rebalancing, only Aqua is approved. |
 | `LensLoop.t.sol` | A cross-venue loop returns exactly its Lens quote leg by leg; quoteBoth; book; minOut. |
@@ -150,7 +150,7 @@ cd web && NEXT_PUBLIC_MOHUR_NETWORK=base-sepolia npm run dev   # every read thro
 
 | Folder | Contents |
 | --- | --- |
-| `contracts/` | Foundry project: `src`, `test` (37 + 2 fork), `script` (DeployMohur, LaunchIndex, DemoTrades), `reference` (Python math) |
+| `contracts/` | Foundry project: `src`, `test` (38 + 2 fork), `script` (DeployMohur, LaunchIndex, DemoTrades), `reference` (Python math) |
 | `web/` | Next.js dashboard; `src/lib/anon.ts` is the Anon-RPC transport |
 | `proxy/` | Logging JSON-RPC proxy |
 | `docs/` | PortfolioPrice write-up, Anon-RPC notes, demo script |

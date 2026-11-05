@@ -48,6 +48,7 @@ contract MohurHook is IHooks, IUnlockCallback, IMohurPricer {
     error VenueLimit(address token, uint256 requested, uint256 available);
     error BadIndex();
     error SameToken();
+    error PendingClaims(address token);
 
     event IndexSet(address[] tokens, uint256[] weights, uint256 fee);
     event VenueStrategySet(uint256 nonce, bytes32 strategyHash);
@@ -139,7 +140,10 @@ contract MohurHook is IHooks, IUnlockCallback, IMohurPricer {
         MohurMath.validateWeights(newWeights);
         MohurMath.validateFee(_fee);
         for (uint256 i; i < _tokens.length; ++i) {
-            delete tokenInfo[_tokens[i]];
+            address old = _tokens[i];
+            // a token can't leave the index while Uniswap input for it is still held as claims (flush first)
+            if (pending[old] != 0 && !_contains(newTokens, old)) revert PendingClaims(old);
+            delete tokenInfo[old];
         }
         delete _tokens;
         for (uint256 i; i < newTokens.length; ++i) {
@@ -344,6 +348,13 @@ contract MohurHook is IHooks, IUnlockCallback, IMohurPricer {
         b = tokenInfo[tokenOut];
         if (!a.listed) revert TokenNotInIndex(tokenIn);
         if (!b.listed) revert TokenNotInIndex(tokenOut);
+    }
+
+    function _contains(address[] calldata list, address t) private pure returns (bool) {
+        for (uint256 i; i < list.length; ++i) {
+            if (list[i] == t) return true;
+        }
+        return false;
     }
 
     function _slot(address token) private pure returns (bytes32 s) {

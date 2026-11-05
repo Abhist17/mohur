@@ -30,6 +30,27 @@ export default function How() {
 
       <Concept caption={<><b>One stockroom, two stalls.</b> Your wallet is the stockroom. Uniswap and 1inch are two stalls selling from it. There is only one shelf, so there is only one price: a sale at either stall moves the shelf, and both price tags change together. Nothing has to be synced.</>} />
 
+      <Section n="0" title="The idea in plain words">
+        <p>
+          Raju owns a shop with mangoes, rice and cash in one stockroom. He opens two stalls in two different markets: Uniswap and 1inch.
+          Both stalls sell from the <b>same stockroom</b> and read prices off the <b>same board</b>, which follows one simple rule:
+        </p>
+        <ul className="steps">
+          <li>Raju wants his stockroom to stay 40% mangoes, 30% rice, 30% cash.</li>
+          <li>If he has too many mangoes, the board makes mangoes cheaper, so customers buy them and the stock goes back to 40%.</li>
+          <li>If mangoes run low, the board makes them dearer, so customers sell him mangoes.</li>
+        </ul>
+        <p style={{ marginTop: 12 }}>
+          Because both stalls read one stockroom, a sale at one stall changes the price at the other immediately. Nobody can buy cheap at one
+          stall and sell dear at the other against Raju, and no loop through his three products makes free money. And while Raju checks his
+          stock all day, those checks go through an anonymous channel, so whoever supplies the information never learns who is asking.
+        </p>
+        <p>
+          <b>In one sentence:</b> your wallet becomes a self-rebalancing index fund that earns trading fees on two exchanges at once, without
+          your money ever leaving your wallet, and without anyone watching you run it.
+        </p>
+      </Section>
+
       <Section n="1" title="The problem today">
         To make markets on two venues you split your coins into two piles. Each pile quotes its own price, drifts on its own, and needs its own
         rebalancing. Your capital is fragmented and your prices disagree. If you just hold an index, keeping it at 40/30/30 means rebalancing
@@ -97,6 +118,7 @@ export default function How() {
           <li>Mohur doesn&apos;t remove LVR: the traders who rebalance you capture the move; you earn the fee.</li>
           <li>One trade can move at most 30% of a balance, and each venue sells only up to its limit.</li>
           <li>Uniswap input waits as claims until the next swap or a flush. It&apos;s priced in at once, but 1inch can only sell what&apos;s already in the wallet.</li>
+          <li>Use a dedicated maker wallet. Prices come from what the wallet holds, so spending the index tokens elsewhere moves the price (and gifting tokens to it only enriches the maker).</li>
           <li>This is a testnet demo with test tokens. Not audited.</li>
         </ul>
       </Section>

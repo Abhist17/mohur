@@ -62,6 +62,25 @@ export default function BookPage() {
   for (const f of fills) feesBy[sym(f.tokenIn)] = (feesBy[sym(f.tokenIn)] ?? 0) + units(f.amountIn, dec(f.tokenIn)) * feeRate;
   const feesUsd = Object.entries(feesBy).reduce((a, [s, v]) => a + v * (px[s] ?? 0), 0);
 
+  // Self-rebalancing, live: at the market prices typed above, where does arbitrage take the wallet?
+  // Fee-free equilibrium of the weighted invariant prod(B_i^w_i): B_i* = w_i * K / p_i with K = Inv / prod((w_i/p_i)^w_i).
+  // The trader's profit is the wallet's value now minus at equilibrium (>= 0 by AM-GM), before fees.
+  const rb = (() => {
+    if (!book || book.tokens.length < 2) return undefined;
+    const t = book.tokens.map((x) => ({ sym: x.symbol, b: units(x.effectiveBalance, x.decimals), w: Number(x.weight) / 1e18, p: px[x.symbol] ?? 0 }));
+    if (t.some((x) => !(x.p > 0) || !(x.b > 0))) return undefined;
+    const lnInv = t.reduce((a, x) => a + x.w * Math.log(x.b), 0);
+    const lnK = lnInv - t.reduce((a, x) => a + x.w * Math.log(x.w / x.p), 0);
+    const K = Math.exp(lnK);
+    const rows = t.map((x) => ({ ...x, target: (x.w * K) / x.p, delta: (x.w * K) / x.p - x.b }));
+    const v0 = t.reduce((a, x) => a + x.b * x.p, 0);
+    const profit = v0 - K;
+    const over = rows.reduce((a, r) => (r.delta * r.p < a.delta * a.p ? r : a)); // wallet sells most of this
+    const under = rows.reduce((a, r) => (r.delta * r.p > a.delta * a.p ? r : a)); // wallet wants this
+    const feeCost = rows.reduce((a, r) => a + Math.max(0, r.delta) * r.p, 0) * feeRate;
+    return { rows, profit, net: profit - feeCost, over, under, v0 };
+  })();
+
   const flush = async () => {
     setBusy(true);
     try {
@@ -168,6 +187,52 @@ export default function BookPage() {
           <p className="faint" style={{ fontSize: 12 }}>Δ is in the output token&apos;s smallest units.</p>
         </div>
       </div>
+
+      {rb && (
+        <div className="card" style={{ marginTop: 16 }}>
+          <div className="spread">
+            <div>
+              <h3>Rebalancing, live</h3>
+              <p className="muted" style={{ fontSize: 14, margin: "4px 0 0", maxWidth: 640 }}>
+                At the market prices you typed above, Mohur is quoting {rb.over.sym === "tUSDC" ? "" : TOKEN_STYLE[rb.over.sym]?.name} {rb.net > 0 ? "below market" : "in line with the market"}.
+                Whoever trades it back to target is paid for it. No oracle, no keeper: just traders.
+              </p>
+            </div>
+            <span className={`tag ${rb.net > 0 ? "live" : ""}`}>{rb.net > 0 ? "opportunity open" : "on target"}</span>
+          </div>
+          <div className="table-scroll" style={{ marginTop: 10 }}>
+            <table>
+              <thead><tr><th>Asset</th><th className="num">Holds now</th><th className="num">At target</th><th className="num">Wallet will</th></tr></thead>
+              <tbody>
+                {rb.rows.map((r) => (
+                  <tr key={r.sym}>
+                    <td><span className="row" style={{ gap: 8 }}><TokenIcon symbol={r.sym} size={18} />{TOKEN_STYLE[r.sym]?.name}</span></td>
+                    <td className="num">{fmt(r.b)}</td>
+                    <td className="num">{fmt(r.target)}</td>
+                    <td className={`num ${Math.abs(r.delta * r.p) < 1 ? "faint" : r.delta > 0 ? "good" : "bad"}`}>
+                      {Math.abs(r.delta * r.p) < 1 ? "hold" : r.delta > 0 ? `buy ${fmt(r.delta)}` : `sell ${fmt(-r.delta)}`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="spread" style={{ marginTop: 14 }}>
+            <span className="muted" style={{ fontSize: 14 }}>
+              Arbitrage available ≈ <b className="gold">${fmt(Math.max(0, rb.profit))}</b> before fees,{" "}
+              <b className={rb.net > 0 ? "good" : "faint"}>${fmt(Math.max(0, rb.net))}</b> after the 0.30% fee. The fee goes to the wallet.
+            </span>
+            {rb.net > 0 && rb.under.delta > 0 && (
+              <Link
+                className="btn small primary"
+                href={`/swap?in=${rb.under.sym}&out=${rb.over.sym}&amount=${Number(Math.min(rb.under.delta, rb.under.b * 0.29).toPrecision(4)).toString()}${isOwn ? "&index=own" : ""}`}
+              >
+                Be that trader: pay {TOKEN_STYLE[rb.under.sym]?.name}, get {TOKEN_STYLE[rb.over.sym]?.name} →
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="grid g2" style={{ marginTop: 16 }}>
         <div className="card">

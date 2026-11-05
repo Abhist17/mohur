@@ -62,7 +62,7 @@ p { margin: 0 0 12px; }
 .nav-mobile { display: flex; flex-direction: column; padding-bottom: 12px; }
 .nav-mobile a { padding: 12px 4px; border-top: 1px solid var(--line); color: var(--muted); }
 .nav-mobile a.on { color: var(--gold); }
-@media (max-width: 860px) {
+@media (max-width: 1120px) {
   .nav-links { display: none; }
   .nav-in { justify-content: space-between; gap: 8px; }
   .nav-burger { display: inline-flex; }

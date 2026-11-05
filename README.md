@@ -23,6 +23,52 @@ The name is the Mohur, a Mughal gold coin. Built at ETHGlobal (hack day 5–6 No
 | **Nobody watches you.** | 100% of app reads go through Anon-RPC (Tor by default) on Base Sepolia, keys per maker / strategy / trader, live read log, logging proxy. |
 | **Honest limit.** Mohur does not reduce LVR against the outside market. The traders who rebalance you capture the move; you earn the fee. | The landing page states the cost: at ETH $6,400 a $100k index trails holding by ~$3,316 before fees. |
 
+## Pitch
+
+**One-liner.** A self-custodial index wallet quoted on Uniswap v4 and 1inch Aqua at once, priced on both from the same real balances with oracle-free index math, run from a dashboard nobody can watch.
+
+**30 seconds.** A market maker quoting on two venues usually splits its capital and keeps two inconsistent sets of prices. Mohur turns one self-custodial wallet into a 40/30/30 weighted index quoted on both Uniswap v4 and 1inch Aqua. Both venues price every trade from the same wallet balances, so a fill on one venue moves the other venue's quote immediately, loops against the maker always lose, and trader flow pulls the wallet back to its target weights. There is no oracle and no tuning knob. The maker's dashboard reads everything through EF's Anon-RPC, so no RPC provider learns who runs the book or what it watches.
+
+**In plain words (Raju's shop).** Raju keeps mangoes, rice and cash in one stockroom and opens two stalls in two markets. Both stalls sell from the same stockroom and read prices off one board whose rule keeps the stock at 40/30/30: too many mangoes makes mangoes cheaper until customers buy them back down. A sale at one stall changes the price at the other immediately, so nobody can buy cheap at one stall and sell dear at the other, and no loop through his products makes free money.
+
+## For judges: where to look
+
+| Track | What to read | Proof |
+| --- | --- | --- |
+| **Uniswap v4** (Build with Uniswap) | [MohurHook.beforeSwap](https://github.com/Abhist17/mohur/blob/main/contracts/src/MohurHook.sol#L258): prices from the wallet, cancels the AMM with a return delta; [input minted as ERC-6909 claims](https://github.com/Abhist17/mohur/blob/main/contracts/src/MohurHook.sol#L280); [output paid via Aqua.pull into the PoolManager](https://github.com/Abhist17/mohur/blob/main/contracts/src/MohurHook.sol#L286); [claims flushed into the wallet via Aqua.push](https://github.com/Abhist17/mohur/blob/main/contracts/src/MohurHook.sol#L318); [no LP deposits](https://github.com/Abhist17/mohur/blob/main/contracts/src/MohurHook.sol#L250); [maker-only pools, index tokens only](https://github.com/Abhist17/mohur/blob/main/contracts/src/MohurHook.sol#L235) | [official V4Quoter == hook quote](https://github.com/Abhist17/mohur/blob/main/contracts/test/fork/V4BaseSepolia.t.sol#L61) and [real Universal Router swap pays from the wallet](https://github.com/Abhist17/mohur/blob/main/contracts/test/fork/V4BaseSepolia.t.sol#L72) on Base Sepolia; [`FEEDBACK.md`](FEEDBACK.md) |
+| **1inch** (Build an Aqua App) | [PortfolioPrice.exec](https://github.com/Abhist17/mohur/blob/main/contracts/src/aqua/PortfolioPrice.sol#L28) (custom SwapVM opcode `0xd0`, [Aqua virtual balance = venue limit](https://github.com/Abhist17/mohur/blob/main/contracts/src/aqua/PortfolioPrice.sol#L39)); [MohurSwapVMRouter._runOpcode](https://github.com/Abhist17/mohur/blob/main/contracts/src/aqua/MohurSwapVMRouter.sol#L16) (official AquaSwapVMRouter + one opcode); [the Aqua-shipped order](https://github.com/Abhist17/mohur/blob/main/contracts/src/aqua/MohurStrategy.sol#L22) | [venue limit](https://github.com/Abhist17/mohur/blob/main/contracts/test/PortfolioPrice.t.sol#L48), [refuses another maker's hook](https://github.com/Abhist17/mohur/blob/main/contracts/test/PortfolioPrice.t.sol#L57); real Aqua push/pull transfers in `test_swap_realPushPull_throughAqua` |
+| **EF** (Best Use of Anon-RPC) | [rpc(): the app's only read path](https://github.com/Abhist17/mohur/blob/main/web/src/lib/anon.ts#L192); [one viem client per isolation scope](https://github.com/Abhist17/mohur/blob/main/web/src/lib/anon.ts#L235); [isolation keys: maker / strategy / trader / public](https://github.com/Abhist17/mohur/blob/main/web/src/lib/anon.ts#L250); [the one bootstrap read, logged as such](https://github.com/Abhist17/mohur/blob/main/web/src/lib/anon.ts#L78); [Tor -> Nym fallback, never to passthrough](https://github.com/Abhist17/mohur/blob/main/web/src/lib/anon.ts#L105); [`proxy/server.mjs`](proxy/server.mjs) | Privacy screen: every read with route, label, isolation key and latency; "Test the route" reads Base Sepolia through the mixnet |
+| **Shared math** | [outGivenIn](https://github.com/Abhist17/mohur/blob/main/contracts/src/libraries/MohurMath.sol#L130), [inGivenOut](https://github.com/Abhist17/mohur/blob/main/contracts/src/libraries/MohurMath.sol#L151), [spotPrice](https://github.com/Abhist17/mohur/blob/main/contracts/src/libraries/MohurMath.sol#L119), [bounded pow](https://github.com/Abhist17/mohur/blob/main/contracts/src/libraries/MohurMath.sol#L66) | [80-digit reference vectors](https://github.com/Abhist17/mohur/blob/main/contracts/test/MohurMath.t.sol#L50) |
+
+## Threat model → tests
+
+| Risk | Defence | Test |
+| --- | --- | --- |
+| Loops through the maker's pairs or across venues | Invariant math: every loop loses at least the fee | [3-leg cross-venue loop](https://github.com/Abhist17/mohur/blob/main/contracts/test/CrossVenue.t.sol#L57), [fuzzed loops over any venue mix](https://github.com/Abhist17/mohur/blob/main/contracts/test/CrossVenue.t.sol#L79), [round-trip floor (fuzzed)](https://github.com/Abhist17/mohur/blob/main/contracts/test/MohurMath.t.sol#L93) |
+| Inconsistent prices between venues | One `quote()` for both | [0 units difference, 6 directions × 2 modes](https://github.com/Abhist17/mohur/blob/main/contracts/test/CrossVenue.t.sol#L15), [a fill moves the other venue](https://github.com/Abhist17/mohur/blob/main/contracts/test/CrossVenue.t.sol#L40) |
+| Donating tokens to move the price | Donations only enrich the maker | [donate-then-swap never profits (fuzzed)](https://github.com/Abhist17/mohur/blob/main/contracts/test/MohurMath.t.sol#L141) |
+| Approval scope | The maker approves **only Aqua** (tighter than the original "Aqua and the hook" plan) | [no allowance to hook, router or PoolManager](https://github.com/Abhist17/mohur/blob/main/contracts/test/CrossVenue.t.sol#L125) |
+| Venue over-draw | Aqua virtual balances cap each venue; hook checks its own cap | [Uniswap venue stops at its cap](https://github.com/Abhist17/mohur/blob/main/contracts/test/MohurHook.t.sol#L71), [1inch venue stops at its cap](https://github.com/Abhist17/mohur/blob/main/contracts/test/PortfolioPrice.t.sol#L48) |
+| Someone points an order at your hook | Instruction checks `pricer.maker() == order.maker` | [refused](https://github.com/Abhist17/mohur/blob/main/contracts/test/PortfolioPrice.t.sol#L57) |
+| Rounding | Every step rounds toward the maker | [maker-side vs 80-digit reference](https://github.com/Abhist17/mohur/blob/main/contracts/test/MohurMath.t.sol#L50) |
+| Unrelated funds in the wallet | Use a dedicated maker wallet (stated in the app) | documented |
+| RPC metadata leaks | All reads through Anon-RPC; bootstrap read and transactions documented as exceptions | Privacy screen |
+
+## Questions we set out to answer (and what we found)
+
+- **Can a contract other than the SwapVM router (our v4 hook) act as an AquaApp and `pull`/`push`?** Yes. Aqua keys balances by `msg.sender` as the app, so the hook ships its own strategy and pulls/pushes inside the v4 swap. No direct-approval fallback was needed.
+- **Can a custom SwapVM instruction use the maker's real balances?** Yes: opcode `0xd0` calls the hook's `quote()`, which reads the wallet's ERC-20 balances plus pending claims; SwapVM's preloaded Aqua balances become the venue cap.
+- **Does the Universal Router / quoter work with a custom-curve hook pool?** Yes, unchanged: the fork tests use the live V4Quoter and Universal Router on Base Sepolia.
+- **Which Anon-RPC network reaches our testnet?** Nym did (Base Sepolia reads in ~6 s, 6 Nov 2026). The EF demo Tor gateway was unreachable that day, so the app falls back from Tor to Nym automatically.
+
+## Prior art and how Mohur differs
+
+| Area | Closest prior work | Mohur |
+| --- | --- | --- |
+| Aqua apps | ScubaSwap, Batas, Plimsoll, AquaPilot / Sluice, KSwap-VM, Aqua0 | None prices from shared portfolio balances or links Aqua to Uniswap v4 |
+| v4 hooks sourcing outside liquidity | Uniswap's aggregator hooks; Iceberg (ETHGlobal Tokyo 2026: v4 hook + Aqua at one price) | A self-custodial multi-token index that self-rebalances through trader flow, with private monitoring; no LVR claim |
+| Weighted pools | Balancer | Same math, but self-custodial, multi-venue and wallet-native |
+
 ## How it works
 
 Every quote on both venues comes from one weighted-pool formula over the wallet's real balances
@@ -159,3 +205,7 @@ cd web && NEXT_PUBLIC_MOHUR_NETWORK=base-sepolia npm run dev   # every read thro
 | `proxy/` | Logging JSON-RPC proxy |
 | `docs/` | PortfolioPrice write-up, Anon-RPC notes, demo script |
 | `scripts/` | `deploy-base-sepolia.sh` |
+
+## License
+
+MIT (see [LICENSE](LICENSE)). Third-party code keeps its own license; `MohurSwapVMRouter` extends 1inch's AquaSwapVMRouter and is subject to the SwapVM license for that part.

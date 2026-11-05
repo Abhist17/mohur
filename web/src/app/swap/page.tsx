@@ -68,6 +68,16 @@ export default function SwapPage() {
   const [busy, setBusy] = useState<string>();
   const [err, setErr] = useState<string>();
 
+  // prefill from a link, e.g. /swap?in=tUSDC&out=tWETH&amount=500 (the Live book's "Be that trader")
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const i = q.get("in") as Sym | null, o = q.get("out") as Sym | null, a = q.get("amount");
+    if (i && SYMS.includes(i)) setTin(i);
+    if (o && SYMS.includes(o) && o !== i) setTout(o);
+    if (a && /^\d*\.?\d*$/.test(a)) setAmount(a);
+    if (q.get("index") === "own") setMine(true);
+  }, []);
+
   const addr = (s: Sym) => d![s] as Address;
   const dec = (s: Sym) => TOKEN_STYLE[s].decimals;
   const amountIn = useMemo(() => {

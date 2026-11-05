@@ -156,6 +156,10 @@ export default function LaunchPage() {
         </p>
       </div>
       <Concept caption={<><b>Open your stockroom.</b> Your wallet becomes the shelf, Uniswap and 1inch become your two stalls, and your weights set the price. The coins never leave your wallet until someone buys them.</>} />
+      <p className="faint" style={{ fontSize: 14, marginTop: -8 }}>
+        Use a <b className="muted">dedicated maker wallet</b>: Mohur prices from what this wallet holds, so spending these tokens for anything
+        else would move your quotes.
+      </p>
       {!w.account && <div className="banner">Connect a wallet to launch{NETWORK === "local" ? " (on the local fork, use Dev #3 for a fresh maker)" : ""}.</div>}
       <div className="stack" style={{ marginTop: 16 }}>
         {STEPS.map(([title, body], i) => (

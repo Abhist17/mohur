@@ -107,10 +107,11 @@ Next.js 15 + viem + three.js. Everything shown comes from the chain or is labell
 
 `web/src/lib/anon.ts` is the only read path: one viem custom transport built on `@anon-rpc/browser-harness`.
 
-- **Network:** Tor (`tor-js`) by default; Nym and the passthrough reference worker can be picked on the Privacy screen. Specifiers from the anon-rpc `adopters.json5`.
+- **Network:** Tor (`tor-js`) by default; Nym and the passthrough reference worker can be picked on the Privacy screen. Specifiers from the anon-rpc `adopters.json5`. If Tor can't bootstrap within 35 s (e.g. its gateway is down), the app falls back to Nym, which also anonymises, and logs why. It never falls back silently to the non-anonymising passthrough. `NEXT_PUBLIC_MOHUR_WORKER` sets the default.
+- **Live check (6 Nov 2026):** the EF demo Tor gateway was unreachable; through Nym, Base Sepolia answered in ~6 s (worker ready in ~9–11 s). The Privacy screen's "Test the route" button reproduces this.
 - **Isolation keys:** one per maker (book, fills, launch, receipts), one per strategy (each pair's quotes and limits), one per trader, plus `public`.
 - **Exclusions, stated in the app:** the one bootstrap read of the worker's specifier contract on mainnet (it has to happen before the anonymous client exists), and transactions, which the user's wallet broadcasts. On the local fork, reads go straight to the local node (no anonymity network can reach localhost) and a banner says so.
-- **Robustness:** a non-JSON reply (e.g. a Cloudflare page served to a Tor exit) falls through to the next Base Sepolia RPC; log queries run in 200-block chunks.
+- **Robustness:** 25 s per-request timeout; a non-JSON reply (e.g. a Cloudflare page served to a Tor exit) or a timeout falls through to the next Base Sepolia RPC. Fill history uses 10,000-block `eth_getLogs` chunks on publicnode (one request per day of history) and drops to 200-block chunks automatically on RPCs that cap the range (`sepolia.base.org`).
 - **Logging proxy** (`proxy/server.mjs`, no dependencies): forwards JSON-RPC and logs only time, source IP, whether it is a Tor exit, and the method. Point `NEXT_PUBLIC_MOHUR_PROXY_URL` at it and the Privacy screen shows requests arriving from Tor exits.
 
 ## Run it

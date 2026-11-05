@@ -22,10 +22,12 @@ export default function PrivacyPage() {
     async () => {
       if (!hook) return;
       const b = await readBook(hook, maker);
-      for (const p of b.pairs) {
-        const t = b.tokens.find((x) => x.token === p.tokenA)!;
-        await quoteBoth(hook, p.tokenA, p.tokenB, parseUnits(t.symbol === "tWETH" ? "0.1" : t.symbol === "tWBTC" ? "0.003" : "300", t.decimals));
-      }
+      await Promise.all(
+        b.pairs.map((p) => {
+          const t = b.tokens.find((x) => x.token === p.tokenA)!;
+          return quoteBoth(hook, p.tokenA, p.tokenB, parseUnits(t.symbol === "tWETH" ? "0.1" : t.symbol === "tWBTC" ? "0.003" : "300", t.decimals));
+        }),
+      );
     },
     NETWORK === "local" ? 8000 : 30000,
     [hook, maker],

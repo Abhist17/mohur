@@ -107,10 +107,12 @@ export default function SwapPage() {
     if (!hook || !d || amountIn === 0n) { setQuote(undefined); return; }
     setQuoting(true);
     try {
-      const q = await quoteBoth(hook, addr(tin), addr(tout), amountIn);
-      const spot = (await readClient("swap: spot price", keys.strategy(hook, addr(tin), addr(tout))).readContract({
-        address: hook, abi: MohurHookAbi, functionName: "price", args: [addr(tin), addr(tout)],
-      })) as bigint;
+      const [q, spot] = await Promise.all([
+        quoteBoth(hook, addr(tin), addr(tout), amountIn),
+        readClient("swap: spot price", keys.strategy(hook, addr(tin), addr(tout))).readContract({
+          address: hook, abi: MohurHookAbi, functionName: "price", args: [addr(tin), addr(tout)],
+        }) as Promise<bigint>,
+      ]);
       setQuote({ ...q, spot, err: !q.v4Ok && !q.aquaOk ? "Trade too large for either venue: one trade can move at most 30% of a balance, and each venue sells only up to its limit." : undefined });
       if (venue === 0 && !q.v4Ok && q.aquaOk) setVenue(1);
       if (venue === 1 && !q.aquaOk && q.v4Ok) setVenue(0);

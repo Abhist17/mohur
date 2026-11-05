@@ -30,16 +30,21 @@ export default function BookPage() {
       try {
         const b = await readBook(hook, maker);
         setBook(b);
-        const qs: PairQuote[] = [];
-        for (const p of b.pairs) {
-          const ta = b.tokens.find((t) => t.token === p.tokenA)!;
-          const tb = b.tokens.find((t) => t.token === p.tokenB)!;
-          const amt = ta.symbol === "tWETH" ? "0.1" : ta.symbol === "tWBTC" ? "0.003" : "300";
-          const q = await quoteBoth(hook, ta.token, tb.token, parseUnits(amt, ta.decimals));
-          qs.push({ a: ta.token, b: tb.token, amt, v4Out: q.v4Out, aquaOut: q.aquaOut, v4Ok: q.v4Ok, aquaOk: q.aquaOk });
-        }
+        // independent reads in parallel: over a mixnet each one costs seconds (each keeps its own isolation key)
+        const [qs, f] = await Promise.all([
+          Promise.all(
+            b.pairs.map(async (p): Promise<PairQuote> => {
+              const ta = b.tokens.find((t) => t.token === p.tokenA)!;
+              const tb = b.tokens.find((t) => t.token === p.tokenB)!;
+              const amt = ta.symbol === "tWETH" ? "0.1" : ta.symbol === "tWBTC" ? "0.003" : "300";
+              const q = await quoteBoth(hook, ta.token, tb.token, parseUnits(amt, ta.decimals));
+              return { a: ta.token, b: tb.token, amt, v4Out: q.v4Out, aquaOut: q.aquaOut, v4Ok: q.v4Ok, aquaOk: q.aquaOk };
+            }),
+          ),
+          readFills(hook, maker),
+        ]);
         setQuotes(qs);
-        setFills(await readFills(hook, maker));
+        setFills(f);
         setErr(undefined);
       } catch (e) {
         setErr((e as Error).message.slice(0, 200));

@@ -139,26 +139,36 @@ export async function readFills(hook: Address, maker: Address): Promise<FillRow[
   const chunk = narrowLogs ? SAFE_LOG_CHUNK : LOG_CHUNK;
   if (head - from > chunk * 40n) from = head - chunk * 40n; // at most 40 requests per refresh
   const rows = [...cached.rows];
-  for (let start = from; start <= head; start += chunk) {
-    const end = start + chunk - 1n > head ? head : start + chunk - 1n;
-    let v4, aq;
+  const ranges: [bigint, bigint][] = [];
+  for (let start = from; start <= head; start += chunk) ranges.push([start, start + chunk - 1n > head ? head : start + chunk - 1n]);
+  // fetch ranges in parallel batches: over a mixnet each request costs seconds
+  type Logs = Awaited<ReturnType<typeof c.getLogs<typeof fillEvt>>>;
+  type SwLogs = Awaited<ReturnType<typeof c.getLogs<typeof swappedEvt>>>;
+  for (let k = 0; k < ranges.length; k += 5) {
+    let batch: [Logs, SwLogs][];
     try {
-      [v4, aq] = await Promise.all([
-        c.getLogs({ address: hook, event: fillEvt, fromBlock: start, toBlock: end }),
-        c.getLogs({ address: d.swapVM, event: swappedEvt, fromBlock: start, toBlock: end }),
-      ]);
+      batch = await Promise.all(
+        ranges.slice(k, k + 5).map(([fromBlock, toBlock]) =>
+          Promise.all([
+            c.getLogs({ address: hook, event: fillEvt, fromBlock, toBlock }),
+            c.getLogs({ address: d.swapVM, event: swappedEvt, fromBlock, toBlock }),
+          ]),
+        ),
+      );
     } catch (e) {
       if (!narrowLogs && /limit|range|too many|exceed/i.test(String((e as Error).message))) {
-        narrowLogs = true; // this RPC caps the range: rescan from here in small chunks
+        narrowLogs = true; // this RPC caps the range: rescan in small chunks
         return readFills(hook, maker);
       }
       throw e;
     }
-    for (const l of v4)
-      rows.push({ venue: "Uniswap v4", block: l.blockNumber!, tx: l.transactionHash!, tokenIn: l.args.tokenIn!, tokenOut: l.args.tokenOut!, amountIn: l.args.amountIn!, amountOut: l.args.amountOut!, trader: l.args.trader! });
-    for (const l of aq)
-      if (l.args.maker?.toLowerCase() === maker.toLowerCase())
-        rows.push({ venue: "1inch Aqua", block: l.blockNumber!, tx: l.transactionHash!, tokenIn: l.args.tokenIn!, tokenOut: l.args.tokenOut!, amountIn: l.args.amountIn!, amountOut: l.args.amountOut!, trader: l.args.taker! });
+    for (const [v4, aq] of batch) {
+      for (const l of v4)
+        rows.push({ venue: "Uniswap v4", block: l.blockNumber!, tx: l.transactionHash!, tokenIn: l.args.tokenIn!, tokenOut: l.args.tokenOut!, amountIn: l.args.amountIn!, amountOut: l.args.amountOut!, trader: l.args.trader! });
+      for (const l of aq)
+        if (l.args.maker?.toLowerCase() === maker.toLowerCase())
+          rows.push({ venue: "1inch Aqua", block: l.blockNumber!, tx: l.transactionHash!, tokenIn: l.args.tokenIn!, tokenOut: l.args.tokenOut!, amountIn: l.args.amountIn!, amountOut: l.args.amountOut!, trader: l.args.taker! });
+    }
   }
   rows.sort((a, b) => Number(b.block - a.block));
   fillCache.set(id, { scanned: head, rows });

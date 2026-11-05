@@ -48,13 +48,18 @@ export default function MyIndex() {
     ]);
     const count = async (app: Address, hash: Hex, t: Address) => ((await c.readContract({ address: d.aqua, abi: AquaAbi, functionName: "rawBalances", args: [w.account!, app, hash, t] })) as [bigint, number])[1];
     const state = (n: number) => (n === 0 ? "none" : n === DOCKED ? "paused" : "live") as "live" | "paused" | "none";
-    const v4 = state(await count(h, sh, b.tokens[0].token));
     const pairs = b.pairs.map((p) => [p.tokenA, p.tokenB] as [Address, Address]);
-    const aqua = await Promise.all(b.pairs.map(async (p) => state(await count(d.swapVM, p.aquaStrategyHash, p.tokenA))));
+    const fillsP = readFills(h, w.account); // in parallel with the status reads
+    const [v4n, aquaN] = await Promise.all([
+      count(h, sh, b.tokens[0].token),
+      Promise.all(b.pairs.map((p) => count(d.swapVM, p.aquaStrategyHash, p.tokenA))),
+    ]);
+    const v4 = state(v4n);
+    const aqua = aquaN.map(state);
     setSt({ nonce, v4, aqua, pairs, rwStart: Number(rwStart), rwEnd: Number(rwEnd), target: [...target] });
     // glide progress follows chain time (what both venues actually price with), not the browser clock
     setNow(Number((await c.getBlock()).timestamp));
-    setFills(await readFills(h, w.account));
+    setFills(await fillsP);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, w.account]);
 

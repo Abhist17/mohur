@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { switchWorker } from "@/lib/anon";
+import { parseUnits } from "viem";
+import { quoteBoth, readBook } from "@/lib/mohur";
+import { usePoll, useIndex } from "@/components/useIndex";
 import { NETWORK, WORKERS, type WorkerId } from "@/lib/config";
 import { useAnon } from "@/components/Providers";
 
@@ -12,6 +15,21 @@ type ProxyRow = { t: number; ip: string; tor: boolean; method: string };
 export default function PrivacyPage() {
   const { log, status } = useAnon();
   const [proxy, setProxy] = useState<ProxyRow[]>();
+  const { hook, maker } = useIndex();
+
+  // the dashboard's normal monitoring loop: the book (maker key) and one quote per strategy (strategy keys)
+  usePoll(
+    async () => {
+      if (!hook) return;
+      const b = await readBook(hook, maker);
+      for (const p of b.pairs) {
+        const t = b.tokens.find((x) => x.token === p.tokenA)!;
+        await quoteBoth(hook, p.tokenA, p.tokenB, parseUnits(t.symbol === "tWETH" ? "0.1" : t.symbol === "tWBTC" ? "0.003" : "300", t.decimals));
+      }
+    },
+    NETWORK === "local" ? 8000 : 30000,
+    [hook, maker],
+  );
 
   useEffect(() => {
     if (!PROXY) return;

@@ -82,7 +82,7 @@ h3 { font-size: 24px; line-height: 1.2; }
 .spread { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .stack { display: flex; flex-direction: column; gap: 12px; }
 
-.page { padding: 48px 0 96px; }
+.page { padding-top: 48px; padding-bottom: 96px; }
 .page-head { margin-bottom: 32px; }
 .page-head p { color: var(--muted); max-width: 680px; margin: 12px 0 0; }
 

@@ -27,6 +27,7 @@ export default function ArbitragePage() {
   ]);
   const [quote, setQuote] = useState<{ amounts: bigint[]; withinLimits: boolean }>();
   const [result, setResult] = useState<bigint[]>();
+  const [ranQuote, setRanQuote] = useState<bigint[]>();
   const [err, setErr] = useState<string>();
   const [busy, setBusy] = useState("");
 
@@ -48,7 +49,7 @@ export default function ArbitragePage() {
     }
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setResult(undefined); doQuote(); }, [hook, start, amount, JSON.stringify(legs)]);
+  useEffect(() => { setResult(undefined); setRanQuote(undefined); doQuote(); }, [hook, start, amount, JSON.stringify(legs)]);
 
   const runIt = async () => {
     if (!d || !hook || !w.account || !quote) return;
@@ -67,6 +68,7 @@ export default function ArbitragePage() {
       await w.write({ address: d.loopRouter, abi: MohurLoopRouterAbi, functionName: "execute", args: [hook, path.map(addr), legs.map((l) => l.venue), need, 0n, w.account], label: "run route" });
       const endAfter = (await c.readContract({ address: addr(end), abi: MohurTestTokenAbi, functionName: "balanceOf", args: [w.account] })) as bigint;
       const got = end === start ? endAfter - (startBefore - need) : endAfter - endBefore;
+      setRanQuote(quote.amounts);
       setResult([...quote.amounts.slice(0, -1), got]);
       setBusy("");
       await doQuote();
@@ -131,7 +133,7 @@ export default function ArbitragePage() {
                   <tr key={i}>
                     <td className="faint">{i === 0 ? "in" : VENUE[legs[i - 1].venue]}</td>
                     <td className="num">{fmt(Number(formatUnits(quote.amounts[i], dec(s))), 8)} {s}</td>
-                    {result && <td className="num good">{fmt(Number(formatUnits(result[i], dec(s))), 8)}</td>}
+                    
                   </tr>
                 ))}
               </tbody>
@@ -146,9 +148,11 @@ export default function ArbitragePage() {
             </div>
           )}
           {quote && !quote.withinLimits && <div className="banner">A leg exceeds that venue&apos;s remaining Aqua limit; running it would revert.</div>}
-          {result && outAmt !== undefined && (
-            <div className={result[result.length - 1] === outAmt ? "good" : "bad"}>
-              {result[result.length - 1] === outAmt ? "Ran for real: returned exactly its quote." : "Executed amount differs from the quote (state changed in between)."}
+          {result && ranQuote && (
+            <div className={result[result.length - 1] === ranQuote[ranQuote.length - 1] ? "good" : "bad"}>
+              {result[result.length - 1] === ranQuote[ranQuote.length - 1]
+                ? `Ran for real: returned exactly its quote (${formatUnits(result[result.length - 1], dec(end))} ${end}). Re-quoted on the new balances above.`
+                : "Executed amount differs from the quote (state changed in between)."}
             </div>
           )}
           <button className="btn primary" disabled={!w.account || !quote || !!busy || !valid} onClick={runIt}>

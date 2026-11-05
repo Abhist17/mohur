@@ -33,6 +33,7 @@ export function StacksScene({ state }: { state: SceneState }) {
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.35;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     el.appendChild(renderer.domElement);
 
@@ -41,13 +42,16 @@ export function StacksScene({ state }: { state: SceneState }) {
     camera.position.set(0, 4.6, 11.5);
     camera.lookAt(0, 1.3, 0);
 
-    scene.add(new THREE.HemisphereLight(0xfff2dd, 0x1a1208, 0.9));
-    const key = new THREE.DirectionalLight(0xffe6b8, 2.4);
+    scene.add(new THREE.HemisphereLight(0xfff2dd, 0x2a1d0c, 1.6));
+    const key = new THREE.DirectionalLight(0xffe6b8, 3.6);
     key.position.set(4, 8, 6);
     scene.add(key);
     const rim = new THREE.PointLight(0xd9a441, 30, 20);
     rim.position.set(-5, 3, -3);
     scene.add(rim);
+    const front = new THREE.DirectionalLight(0xfff4e0, 1.4);
+    front.position.set(0, 3, 9);
+    scene.add(front);
 
     const world = new THREE.Group();
     scene.add(world);
@@ -93,6 +97,7 @@ export function StacksScene({ state }: { state: SceneState }) {
     const meshes = COLORS.map((c, t) => {
       const m = new THREE.InstancedMesh(coinGeo, new THREE.MeshStandardMaterial({ color: c, metalness: 0.92, roughness: ROUGH[t] }), MAX);
       m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      m.frustumCulled = false; // instances move a lot; a stale bounding sphere would cull whole stacks
       world.add(m);
       return m;
     });

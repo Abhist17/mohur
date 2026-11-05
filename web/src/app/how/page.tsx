@@ -106,7 +106,7 @@ export default function How() {
         the wallet back to 40.0 / 30.0 / 30.0. You earn the fee on every one of those trades.
       </Section>
 
-      <Section n="5½" title="Change your mind, cheaply">
+      <Section n="6" title="Change your mind, cheaply">
         <p>
           Want 50/25/25 instead of 40/30/30? Flip the weights instantly and the whole price gap opens at once: arbitrageurs take it in one go.
           Or let Mohur <b>glide</b> the weights on both venues over an hour, a day, or three days. Each moment&apos;s gap stays near the fee, so
@@ -122,14 +122,14 @@ export default function How() {
         </p>
       </Section>
 
-      <Section n="6" title="Nobody watching">
+      <Section n="7" title="Nobody watching">
         Every chain read the app makes goes through the Ethereum Foundation&apos;s Anon-RPC (over Tor, or the Nym mixnet), with a separate isolation
         key for each strategy, each maker and each trader, so the RPC sees an exit node, not you, and can&apos;t stitch your activity together.
         Two things are honestly excluded: one bootstrap read that locates the anonymous client, and your transactions, which your wallet sends.{" "}
         <Link href="/privacy" className="gold">Watch every read →</Link>
       </Section>
 
-      <Section n="7" title="Honest limits">
+      <Section n="8" title="Honest limits">
         <ul className="steps">
           <li>Mohur doesn&apos;t remove LVR: the traders who rebalance you capture the move; you earn the fee.</li>
           <li>One trade can move at most 30% of a balance, and each venue sells only up to its limit.</li>
@@ -139,7 +139,7 @@ export default function How() {
         </ul>
       </Section>
 
-      <Section n="8" title="Glossary">
+      <Section n="9" title="Glossary">
         <dl className="gloss">
           {GLOSSARY.map(([t, d]) => (
             <div key={t}>
@@ -150,7 +150,7 @@ export default function How() {
         </dl>
       </Section>
 
-      <Section n="9" title="Why “Mohur”">
+      <Section n="10" title="Why “Mohur”">
         The mohur was the gold coin of the Mughal empire: one coin, good at every market in the land. Mohur does the same for your wallet: one
         set of coins, one price, accepted at every venue.
       </Section>

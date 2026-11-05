@@ -153,7 +153,7 @@ reverts are decoded into plain sentences ("Trade too large: one trade can move a
 - **Create:** assets and weights (sliders always sum to 100%), simulated quote preview per pair.
 - **Launch:** six real steps from your wallet (deploy your own hook with an address mined in the browser, test tokens, approve Aqua only, set weights, open v4 pools + ship the Uniswap venue, ship 1inch Aqua strategies). Each step resumes from chain state.
 - **My index** (the maker's home): performance vs just holding (start reconstructed from fills), fees earned, volume per venue; change allocation instantly or gradually (1 hour to 3 days) with the measured cost difference; pause both venues, resume, top up or re-split.
-- **Live book:** weights vs target, a live rebalancing panel at the market prices you type (what the wallet will buy/sell, arbitrage available, "be that trader" → prefilled Swap),, identical quotes on both venues per pair, remaining venue limits, one fill feed for both venues, fees earned, flush button.
+- **Live book:** weights vs target, a live rebalancing panel at the market prices you type (what the wallet will buy/sell, arbitrage available, "be that trader" → prefilled Swap), identical quotes on both venues per pair, remaining venue limits, one fill feed for both venues, fees earned, flush button.
 - **Arbitrage me:** build any route across venues, quote it exactly, run it for real.
 - **Privacy:** every chain read live (route, label, isolation key, latency), worker switcher (Tor / Nym / passthrough), who-learns-what, logging-proxy view.
 

@@ -32,3 +32,8 @@ runs = 1000
 
 [rpc_endpoints]
 base_sepolia = "https://sepolia.base.org"
+
+[invariant]
+runs = 64
+depth = 40
+fail_on_revert = false

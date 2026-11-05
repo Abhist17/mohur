@@ -2,11 +2,11 @@
 // Forwards JSON-RPC to UPSTREAM and logs ONLY: time, source IP, whether that IP is a Tor exit, method.
 // GET /log returns the last 500 entries (feeds the dashboard's Privacy screen).
 //
-//   UPSTREAM=https://sepolia.base.org PORT=8787 node proxy/server.mjs
+//   UPSTREAM=https://base-sepolia-rpc.publicnode.com PORT=8787 node proxy/server.mjs
 //   (expose it with any tunnel; the source IP is taken from x-forwarded-for when TRUST_PROXY=1)
 import http from "node:http";
 
-const UPSTREAM = process.env.UPSTREAM || "https://sepolia.base.org";
+const UPSTREAM = process.env.UPSTREAM || "https://base-sepolia-rpc.publicnode.com";
 const PORT = Number(process.env.PORT || 8787);
 const TRUST_PROXY = process.env.TRUST_PROXY === "1";
 const TOR_LIST = "https://check.torproject.org/torbulkexitlist";

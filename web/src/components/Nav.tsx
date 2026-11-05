@@ -67,6 +67,7 @@ export function ConnectButton() {
 
 export function Nav() {
   const path = usePathname();
+  const [menu, setMenu] = useState(false);
   return (
     <header className="nav">
       <div className="wrap nav-in">
@@ -82,7 +83,19 @@ export function Nav() {
         </nav>
         <RoutePill />
         <ConnectButton />
+        <button className="btn small nav-burger" aria-label="Menu" aria-expanded={menu} onClick={() => setMenu(!menu)}>
+          {menu ? "✕" : "☰"}
+        </button>
       </div>
+      {menu && (
+        <nav className="nav-mobile wrap">
+          {LINKS.map(([href, label]) => (
+            <Link key={href} href={href} className={path === href ? "on" : ""} onClick={() => setMenu(false)}>
+              {label}
+            </Link>
+          ))}
+        </nav>
+      )}
     </header>
   );
 }

@@ -52,7 +52,16 @@ h3 { font-size: 24px; line-height: 1.2; }
 .nav-links { display: flex; gap: 4px; flex: 1; overflow-x: auto; scrollbar-width: none; }
 .nav-links a { padding: 6px 10px; border-radius: 8px; color: var(--muted); white-space: nowrap; font-size: 14px; }
 .nav-links a:hover, .nav-links a.on { color: var(--text); background: var(--bg-2); }
-@media (max-width: 860px) { .nav-links { display: none; } .nav-in { justify-content: space-between; } }
+.nav-burger { display: none; }
+.nav-mobile { display: flex; flex-direction: column; padding-bottom: 12px; }
+.nav-mobile a { padding: 12px 4px; border-top: 1px solid var(--line); color: var(--muted); }
+.nav-mobile a.on { color: var(--gold); }
+@media (max-width: 860px) {
+  .nav-links { display: none; }
+  .nav-in { justify-content: space-between; gap: 8px; }
+  .nav-burger { display: inline-flex; }
+}
+@media (max-width: 480px) { .nav .pill { display: none; } }
 
 /* bits */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--panel); color: var(--text); cursor: pointer; transition: border-color .15s, background .15s, transform .1s; font-size: 14px; }

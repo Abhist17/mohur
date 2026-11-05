@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { switchWorker } from "@/lib/anon";
+import { keys as anonKeys, readClient, switchWorker } from "@/lib/anon";
 import { parseUnits } from "viem";
 import { quoteBoth, readBook } from "@/lib/mohur";
 import { usePoll, useIndex } from "@/components/useIndex";
@@ -42,6 +42,19 @@ export default function PrivacyPage() {
     const id = setInterval(load, 5000);
     return () => clearInterval(id);
   }, []);
+
+  const [probe, setProbe] = useState<{ state: "idle" | "running" | "ok" | "fail"; text?: string }>({ state: "idle" });
+  const runProbe = async () => {
+    setProbe({ state: "running", text: NETWORK === "local" ? "reading the local node…" : `reading Base Sepolia through Anon-RPC (${WORKERS[status.worker].label}; first contact can take 5-60 s)…` });
+    const t0 = performance.now();
+    try {
+      const c = readClient("connection test", anonKeys.public);
+      const [chain, block] = await Promise.all([c.getChainId(), c.getBlockNumber()]);
+      setProbe({ state: "ok", text: `chain ${chain}, block ${block.toLocaleString()} in ${((performance.now() - t0) / 1000).toFixed(1)} s` });
+    } catch (e) {
+      setProbe({ state: "fail", text: String((e as Error).message).slice(0, 160) });
+    }
+  };
 
   const reads = log.filter((e) => e.route !== "bootstrap");
   const anonShare = reads.length ? (reads.filter((e) => e.route === "anon-rpc").length / reads.length) * 100 : 0;
@@ -89,7 +102,11 @@ export default function PrivacyPage() {
               </button>
             ))}
           </div>
-          <p className="faint" style={{ fontSize: 12, marginBottom: 0 }}>{WORKERS[status.worker].note}</p>
+          <p className="faint" style={{ fontSize: 12 }}>{WORKERS[status.worker].note}</p>
+          <div className="row">
+            <button className="btn small" disabled={probe.state === "running"} onClick={runProbe}>Test the route</button>
+            {probe.text && <span className={`mono ${probe.state === "ok" ? "good" : probe.state === "fail" ? "bad" : "faint"}`} style={{ fontSize: 12 }}>{probe.text}</span>}
+          </div>
         </div>
       </div>
 

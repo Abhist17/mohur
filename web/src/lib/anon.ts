@@ -1,7 +1,7 @@
 "use client";
 
 import { createPublicClient, custom, type PublicClient } from "viem";
-import { BOOTSTRAP_RPC, CHAIN, NETWORK, RPC_URLS, WORKERS, type WorkerId } from "./config";
+import { BOOTSTRAP_RPC, CHAIN, DEFAULT_WORKER, NETWORK, RPC_URLS, WORKERS, type WorkerId } from "./config";
 
 /**
  * Every chain read the app makes goes through ONE function: `rpc()` below.
@@ -33,7 +33,7 @@ type Listener = () => void;
 const listeners = new Set<Listener>();
 const log: ReadLogEntry[] = [];
 let nextId = 1;
-let status: AnonStatus = { worker: "tor-js", state: "idle" };
+let status: AnonStatus = { worker: DEFAULT_WORKER, state: "idle" };
 
 function emit() {
   listeners.forEach((l) => l());
@@ -71,7 +71,7 @@ function storedWorker(): WorkerId {
     const w = localStorage.getItem("mohur.worker") as WorkerId | null;
     if (w && w in WORKERS) return w;
   } catch {}
-  return "tor-js";
+  return DEFAULT_WORKER;
 }
 
 /** Bootstrap provider: the ONE read that cannot be anonymised (it locates the anon client). */
@@ -99,10 +99,19 @@ const bootstrapProvider = {
   },
 };
 
-export function startWorker(id: WorkerId = storedWorker()): Promise<AnonWorker> {
+/** A worker that hasn't bootstrapped by then is treated as failed (e.g. its gateway is down). */
+const BOOT_DEADLINE_MS = 35_000; // Tor normally bootstraps in 5-20 s
+/** If Tor can't bootstrap, fall back to another network that also anonymises - never to passthrough. */
+const ANON_FALLBACK: Partial<Record<WorkerId, WorkerId>> = { "tor-js": "nym" };
+let instance: AnonWorker | undefined; // the most recently constructed worker (ready or not)
+let generation = 0;
+
+export function startWorker(id: WorkerId = storedWorker(), isFallback = false): Promise<AnonWorker> {
   if (workerPromise && status.worker === id) return workerPromise;
-  worker?.close();
+  instance?.close(); // tear down the previous sandbox, even if it never became ready
+  instance = undefined;
   worker = undefined;
+  const gen = ++generation;
   status = { worker: id, state: "booting" };
   emit();
   const t0 = performance.now();
@@ -113,13 +122,26 @@ export function startWorker(id: WorkerId = storedWorker()): Promise<AnonWorker> 
       config: WORKERS[id].config as never,
       preExisting: { rpcProvider: bootstrapProvider as never },
     }) as unknown as AnonWorker;
+    instance = w;
     try {
-      await w.ready;
+      await Promise.race([
+        w.ready,
+        new Promise((_, rej) => setTimeout(() => rej(new Error(`${WORKERS[id].label} did not bootstrap within ${BOOT_DEADLINE_MS / 1000} s (gateway unreachable?)`)), BOOT_DEADLINE_MS)),
+      ]);
     } catch (e) {
-      status = { worker: id, state: "failed", error: String((e as Error)?.message ?? e) };
+      if (gen !== generation) throw e; // superseded by a newer worker
+      const msg = String((e as Error)?.message ?? e);
+      const next = ANON_FALLBACK[id];
+      if (next && !isFallback) {
+        record({ method: "-", label: `${WORKERS[id].label} failed, falling back to ${WORKERS[next].label}`, isolationKey: "-", route: "anon-rpc", worker: id, ms: Math.round(performance.now() - t0), ok: false, endpoint: "-", note: msg.slice(0, 120) });
+        workerPromise = undefined;
+        return startWorker(next, true);
+      }
+      status = { worker: id, state: "failed", error: msg };
       emit();
       throw e;
     }
+    if (gen !== generation) throw new Error("superseded");
     worker = w;
     status = { worker: id, state: "ready", bootMs: Math.round(performance.now() - t0) };
     emit();
@@ -133,7 +155,7 @@ export function switchWorker(id: WorkerId) {
     localStorage.setItem("mohur.worker", id);
   } catch {}
   workerPromise = undefined;
-  return startWorker(id);
+  return startWorker(id, true);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -141,6 +163,8 @@ export function switchWorker(id: WorkerId) {
 // ------------------------------------------------------------------------------------------------
 
 let rpcId = 1;
+/** Anonymity networks are slow; past this, try the next RPC instead of hanging the UI. */
+const REQUEST_TIMEOUT_MS = 25_000;
 
 async function postJson(
   doFetch: (url: string, init: RequestInit & { anonOptions?: { isolationKey?: string } }) => Promise<Response>,
@@ -153,6 +177,7 @@ async function postJson(
     headers: { "content-type": "application/json" },
     body,
     anonOptions: { isolationKey },
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   const text = await res.text();
   try {
@@ -181,7 +206,7 @@ export async function rpc(method: string, params: unknown[], scope: { label: str
     }
   }
 
-  const w = await startWorker();
+  const w = await (workerPromise ?? startWorker());
   let lastErr: unknown;
   for (const url of RPC_URLS) {
     try {

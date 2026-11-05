@@ -2,7 +2,7 @@
 
 import { getContractAddress, parseAbiItem, type Address, type Hex } from "viem";
 import { MohurHookAbi, MohurHookFactoryAbi, MohurLensAbi } from "@/generated/abis";
-import { deployment, LOG_CHUNK } from "./config";
+import { deployment, LOG_CHUNK, SAFE_LOG_CHUNK } from "./config";
 import { keys, readClient } from "./anon";
 
 export const ZERO: Address = "0x0000000000000000000000000000000000000000";
@@ -126,6 +126,7 @@ const fillEvt = parseAbiItem("event Fill(address indexed trader, address indexed
 const swappedEvt = parseAbiItem("event Swapped(bytes32 orderHash, address maker, address taker, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)");
 
 const fillCache = new Map<string, { scanned: bigint; rows: FillRow[] }>();
+let narrowLogs = false;
 
 export async function readFills(hook: Address, maker: Address): Promise<FillRow[]> {
   const d = deployment()!;
@@ -135,14 +136,24 @@ export async function readFills(hook: Address, maker: Address): Promise<FillRow[
   const head = await c.getBlockNumber();
   // never scan more than ~40 chunks per refresh on public RPCs
   let from = cached.scanned + 1n;
-  if (head - from > LOG_CHUNK * 40n) from = head - LOG_CHUNK * 40n;
+  const chunk = narrowLogs ? SAFE_LOG_CHUNK : LOG_CHUNK;
+  if (head - from > chunk * 40n) from = head - chunk * 40n; // at most 40 requests per refresh
   const rows = [...cached.rows];
-  for (let start = from; start <= head; start += LOG_CHUNK) {
-    const end = start + LOG_CHUNK - 1n > head ? head : start + LOG_CHUNK - 1n;
-    const [v4, aq] = await Promise.all([
-      c.getLogs({ address: hook, event: fillEvt, fromBlock: start, toBlock: end }),
-      c.getLogs({ address: d.swapVM, event: swappedEvt, fromBlock: start, toBlock: end }),
-    ]);
+  for (let start = from; start <= head; start += chunk) {
+    const end = start + chunk - 1n > head ? head : start + chunk - 1n;
+    let v4, aq;
+    try {
+      [v4, aq] = await Promise.all([
+        c.getLogs({ address: hook, event: fillEvt, fromBlock: start, toBlock: end }),
+        c.getLogs({ address: d.swapVM, event: swappedEvt, fromBlock: start, toBlock: end }),
+      ]);
+    } catch (e) {
+      if (!narrowLogs && /limit|range|too many|exceed/i.test(String((e as Error).message))) {
+        narrowLogs = true; // this RPC caps the range: rescan from here in small chunks
+        return readFills(hook, maker);
+      }
+      throw e;
+    }
     for (const l of v4)
       rows.push({ venue: "Uniswap v4", block: l.blockNumber!, tx: l.transactionHash!, tokenIn: l.args.tokenIn!, tokenOut: l.args.tokenOut!, amountIn: l.args.amountIn!, amountOut: l.args.amountOut!, trader: l.args.trader! });
     for (const l of aq)

@@ -20,14 +20,19 @@ export const CHAIN: Chain = NETWORK === "base-sepolia" ? baseSepolia : localFork
 export const RPC_URLS: string[] =
   NETWORK === "base-sepolia"
     ? [
-        process.env.NEXT_PUBLIC_MOHUR_PROXY_URL || "https://sepolia.base.org",
-        "https://base-sepolia-rpc.publicnode.com",
-        "https://sepolia.base.org",
+        ...(process.env.NEXT_PUBLIC_MOHUR_PROXY_URL ? [process.env.NEXT_PUBLIC_MOHUR_PROXY_URL] : []),
+        "https://base-sepolia-rpc.publicnode.com", // allows wide eth_getLogs ranges
+        "https://sepolia.base.org", // caps eth_getLogs at 200 blocks
       ]
     : [process.env.NEXT_PUBLIC_LOCAL_RPC || "http://127.0.0.1:8545"];
 
-/** Max block range per eth_getLogs call (public RPCs cap it). */
-export const LOG_CHUNK = NETWORK === "base-sepolia" ? 200n : 5_000n;
+/** Block range per eth_getLogs call. Wide where the RPC allows it (each request through a mixnet costs seconds);
+ *  readFills drops to SAFE_LOG_CHUNK automatically if an RPC refuses the range (sepolia.base.org caps at 200). */
+export const LOG_CHUNK = 10_000n;
+export const SAFE_LOG_CHUNK = 200n;
+
+/** Default anonymising network; Tor falls back to Nym automatically if it can't bootstrap. */
+export const DEFAULT_WORKER = (process.env.NEXT_PUBLIC_MOHUR_WORKER as "tor-js" | "nym" | "passthrough" | undefined) ?? "tor-js";
 
 /** Mainnet RPC used ONCE to read the worker's specifier contract (documented exclusion). */
 export const BOOTSTRAP_RPC = "https://ethereum-rpc.publicnode.com";

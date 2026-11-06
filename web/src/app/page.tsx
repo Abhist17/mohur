@@ -191,8 +191,16 @@ export default function Landing() {
                   <span className="mono bad" style={{ fontSize: 24 }}>−{loop.bps.toFixed(1)} bps</span>
                 </div>
               </div>
-            ) : (
+            ) : d?.demoHook ? (
               <span className="tag">loading live quote…</span>
+            ) : (
+              <div className="card" style={{ maxWidth: 470 }} data-testid="loop-measured">
+                <div className="faint" style={{ fontSize: 12 }}>Measured in the contract tests (CrossVenue.t.sol) · not deployed on this network yet</div>
+                <div className="spread" style={{ marginTop: 8 }}>
+                  <span className="mono">0.1 ETH → USDC → BTC → ETH</span>
+                  <span className="mono bad" style={{ fontSize: 24 }}>−88 bps</span>
+                </div>
+              </div>
             )}
             <Link href="/arbitrage" className="gold" style={{ marginTop: 12 }}>Try to beat it →</Link>
           </section>

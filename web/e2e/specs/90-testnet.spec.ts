@@ -40,6 +40,22 @@ test.describe("@testnet deployed Base Sepolia build", () => {
     await shot(page, "91-testnet-swap");
   });
 
+  test("@testnet once deployed: the live Book quotes both venues identically, read through Anon-RPC", async ({ page }) => {
+    test.setTimeout(600_000); // several reads over a mixnet (~50 s each through Nym)
+    await page.goto("book/");
+    const gate = page.locator('[data-testid="not-deployed"], [data-testid="quote-row"]').first();
+    await expect(gate).toBeVisible({ timeout: 300_000 });
+    test.skip((await page.getByTestId("not-deployed").count()) > 0, "contracts not deployed on Base Sepolia yet (run scripts/deploy-base-sepolia.sh)");
+    const rows = page.getByTestId("quote-row");
+    await expect(rows).toHaveCount(3, { timeout: 300_000 });
+    for (const r of await rows.all()) {
+      const [v4, aqua] = [await r.getAttribute("data-v4"), await r.getAttribute("data-aqua")];
+      expect(BigInt(v4!), (await r.getAttribute("data-pair"))!).toBeGreaterThan(0n);
+      expect(v4, (await r.getAttribute("data-pair"))!).toBe(aqua); // 0 wei apart on the live chain
+    }
+    await shot(page, "92-testnet-book");
+  });
+
   test("@testnet logging proxy saw requests from anonymity-network exits", async ({ request }) => {
     const proxy = process.env.E2E_PROXY_URL;
     test.skip(!proxy, "set E2E_PROXY_URL to a public proxy/server.mjs (the build must use it as NEXT_PUBLIC_MOHUR_PROXY_URL)");

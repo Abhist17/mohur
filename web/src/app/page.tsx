@@ -15,6 +15,7 @@ import { deployment, NETWORK } from "@/lib/config";
 import { fmt, quoteRoute, readBook, sim, units, type Book } from "@/lib/mohur";
 import { usePoll } from "@/components/useIndex";
 import { VenueMark } from "@/components/VenueMark";
+import { ProblemSolution } from "@/components/ProblemSolution";
 
 const BASE = { eth: 10, btc: 0.3, usdc: 30000 }; // $100k at $4,000 / $100,000
 const W = [0.4, 0.3, 0.3];
@@ -120,7 +121,7 @@ export default function Landing() {
         .stage { position: sticky; top: 60px; height: calc(100vh - 60px); }
         .tagbox { position: absolute; top: 18%; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--panel) 88%, transparent); box-shadow: var(--shadow); border: 1px solid var(--line-2); font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; }
         .hero { min-height: calc(92vh - 60px); display: flex; flex-direction: column; justify-content: center; position: relative; }
-        .hero p { font-size: 20px; color: var(--muted); max-width: 560px; margin-top: 18px; }
+
         @media (max-width: 860px) {
           .story { grid-template-columns: 1fr; }
           .stage { position: sticky; top: 60px; height: 46vh; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); }
@@ -131,18 +132,30 @@ export default function Landing() {
 
       <div className="wrap">
         <section className="hero">
-          <div className="eyebrow">ETHGlobal · Uniswap v4 × 1inch Aqua × Anon-RPC</div>
-          <h1 style={{ marginTop: 16 }}>
-            One wallet, one price,
-            <br />
-            <span className="gold">every venue</span>, nobody watching.
-          </h1>
-          <p>Your wallet becomes a 40/30/30 index. Uniswap and 1inch both trade it, at one price, with no oracle.</p>
-          <div className="row" style={{ marginTop: 20 }}>
-            <Link href="/swap" className="btn primary">Start trading</Link>
-            <Link href="/demo" className="btn" data-testid="landing-demo">Run the demo</Link>
-            <Link href="/create" className="btn">Launch an index</Link>
-            <a href="#story" className="btn">How it works ↓</a>
+          <div className="hero-grid">
+            <div>
+              <div className="eyebrow">ETHGlobal · Uniswap v4 × 1inch Aqua × Anon-RPC</div>
+              <p className="hero-q" data-testid="hero-question">
+                To earn fees on Uniswap <i>and</i> 1inch today, you split your coins in two, and the two prices drift apart.{" "}
+                <b>What if one wallet could serve both?</b>
+              </p>
+              <h1 style={{ marginTop: 14 }}>
+                One wallet.
+                <br />
+                One price.
+                <br />
+                <span className="gold">Every venue.</span>
+                <br />
+                Nobody watching.
+              </h1>
+              <p className="hero-q">Your wallet becomes a 40/30/30 index that Uniswap and 1inch both trade, at one price, with no oracle.</p>
+              <div className="row" style={{ marginTop: 20, flexWrap: "wrap" }}>
+                <Link href="/demo" className="btn primary" data-testid="landing-demo">Run the demo</Link>
+                <Link href="/swap" className="btn">Start trading</Link>
+                <a href="#story" className="btn">How it works ↓</a>
+              </div>
+            </div>
+            <ProblemSolution price={live ? fmt(ethPrice) : "4,000"} live={!!live} />
           </div>
         </section>
       </div>

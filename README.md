@@ -163,7 +163,7 @@ python3 reference/mohur_math.py              # regenerates the 80-digit referenc
 | `11-mobile` | All 11 pages fit a 390 px phone; the menu works |
 | `12-explain` | Every main page's "How this page works" box opens and links to the explainer |
 
-`npm run e2e:testnet` checks the deployed site instead: reads really go through Anon-RPC (Tor, falling back to Nym) to Base Sepolia. Screenshots land in `web/e2e/artifacts/`.
+`npm run e2e:testnet` checks the deployed site instead: reads really go through Anon-RPC (Tor, falling back to Nym) to Base Sepolia, and every chain screen either works or (before the contracts are deployed) explains itself with a labelled screenshot. Screenshots land in `web/e2e/artifacts/`.
 
 ## The app (`web/`)
 

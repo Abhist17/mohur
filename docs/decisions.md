@@ -1,6 +1,14 @@
-# Open decisions (Phases 3–5)
+# Decisions (Phases 3–5)
 
-Nothing in this file is implemented yet. Each section ends at a decision point.
+**Resolved 6 Nov 2026.** The user asked to "work on everything", so the recommendations below were taken:
+
+| Decision | Outcome |
+|---|---|
+| Add-ons | 1 and 2 turned out to be built already, and are now covered by e2e `09-manage`. 3 (shareable index card) is built at `/share?index=0x…` and covered by `10-share`. 6 (mobile pass) is covered by `11-mobile`. 4 and 5 are not built (they need mainnet / a working Tor gateway). |
+| Name | Keep **Mohur**. |
+| Look | **Ledger**: tabular figures everywhere, radius tokens, one `amt()` formatter, shorter nav, Anon-RPC / Ethereum Foundation mark. |
+
+The original analysis is kept below for the record.
 
 ## Phase 3: add-ons, ranked
 

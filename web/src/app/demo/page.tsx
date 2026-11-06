@@ -12,6 +12,7 @@ import { useIndex } from "@/components/useIndex";
 import { NotDeployed } from "@/components/NotDeployed";
 import { VenueLogo } from "@/components/VenueMark";
 import { Explain } from "@/components/Explain";
+import { GasHint } from "@/components/GasHint";
 
 /**
  * Guided demo: six real steps against the demo index from the connected wallet.
@@ -136,6 +137,7 @@ export default function DemoPage() {
 
   return (
     <div className="wrap page">
+      <GasHint />
       <div className="page-head">
         <div className="eyebrow">Demo mode</div>
         <h2>Run the demo</h2>

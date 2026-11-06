@@ -12,6 +12,7 @@ import { useWallet } from "@/lib/wallet";
 import { NotDeployed } from "@/components/NotDeployed";
 import { Concept } from "@/components/Concept";
 import { Explain } from "@/components/Explain";
+import { GasHint } from "@/components/GasHint";
 
 const pmAbi = parseAbi([
   "function initialize((address currency0,address currency1,uint24 fee,int24 tickSpacing,address hooks) key, uint160 sqrtPriceX96) returns (int24)",
@@ -149,6 +150,7 @@ export default function LaunchPage() {
 
   return (
     <div className="wrap page">
+      <GasHint />
       <div className="page-head">
         <div className="eyebrow">Step 2 · Launch</div>
         <h2>Six clicks to go live</h2>

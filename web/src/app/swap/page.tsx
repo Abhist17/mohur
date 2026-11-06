@@ -15,6 +15,7 @@ import { Concept } from "@/components/Concept";
 import { usePoll, useIndex } from "@/components/useIndex";
 import { VenueMark } from "@/components/VenueMark";
 import { Explain } from "@/components/Explain";
+import { GasHint } from "@/components/GasHint";
 
 const SYMS = ["tWETH", "tWBTC", "tUSDC"] as const;
 type Sym = (typeof SYMS)[number];
@@ -197,6 +198,7 @@ export default function SwapPage() {
   return (
     <div className="wrap page">
       <div className="swap stack" style={{ gap: 16 }}>
+        <GasHint />
         <div className="spread">
           <div>
             <h2 style={{ fontSize: 40 }}>Swap</h2>

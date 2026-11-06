@@ -61,7 +61,7 @@ const HUMAN: Record<string, string> = {
 export function prettyError(e: unknown): string {
   const msg = String((e as Error)?.message ?? e);
   if (/user rejected|user denied|rejected the request/i.test(msg)) return "Transaction rejected in your wallet.";
-  if (/insufficient funds/i.test(msg)) return "Not enough ETH for gas.";
+  if (/insufficient funds/i.test(msg)) return "Not enough ETH for gas. On Base Sepolia, get free test ETH from a faucet (Coinbase, Alchemy or QuickNode).";
   if (e instanceof BaseError) {
     const rev = e.walk((x) => x instanceof ContractFunctionRevertedError) as ContractFunctionRevertedError | null;
     const name = innerErrorName(rev?.data?.errorName, rev?.data?.args as readonly unknown[] | undefined);

@@ -149,7 +149,7 @@ python3 reference/mohur_math.py              # regenerates the 80-digit referenc
 | `fork/V4BaseSepolia.t.sol` | Official V4Quoter == hook quote; a real Universal Router swap pays from the maker wallet. |
 | `Gas.t.sol` | What each action costs, with regression bounds: Uniswap v4 swap ~290k gas (incl. the test router), 1inch Aqua fill ~216k, flush ~143k, `quote()` ~52k (measured in-test, before refunds, excluding the 21k base). |
 
-**Everything in one command:** `./scripts/check-all.sh` runs the contract tests (including fork tests), the web typecheck and lint, a fresh fork with deploy, the 36 smoke checks, 27 headless user flows and the 13 browser specs (about 6 minutes). CI runs the offline contract suite and the web checks on every push.
+**Everything in one command:** `./scripts/check-all.sh` runs the contract tests (including fork tests), the web typecheck and lint, a fresh fork with deploy, the 36 smoke checks, 27 headless user flows and the 14 browser specs (about 6 minutes). CI runs the offline contract suite and the web checks on every push.
 
 **Browser tests** (Playwright, system Chrome, no browser download). `cd web && npm run e2e` boots a fresh Base Sepolia fork, deploys, and drives the real app with an injected wallet backed by anvil's dev accounts:
 
@@ -168,6 +168,7 @@ python3 reference/mohur_math.py              # regenerates the 80-digit referenc
 | `11-mobile` | All 11 pages fit a 390 px phone; the menu works |
 | `12-explain` | Every main page's "How this page works" box opens and links to the explainer |
 | `13-a11y` | Skip link is the first tab stop; keyboard focus is visible; the nav marks the current page; every image has alt text |
+| `14-gas` | A wallet with no ETH is told how to get gas (faucet links on Base Sepolia) on Demo, Swap and Launch; a funded wallet never sees it |
 
 `npm run e2e:testnet` checks the deployed site instead: reads really go through Anon-RPC (Tor, falling back to Nym) to Base Sepolia, and every chain screen either works or (before the contracts are deployed) explains itself with a labelled screenshot. Screenshots land in `web/e2e/artifacts/`.
 

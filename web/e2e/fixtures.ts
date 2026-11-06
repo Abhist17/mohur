@@ -86,5 +86,5 @@ export async function shot(page: Page, name: string, fullPage = true) {
 export { base as test, expect };
 
 /** Switch the injected test wallet to another account (as a user would in their wallet). */
-export const switchAccount = (page: Page, address: Address) =>
+export const switchAccount = (page: Page, address: Address | "") =>
   page.evaluate((a) => (window as unknown as { __mohurSwitchAccount: (a: string) => void }).__mohurSwitchAccount(a), address);

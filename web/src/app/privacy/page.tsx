@@ -46,10 +46,17 @@ export default function PrivacyPage() {
     return () => clearInterval(id);
   }, []);
 
-  const [probe, setProbe] = useState<{ state: "idle" | "running" | "ok" | "fail"; text?: string }>({ state: "idle" });
+  const [probe, setProbe] = useState<{ state: "idle" | "running" | "ok" | "fail"; text?: string; t0?: number }>({ state: "idle" });
+  // while the test runs, tick once a second so the wait is visibly alive (mixnets take 5-60 s)
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (probe.state !== "running") return;
+    const id = setInterval(() => setTick((x) => x + 1), 1000);
+    return () => clearInterval(id);
+  }, [probe.state]);
   const runProbe = async () => {
-    setProbe({ state: "running", text: NETWORK === "local" ? "reading the local node…" : `reading Base Sepolia through Anon-RPC (${WORKERS[status.worker].label}; first contact can take 5-60 s)…` });
     const t0 = performance.now();
+    setProbe({ state: "running", t0 });
     try {
       const c = readClient("connection test", anonKeys.public);
       const [chain, block] = await Promise.all([c.getChainId(), c.getBlockNumber()]);
@@ -105,7 +112,15 @@ export default function PrivacyPage() {
           <p className="faint" style={{ fontSize: 12 }}>{WORKERS[status.worker].note}</p>
           <div className="row">
             <button className="btn small" data-testid="probe" disabled={probe.state === "running"} onClick={runProbe}>Test the route</button>
-            {probe.text && <span data-testid="probe-result" data-state={probe.state} className={`mono ${probe.state === "ok" ? "good" : probe.state === "fail" ? "bad" : "faint"}`} style={{ fontSize: 12 }}>{probe.text}</span>}
+            {probe.state !== "idle" && (
+              <span data-testid="probe-result" data-state={probe.state} className={`mono ${probe.state === "ok" ? "good" : probe.state === "fail" ? "bad" : "faint"}`} style={{ fontSize: 12 }}>
+                {probe.state === "running"
+                  ? NETWORK === "local"
+                    ? "reading the local node…"
+                    : `reading Base Sepolia through ${WORKERS[status.worker].label} · ${Math.floor((performance.now() - (probe.t0 ?? performance.now())) / 1000)} s (mixnets take 5-60 s)…`
+                  : probe.text}
+              </span>
+            )}
           </div>
         </div>
       </div>

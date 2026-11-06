@@ -40,12 +40,30 @@ CHAIN=$(cast chain-id --rpc-url "$RPC")
 echo "  using RPC $RPC"
 BAL=$(cast balance "$SENDER" --rpc-url "$RPC")
 say "deployer / maker / demo trader: $SENDER  balance: $(cast from-wei "$BAL") ETH"
-if [ "$(python3 -c "print(int($BAL < 5*10**15))")" = "1" ]; then
-  echo "Need at least 0.005 Base Sepolia ETH. Faucets:"
-  echo "  https://portal.cdp.coinbase.com/products/faucet"
-  echo "  https://www.alchemy.com/faucets/base-sepolia"
-  echo "  https://faucet.quicknode.com/base/sepolia"
-  exit 1
+low() { [ "$(python3 -c "print(int(int('${1:-0}' or 0) < 5*10**15))")" = "1" ]; }
+if low "$BAL"; then
+  echo
+  echo "  This wallet needs at least 0.005 Base Sepolia ETH (the deploy uses ~0.0002)."
+  echo "  Send 0.01 ETH on Base Sepolia to:"
+  echo
+  echo "      $SENDER"
+  echo
+  echo "  from MetaMask (network: Base Sepolia), or a faucet:"
+  echo "      https://portal.cdp.coinbase.com/products/faucet"
+  echo "      https://www.alchemy.com/faucets/base-sepolia"
+  echo "      https://faucet.quicknode.com/base/sepolia"
+  [ -n "${NO_WAIT:-}" ] && exit 1
+  echo
+  echo "  Waiting for it to arrive (checks every 10 s; Ctrl+C to stop). The deploy continues by itself."
+  for _ in $(seq 1 360); do
+    sleep 10
+    BAL=$(cast balance "$SENDER" --rpc-url "$RPC" 2>/dev/null || echo 0)
+    low "$BAL" || break
+    printf "."
+  done
+  echo
+  low "$BAL" && { echo "  Still unfunded after an hour. Run this again once the ETH has arrived."; exit 1; }
+  say "funded: $(cast from-wei "$BAL") ETH"
 fi
 
 cd "$ROOT/contracts"

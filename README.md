@@ -173,7 +173,9 @@ reverts are decoded into plain sentences ("Trade too large: one trade can move a
 
 ## Run it
 
-**Local fork (everything, including the UI):**
+**One command:** `./scripts/demo.sh` forks Base Sepolia, deploys, launches 40/30/30, runs fills on both venues, prints the on-chain numbers and opens the app. In the app, **Demo** in the nav runs the same story from your wallet. See [docs/demo.md](docs/demo.md).
+
+**Local fork, step by step (everything, including the UI):**
 
 ```bash
 anvil --fork-url https://sepolia.base.org --chain-id 31337
@@ -222,7 +224,7 @@ venues, and the PoC is kept as a regression test. `scripts/smoke.sh` checks any 
 | `contracts/` | Foundry project: `src`, `test` (52 + 2 fork), `script` (DeployMohur, LaunchIndex, DemoTrades), `reference` (Python math) |
 | `web/` | Next.js dashboard; `src/lib/anon.ts` is the Anon-RPC transport |
 | `proxy/` | Logging JSON-RPC proxy |
-| `docs/` | PortfolioPrice write-up, Anon-RPC notes, demo script |
+| `docs/` | PortfolioPrice write-up, Anon-RPC notes, demo (`demo.md`), open decisions (`decisions.md`) |
 | `scripts/` | `deploy-base-sepolia.sh` |
 
 ## License

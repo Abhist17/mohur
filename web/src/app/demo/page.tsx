@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { formatUnits, maxUint256, type Address, type Hash } from "viem";
+import { formatUnits, maxUint256, parseEventLogs, type Address, type Hash } from "viem";
 import { MohurLoopRouterAbi, MohurTestTokenAbi } from "@/generated/abis";
 import { deployment, EXPLORER, NETWORK } from "@/lib/config";
 import { keys, readClient } from "@/lib/anon";
-import { amt, quoteBoth, quoteRoute } from "@/lib/mohur";
+import { amt, fillEvt, quoteBoth, quoteRoute, swappedEvt } from "@/lib/mohur";
 import { useWallet } from "@/lib/wallet";
 import { useIndex } from "@/components/useIndex";
 import { NotDeployed } from "@/components/NotDeployed";
@@ -66,8 +66,9 @@ export default function DemoPage() {
   if (!d || !hook) return <NotDeployed />;
   const tok = { weth: d.tWETH, wbtc: d.tWBTC, usdc: d.tUSDC };
 
-  const run = async (id: StepId) => {
-    if (!w.account) return;
+  /** Runs one step; returns false if it failed (the error is shown and Run the demo stops there). */
+  const run = async (id: StepId): Promise<boolean> => {
+    if (!w.account) return false;
     const me = w.account;
     const rc = readClient(`demo: ${id}`, keys.trader(me));
     const bal = (t: Address) => rc.readContract({ address: t, abi: MohurTestTokenAbi, functionName: "balanceOf", args: [me] }) as Promise<bigint>;
@@ -100,7 +101,6 @@ export default function DemoPage() {
         const venue = id === "v4" ? 0 : 1;
         const q = await quoteBoth(hook, tok.usdc, tok.weth, TRADE);
         const out = venue === 0 ? q.v4Out : q.aquaOut;
-        const before = await bal(tok.weth);
         const tx = await w.write({
           address: d.loopRouter,
           abi: MohurLoopRouterAbi,
@@ -108,8 +108,11 @@ export default function DemoPage() {
           args: [hook, [tok.usdc, tok.weth], [venue], TRADE, (out * 995n) / 1000n, me],
           label: id === "v4" ? "Demo trade on Uniswap v4" : "Demo trade on 1inch Aqua",
         });
-        const got = (await bal(tok.weth)) - before;
-        save(id, { done: true, tx, text: `100 USDC → ${e(got)} ETH (quoted ${e(out)})` });
+        // exact amount from the trade's own event (Fill on Uniswap, Swapped on 1inch), not a balance read a lagging RPC could get wrong
+        const rcpt = await rc.getTransactionReceipt({ hash: tx });
+        const fills = parseEventLogs({ abi: [fillEvt, swappedEvt], logs: rcpt.logs });
+        const got = fills.map((l) => l.args as { tokenOut: Address; amountOut: bigint }).find((a) => a.tokenOut.toLowerCase() === tok.weth.toLowerCase())?.amountOut;
+        save(id, { done: true, tx, text: got !== undefined ? `100 USDC → ${e(got)} ETH (quoted ${e(out)})` : `100 USDC → ETH (quoted ${e(out)})` });
       } else if (id === "loop") {
         const one = 10n ** 18n;
         const r = await quoteRoute(hook, [tok.weth, tok.usdc, tok.wbtc, tok.weth], [0, 1, 0], one, me);
@@ -117,8 +120,10 @@ export default function DemoPage() {
         const pct = ((Number(end) / 1e18 - 1) * 100).toFixed(3);
         save(id, { done: true, text: `1 ETH → ${e(end)} ETH (${pct}%): the loop loses` });
       }
+      return true;
     } catch (e) {
       setErr((e as Error).message);
+      return false;
     } finally {
       setRunning(undefined);
     }
@@ -126,7 +131,7 @@ export default function DemoPage() {
 
   const next = STEPS.find((s) => !res[s.id]?.done);
   const runAll = async () => {
-    for (const s of STEPS) if (!res[s.id]?.done) await run(s.id);
+    for (const s of STEPS) if (!res[s.id]?.done && !(await run(s.id))) break; // stop at the first failure: no cascade of failing wallet prompts
   };
   const reset = () => {
     try {

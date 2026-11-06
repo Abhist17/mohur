@@ -124,8 +124,8 @@ export async function mineHookSalt(maker: Address, onProgress?: (n: number) => v
 
 export type FillRow = { venue: "Uniswap v4" | "1inch Aqua"; block: bigint; tx: Hex; tokenIn: Address; tokenOut: Address; amountIn: bigint; amountOut: bigint; trader: Address };
 
-const fillEvt = parseAbiItem("event Fill(address indexed trader, address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut, uint256 fee)");
-const swappedEvt = parseAbiItem("event Swapped(bytes32 orderHash, address maker, address taker, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)");
+export const fillEvt = parseAbiItem("event Fill(address indexed trader, address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut, uint256 fee)");
+export const swappedEvt = parseAbiItem("event Swapped(bytes32 orderHash, address maker, address taker, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)");
 
 const fillCache = new Map<string, { scanned: bigint; rows: FillRow[] }>();
 let narrowLogs = false;

@@ -23,6 +23,12 @@ test("guided demo: runs all six steps for real, resumes after reload, and is ide
   await expect(page.getByTestId("demo-step-loop")).toHaveAttribute("data-done", "1", { timeout: 180_000 });
   await expect(page.getByTestId("demo-out-v4")).toContainText("100 USDC →");
   await expect(page.getByTestId("demo-out-aqua")).toContainText("100 USDC →");
+  // received (from the trade's own event) equals the quote, on both venues
+  for (const v of ["v4", "aqua"]) {
+    const m = (await page.getByTestId(`demo-out-${v}`).textContent())!.match(/→ ([\d.,]+) ETH \(quoted ([\d.,]+)\)/);
+    expect(m, v).not.toBeNull();
+    expect(m![1], v).toBe(m![2]);
+  }
   await expect(page.getByTestId("demo-out-loop")).toContainText("the loop loses");
   await expect(run).toHaveText("All done");
   await shot(page, "13-demo");
@@ -33,4 +39,16 @@ test("guided demo: runs all six steps for real, resumes after reload, and is ide
     await page.getByTestId(`demo-step-${id}`).getByRole("button", { name: "Run" }).click();
     await expect(page.getByTestId(`demo-step-${id}`)).toContainText("already done", { timeout: 60_000 });
   }
+});
+
+test("guided demo stops at the first failed step (no cascade of wallet prompts)", async ({ page }) => {
+  await injectWallet(page, "0x6D6f687572456d70747947617357616c6c657431"); // no ETH and not unlocked: every transaction fails
+  await page.goto("/demo");
+  await connect(page);
+  await page.getByTestId("demo-run").click();
+  await expect(page.locator(".err")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("demo-run")).toBeEnabled();
+  await expect(page.getByTestId("demo-step-faucet")).toHaveAttribute("data-done", "0");
+  await expect(page.getByTestId("demo-step-approve")).toHaveAttribute("data-done", "0");
+  await expect(page.getByText("Approve router", { exact: true })).toHaveCount(0); // step 2 was never attempted
 });

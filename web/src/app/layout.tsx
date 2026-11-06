@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Mohur: one wallet, one price, every venue",
     description: DESCRIPTION,
-    images: [{ url: `${BASE}/og.png`, width: 1200, height: 630, alt: "Mohur: the wallet as three coin stacks, quoted on Uniswap v4 and 1inch Aqua at the same price" }],
+    images: [{ url: `${BASE}/og.png`, width: 1200, height: 630, alt: "Mohur. Today: coins split per venue, two prices drift. With Mohur: one wallet, one price on Uniswap v4 and 1inch Aqua, 0 wei apart." }],
     type: "website",
   },
   twitter: { card: "summary_large_image", title: "Mohur", description: DESCRIPTION, images: [`${BASE}/og.png`] },

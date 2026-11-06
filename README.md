@@ -4,7 +4,7 @@
 
 **One wallet, one price, every venue, nobody watching.**
 
-![The wallet as three coin stacks (ETH, BTC, USDC) quoted on Uniswap v4 and 1inch Aqua at the same price](web/public/og.png)
+![Today: coins split per venue and two prices drift. With Mohur: one wallet, one price on Uniswap v4 and 1inch Aqua, 0 wei apart](web/public/og.png)
 
 Mohur turns a self-custodial wallet into a weighted index (for example 40% ETH / 30% BTC / 30% USDC)
 that **Uniswap v4** and **1inch Aqua** both trade against at the same time, from the same coins, at the

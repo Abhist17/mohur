@@ -16,3 +16,11 @@
 - Fallbacks: non-JSON responses (e.g. Cloudflare pages to Tor exits) retry the next Base Sepolia RPC.
 - Logging proxy: `proxy/server.mjs`; logs time, source IP, Tor-exit flag (from Tor's bulk exit list),
   method. `GET /log` feeds the Privacy screen.
+- Tor → Nym: if Tor hasn't bootstrapped within 35 s (the EF demo Tor gateway was unreachable on 6 Nov 2026),
+  the app switches to Nym, which also anonymises, and logs why. It never falls back to passthrough.
+  Each request has a 25 s timeout before the next Base Sepolia RPC is tried.
+- Log ranges: fill history uses 10,000-block `eth_getLogs` chunks on publicnode and drops to 200-block chunks
+  automatically on RPCs that cap the range.
+- Verified on the live site: `cd web && npm run e2e:testnet` opens the deployed Privacy page, starts on Tor,
+  waits for the fallback, and checks that Base Sepolia (chain 84532) answered and that every chain read
+  except the documented bootstrap went through Anon-RPC.

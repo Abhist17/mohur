@@ -128,7 +128,7 @@ cd contracts
 npm install                                  # @1inch/solidity-utils, @openzeppelin (as upstream does)
 git submodule update --init --recursive
 npm run build:v4                             # builds the real v4 PoolManager artifact (solc 0.8.26)
-forge test --no-match-path 'test/fork/*'     # 52 tests (incl. invariant suite + audit PoC)
+forge test --no-match-path 'test/fork/*'     # 53 tests (incl. invariant suite + audit PoC)
 forge test --match-path 'test/fork/*'        # 2 fork tests against live Uniswap v4 on Base Sepolia
 python3 reference/mohur_math.py              # regenerates the 80-digit reference vectors
 ```
@@ -146,6 +146,25 @@ python3 reference/mohur_math.py              # regenerates the 80-digit referenc
 | `LensLoop.t.sol` | A cross-venue loop returns exactly its Lens quote leg by leg; quoteBoth; book; minOut. |
 | `fork/V4BaseSepolia.t.sol` | Official V4Quoter == hook quote; a real Universal Router swap pays from the maker wallet. |
 
+**Browser tests** (Playwright, system Chrome, no browser download). `cd web && npm run e2e` boots a fresh Base Sepolia fork, deploys, and drives the real app with an injected wallet backed by anvil's dev accounts:
+
+| Spec | Proves |
+| --- | --- |
+| `01-landing` | Landing and the 3D scene render with no console errors |
+| `02-create` | Weights always sum to 100%; preview equals the contracts' math |
+| `03-launch` | Six real launch transactions; a reload mid-launch resumes from chain state |
+| `04-book` | Identical quotes per pair; a fill on one venue moves the other; flush; venue limits |
+| `05-arbitrage` | A 3-leg cross-venue loop returns exactly its quote, and loses |
+| `06-privacy` | Every read listed with route and isolation key |
+| `07-screens` | Swap, Explore, My index, How it works, light and dark |
+| `08-demo` | Guided demo runs for real, resumes after reload, reruns without duplicates |
+| `09-manage` | Gradual re-weight glides on chain time; top up raises a venue limit |
+| `10-share` | Share card shows on-chain data; links keep the picked index |
+| `11-mobile` | All 11 pages fit a 390 px phone; the menu works |
+| `12-explain` | Every main page's "How this page works" box opens and links to the explainer |
+
+`npm run e2e:testnet` checks the deployed site instead: reads really go through Anon-RPC (Tor, falling back to Nym) to Base Sepolia. Screenshots land in `web/e2e/artifacts/`.
+
 ## The app (`web/`)
 
 Next.js 15 + viem + three.js. Everything shown comes from the chain or is labelled *simulated* / *example*.
@@ -154,13 +173,16 @@ reverts are decoded into plain sentences ("Trade too large: one trade can move a
 
 - **Landing:** a scroll-told 3D scene. The wallet is three stacks of coins (gold ETH, copper BTC, silver USDC) feeding two counters (Uniswap, 1inch) that show the same live price. Stages cover: the problem (two piles, drifting prices), one pile, one price, drag the market (rebalancing with the contracts' formula and the honest LVR cost), loops lose (a live on-chain loop quote), and private.
 - **Swap:** the everyday screen. Pay / receive, both venues' quotes side by side (identical, with each venue's remaining limit), rate, price impact, fee, minimum received (0.5% slippage), and one button that walks you through *get test tokens → approve → swap*. Defaults to the demo index so you trade against a real counterparty; makers can switch to their own.
-- **Create:** assets and weights (sliders always sum to 100%), simulated quote preview per pair.
+- **Create:** assets and weights (always sum to 100%), quote preview per pair computed by the contracts' own math (`MohurLens.previewSpot` / `previewOutGivenIn`).
 - **Launch:** six real steps from your wallet (deploy your own hook with an address mined in the browser, test tokens, approve Aqua only, set weights, open v4 pools + ship the Uniswap venue, ship 1inch Aqua strategies). Each step resumes from chain state.
 - **Explore:** every index launched through the factory (read from its events): value, weights, live/paused, with Trade and Live book links (`?index=0x…`).
 - **My index** (the maker's home): performance vs just holding (start reconstructed from fills), fees earned, volume per venue; change allocation instantly or gradually (1 hour to 3 days) with the measured cost difference; pause both venues, resume, top up or re-split.
 - **Live book:** weights vs target, a live rebalancing panel at the market prices you type (what the wallet will buy/sell, arbitrage available, "be that trader" → prefilled Swap), identical quotes on both venues per pair, remaining venue limits, one fill feed for both venues, fees earned, flush button.
 - **Arbitrage me:** build any route across venues, quote it exactly, run it for real.
 - **Privacy:** every chain read live (route, label, isolation key, latency), worker switcher (Tor / Nym / passthrough), who-learns-what, logging-proxy view.
+- **Demo:** a guided six-step tour from your wallet, labelled demo mode (test tokens → approve → parity check → one trade per venue → losing loop). Real transactions; steps already done on chain are skipped; progress resumes after a reload.
+- **Share:** a card for any index (`/share?index=0x…`): on-chain weights, spot prices, fill count, and a link to trade it.
+- **Explanations:** every main screen has a collapsed "How this page works" box linking to its section of [docs/explained.md](docs/explained.md). Every page fits a phone (checked at 390 px).
 
 ### Privacy: Anon-RPC
 

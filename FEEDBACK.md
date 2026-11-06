@@ -32,3 +32,13 @@ Mohur's `MohurHook` is a custom-curve hook that prices from, and settles to, an 
    `IHooks` directly.
 6. **Hook address mining in the browser** is easy with CREATE2 + a factory, but a canonical JS helper next
    to `HookMiner` would make "deploy your own hook" flows standard.
+7. **`WrappedError` hides the hook's revert reason from apps.** A hook revert reaches the caller wrapped
+   in `CustomRevert.WrappedError(target, selector, reason, details)`. viem and wallets show only
+   "WrappedError", so a user sees nothing useful. We unwrap the inner reason ourselves
+   (`web/src/lib/errors.ts`). A small decoding helper in the SDK, or a note in the hooks docs, would
+   make hook errors readable everywhere.
+8. **Hooks that share inventory with another venue need a cross-venue lock.** The v4 side was safe
+   (`beforeSwap` moves both legs before returning). But our own review found that a fill on another venue
+   with taker callbacks could re-enter the hook's pricing on stale balances (AUDIT.md, C-1). We fixed it
+   with a transient fill lock. A short "sharing state with external venues" section in the hook security
+   docs would help other hook authors avoid this.

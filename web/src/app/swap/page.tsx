@@ -177,7 +177,14 @@ export default function SwapPage() {
     cta = { label: `Get test ${TOKEN_STYLE[tin].name}`, primary: true, onClick: () => act(() => w.write({ address: addr(tin), abi: MohurTestTokenAbi, functionName: "faucet", label: `Get test ${tin}` }), "Getting test tokens…") };
   else if (quoting && !quote) cta = { label: "Fetching quote…" };
   else if (quote?.err) cta = { label: "Amount too large" };
-  else if (!ok) cta = { label: `Over ${VENUES[venue]}'s limit` };
+  else if (!ok) {
+    // the other venue may still fill it: offer the switch instead of a dead end
+    const other = (venue === 0 ? 1 : 0) as 0 | 1;
+    const otherOk = quote ? (other === 0 ? quote.v4Ok : quote.aquaOk) : false;
+    cta = otherOk
+      ? { label: `Over ${VENUES[venue]}'s limit · use ${VENUES[other]}`, primary: true, onClick: () => setVenue(other) }
+      : { label: "Over both venues' limits · try a smaller amount" };
+  }
   else if (allow < amountIn)
     cta = { label: `Approve ${TOKEN_STYLE[tin].name}`, primary: true, onClick: () => act(() => w.write({ address: addr(tin), abi: MohurTestTokenAbi, functionName: "approve", args: [d.loopRouter, maxUint256], label: `Approve ${tin}` }), "Approving…") };
   else
@@ -194,7 +201,7 @@ export default function SwapPage() {
           <div>
             <h2 style={{ fontSize: 40 }}>Swap</h2>
             <div className="muted row" style={{ fontSize: 14, gap: 8 }}>
-              <span>Against {isOwn ? "your own index" : "the demo index"}</span>
+              <span>Against {isOwn ? "your own index" : idx.picked && hook?.toLowerCase() !== d?.demoHook?.toLowerCase() ? "a picked index" : "the demo index"}</span>
               {idx.hasOwn && (
                 <button className="tag" style={{ cursor: "pointer" }} onClick={() => setMine(!mine)}>
                   switch to {isOwn ? "demo" : "yours"}

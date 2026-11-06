@@ -13,6 +13,7 @@ import { NotDeployed } from "@/components/NotDeployed";
 import { TokenIcon } from "@/components/TokenIcon";
 import { VenueMark } from "@/components/VenueMark";
 import { Explain } from "@/components/Explain";
+import { LineChart } from "@/components/Chart";
 
 type Status = { nonce: bigint; v4: "live" | "paused" | "none"; aqua: ("live" | "paused" | "none")[]; pairs: [Address, Address][]; rwStart: number; rwEnd: number; target: bigint[] };
 const DOCKED = 255;
@@ -214,6 +215,40 @@ export default function MyIndex() {
         </div>
         <p className="faint" style={{ fontSize: 13, marginTop: 10, marginBottom: 0 }}>vs just holding: fees earned minus LVR.</p>
       </div>
+
+      {(() => {
+        // value of this wallet if ETH moves by k, at your prices: just holding vs Unison (traders rebalance it back to target)
+        const wEth = Number(tokens.find((t) => t.symbol === "tWETH")?.weight ?? 0n) / 1e18;
+        if (!tokens.length || !(vNow > 0) || !(wEth > 0)) return null;
+        const ks = Array.from({ length: 16 }, (_, i) => +(0.5 + i * 0.1).toFixed(2));
+        const ethV = (nowBal.tWETH ?? 0) * (px.tWETH ?? 0);
+        const hold = ks.map((k) => vNow - ethV + ethV * k);
+        const uni = ks.map((k) => vNow * Math.pow(k, wEth));
+        const usd = (v: number) => "$" + fmt(v);
+        return (
+          <div className="card" style={{ marginTop: 16 }} data-testid="hold-chart">
+            <div className="spread" style={{ alignItems: "baseline" }}>
+              <h3>If ETH moves: Unison vs just holding</h3>
+              <span className="tag sim">computed with the pool formula</span>
+            </div>
+            <p className="muted" style={{ fontSize: 14, margin: "4px 0 12px" }}>
+              Unison sells ETH as it rises and buys it as it falls, to stay on target. When prices swing far, just holding ends up ahead: that gap is LVR, and the 0.30% fee on every trade is what pays you for it.
+            </p>
+            <LineChart
+              x={ks.map((k) => (px.tWETH ?? 0) * k)}
+              series={[
+                { name: "Just holding", color: "var(--c-hold)", points: hold, endLabel: true },
+                { name: "Unison", color: "var(--c-unison)", points: uni, endLabel: true },
+              ]}
+              xFmt={usd}
+              yFmt={usd}
+              xLabel="ETH price"
+              yLabel="Value of this wallet"
+              caption="Your balances and weights now, at the prices above; fees ignored, so the real Unison line sits a little higher."
+            />
+          </div>
+        );
+      })()}
 
       <div className="grid g2" style={{ marginTop: 16 }}>
         {/* ---------- allocation ---------- */}

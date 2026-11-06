@@ -13,6 +13,7 @@ import { TokenIcon } from "@/components/TokenIcon";
 import { Concept } from "@/components/Concept";
 import { VenueMark, venueIndex } from "@/components/VenueMark";
 import { Explain } from "@/components/Explain";
+import { LineChart } from "@/components/Chart";
 
 type PairQuote = { a: Address; b: Address; amt: string; v4Out: bigint; aquaOut: bigint; v4Ok: boolean; aquaOk: boolean };
 
@@ -25,6 +26,8 @@ export default function BookPage() {
   const [px, setPx] = useState<Record<string, number>>({ tWETH: 4000, tWBTC: 100000, tUSDC: 1 });
   const [err, setErr] = useState<string>();
   const [busy, setBusy] = useState(false);
+  // "same price at every size": sell 0.5%..24% of the wallet's ETH on each venue; price received per ETH
+  const [curve, setCurve] = useState<{ x: number[]; v4: (number | null)[]; aqua: (number | null)[] }>();
 
   usePoll(
     async () => {
@@ -54,6 +57,21 @@ export default function BookPage() {
     },
     NETWORK === "local" ? 5000 : 20000,
     [hook, maker],
+  );
+
+  usePoll(
+    async () => {
+      if (!hook || !book) return;
+      const eth = book.tokens.find((t) => t.symbol === "tWETH"), usdc = book.tokens.find((t) => t.symbol === "tUSDC");
+      if (!eth || !usdc) return;
+      const bal = units(eth.effectiveBalance, 18);
+      const sizes = [0.005, 0.01, 0.02, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24].map((f) => +(bal * f).toPrecision(3));
+      const qs = await Promise.all(sizes.map((a) => quoteBoth(hook, eth.token, usdc.token, parseUnits(String(a), 18))));
+      const px = (out: bigint, ok: boolean, a: number) => (ok && out > 0n ? units(out, 6) / a : null);
+      setCurve({ x: sizes, v4: qs.map((q, i) => px(q.v4Out, q.v4Ok, sizes[i])), aqua: qs.map((q, i) => px(q.aquaOut, q.aquaOk, sizes[i])) });
+    },
+    NETWORK === "local" ? 15000 : 120000,
+    [hook, book?.tokens.map((t) => String(t.effectiveBalance)).join()],
   );
 
   if (!deployed) return <NotDeployed />;
@@ -200,6 +218,30 @@ export default function BookPage() {
           <p className="faint" style={{ fontSize: 12 }}>Δ in smallest units.</p>
         </div>
       </div>
+
+      {curve && (
+        <div className="card" style={{ marginTop: 16 }} data-testid="size-curve">
+          <div className="spread" style={{ alignItems: "baseline" }}>
+            <h3>Same price at every size</h3>
+            <span className="tag live">live eth_call</span>
+          </div>
+          <p className="muted" style={{ fontSize: 14, margin: "4px 0 12px" }}>
+            Selling ETH for USDC on each venue. The 1inch line runs exactly along the Uniswap band: one price function, one wallet. Bigger trades get a lower price (price impact), the same on both.
+          </p>
+          <LineChart
+            x={curve.x}
+            series={[
+              { name: "Uniswap v4", color: "var(--c-uni)", points: curve.v4, under: true },
+              { name: "1inch Aqua", color: "var(--c-inch)", points: curve.aqua },
+            ]}
+            xFmt={(v) => `${fmt(v)} ETH`}
+            yFmt={(v) => fmt(v)}
+            xLabel="ETH sold"
+            yLabel="USDC received per ETH"
+            caption="A line stops where that venue's selling limit ends (one trade can also move at most 30% of a balance)."
+          />
+        </div>
+      )}
 
       {rb && (
         <div className="card" style={{ marginTop: 16 }}>

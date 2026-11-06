@@ -11,6 +11,7 @@ import { useIndex } from "@/components/useIndex";
 import { NotDeployed } from "@/components/NotDeployed";
 import { Concept } from "@/components/Concept";
 import { Explain } from "@/components/Explain";
+import { LineChart } from "@/components/Chart";
 
 type Leg = { venue: 0 | 1; to: string };
 const SYMS = ["tWETH", "tWBTC", "tUSDC"] as const;
@@ -52,6 +53,25 @@ export default function ArbitragePage() {
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { setResult(undefined); setRanQuote(undefined); doQuote(); }, [hook, start, amount, JSON.stringify(legs)]);
+
+  // the same loop at other sizes: does any size win? (a tenth of your amount up to four times it)
+  const [sizes, setSizes] = useState<{ x: number[]; pct: (number | null)[] }>();
+  useEffect(() => {
+    const a = Number(amount);
+    if (!hook || !valid || !(a > 0) || path[0] !== path[path.length - 1]) return setSizes(undefined);
+    const xs = [0.1, 0.25, 0.5, 1, 2, 4].map((f) => +(a * f).toPrecision(3));
+    let alive = true;
+    Promise.all(xs.map((v) => quoteRoute(hook, path.map(addr), legs.map((l) => l.venue), parseUnits(String(v), dec(start)), w.account).catch(() => undefined)))
+      .then((qs) => {
+        if (!alive) return;
+        setSizes({
+          x: xs,
+          pct: qs.map((q, i) => (q && q.withinLimits ? (Number(formatUnits(q.amounts[q.amounts.length - 1], dec(start))) / xs[i] - 1) * 100 : null)),
+        });
+      });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hook, start, amount, JSON.stringify(legs), result]);
 
   const runIt = async () => {
     if (!d || !hook || !w.account || !quote) return;
@@ -164,6 +184,26 @@ export default function ArbitragePage() {
           {err && <div className="err">{err}</div>}
         </div>
       </div>
+      {sizes && (
+        <div className="card" style={{ marginTop: 16 }} data-testid="loop-sizes">
+          <div className="spread" style={{ alignItems: "baseline" }}>
+            <h3>Any size loses</h3>
+            <span className="tag live">live eth_call</span>
+          </div>
+          <p className="muted" style={{ fontSize: 14, margin: "4px 0 12px" }}>Your loop, quoted at other sizes. Every point is below zero: there is no size that wins. Most of the loss is the 0.30% fee on each leg.</p>
+          <LineChart
+            x={sizes.x}
+            series={[{ name: "Loop result", color: "var(--c-1)", points: sizes.pct }]}
+            xFmt={(v) => `${fmt(v)} ${TOKEN_STYLE[start]?.name ?? start}`}
+            yFmt={(v) => `${v.toFixed(2)}%`}
+            xLabel={`Loop size (${TOKEN_STYLE[start]?.name ?? start})`}
+            yLabel="Result of the loop"
+            zeroLine
+            area
+            caption="A point is missing where a leg would exceed a venue's limit or the 30% per-trade cap."
+          />
+        </div>
+      )}
       <Explain anchor="7-why-arbitrage-loops-lose" points={[
         "Build any loop across both venues. Without fees every trade keeps the wallet's weighted product constant, so a loop back to the start returns at most what went in.",
         "The 0.30% fee is then taken on every leg, and rounding always favours the maker.",

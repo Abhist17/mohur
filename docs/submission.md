@@ -29,7 +29,7 @@ Copy-paste text for the ETHGlobal form, the five lines to say to judges, and wha
 > Testing:
 > - 59 Foundry tests, including fuzzed invariants and fork tests against the official V4Quoter and Universal Router on Base Sepolia.
 > - 36 smoke checks on a live chain.
-> - 16 Playwright browser tests that drive every screen against a fresh fork.
+> - 17 Playwright browser tests that drive every screen against a fresh fork.
 >
 > Web: Next.js 15, viem and three.js, with @anon-rpc/browser-harness as the only read path. It deploys to GitHub Pages as a static export. `./scripts/demo.sh` runs the whole story in one command.
 

@@ -8,6 +8,7 @@ import { usePoll, useIndex } from "@/components/useIndex";
 import { NETWORK, WORKERS, type WorkerId } from "@/lib/config";
 import { useAnon } from "@/components/Providers";
 import { AnonMark } from "@/components/VenueMark";
+import { ColumnChart } from "@/components/Chart";
 
 const PROXY = process.env.NEXT_PUBLIC_MOHUR_PROXY_URL;
 
@@ -140,6 +141,25 @@ export default function PrivacyPage() {
           </table>
         </div>
       </details>
+
+      {reads.length > 0 && (
+        <div className="card" style={{ marginTop: 16 }} data-testid="latency-chart">
+          <div className="spread" style={{ alignItems: "baseline" }}>
+            <h3>What privacy costs: time per read</h3>
+            <span className="faint" style={{ fontSize: 12.5 }}>last {Math.min(30, reads.length)} reads, oldest left</span>
+          </div>
+          <p className="muted" style={{ fontSize: 14, margin: "4px 0 12px" }}>
+            {NETWORK === "local"
+              ? "On the local fork reads go straight to the node, so they take milliseconds. Through a mixnet on Base Sepolia, each read takes seconds: that is the price of nobody seeing what you watch."
+              : "Each read travels through an anonymity network, so it takes seconds instead of milliseconds: that is the price of nobody seeing what you watch."}
+          </p>
+          <ColumnChart
+            items={reads.slice(0, 30).reverse().map((e) => ({ label: e.label, value: e.ms, note: `${e.method} · ${e.route === "anon-rpc" ? "via Anon-RPC" : e.route === "local-direct" ? "local node" : e.route}` }))}
+            yFmt={(v) => (v >= 1000 ? `${(v / 1000).toFixed(1)} s` : `${Math.round(v)} ms`)}
+            caption="Hover a column for the read it was. Every read is also listed below with its isolation key."
+          />
+        </div>
+      )}
 
       <div className="card" style={{ marginTop: 16 }}>
         <div className="spread">

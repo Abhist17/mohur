@@ -334,7 +334,7 @@ python3 reference/unison_math.py              # regenerates the 80-digit referen
 | `fork/V4BaseSepolia.t.sol` | Official V4Quoter == hook quote; a real Universal Router swap pays from the maker wallet. |
 | `Gas.t.sol` | What each action costs, with regression bounds: Uniswap v4 swap ~290k gas (incl. the test router), 1inch Aqua fill ~216k, flush ~143k, `quote()` ~52k (measured in-test, before refunds, excluding the 21k base). |
 
-**Everything in one command:** `./scripts/check-all.sh` runs the contract tests (including fork tests), the web typecheck and lint, a fresh fork with deploy, the 36 smoke checks, 27 headless user flows and the 17 browser specs (about 10 minutes). CI runs the offline contract suite and the web checks on every push.
+**Everything in one command:** `./scripts/check-all.sh` runs the contract tests (including fork tests), the web typecheck and lint, a fresh fork with deploy, the 36 smoke checks, 27 headless user flows and the 18 browser specs (about 10 minutes). CI runs the offline contract suite and the web checks on every push.
 
 **Browser tests** (Playwright, system Chrome, no browser download). `cd web && npm run e2e` boots a fresh Base Sepolia fork, deploys, and drives the real app with an injected wallet backed by anvil's dev accounts:
 
@@ -357,6 +357,7 @@ python3 reference/unison_math.py              # regenerates the 80-digit referen
 | `15-wallet` | Switching accounts in the browser wallet updates the app; disconnecting there disconnects here |
 | `16-docs` | Docs render, code blocks copy, this build's contract addresses show, every section link resolves |
 | `17-charts` | Charts tell the truth: Uniswap and 1inch identical at every trade size, every loop size loses, hold vs Unison, read latency |
+| `18-features` | Move the market (traders act, the wallet earns a fee), a real swap ends with a receipt 0 wei apart from the other venue, fees and volume per venue, Explore sparklines |
 
 `npm run e2e:testnet` checks the deployed site instead: reads really go through Anon-RPC (Tor, falling back to Nym) to Base Sepolia, and every chain screen either works or (before the contracts are deployed) explains itself with a labelled screenshot. Screenshots land in `web/e2e/artifacts/`.
 
@@ -368,6 +369,9 @@ reverts are decoded into plain sentences ("Trade too large: one trade can move a
 
 - **Landing:** the hook ("Stop splitting your coins across exchanges."), a live price board (one wallet, both venues quoting the same trade, 0 wei apart), the idea told as a shop (Today vs With Unison, one shelf, the trade flow), the real `demo.sh` receipts, a checklist where every claim links to its test, what we checked and what it doesn't do, a developer teaser and an FAQ.
 - **Charts** (plain SVG, hover tooltips, a table view on each): Book, *same price at every size* (both venues quoted live at 9 sizes, the lines coincide), *depth read from the wallet* (how much ETH it buys or sells at each price, capped at venue limits) and *ETH price fill by fill* (every real fill, by venue); Arbitrage, *any size loses* (your loop quoted at 6 sizes); My index, *Unison vs just holding* as ETH moves (pool formula, LVR shown honestly); Privacy, *time per read*.
+- **Move the market** (Book): drag ETH's outside price; a chart shows the wallet's ETH share *if nobody traded* drifting away from target and *after traders rebalance* staying on it, with what traders would do, their profit and the fee the wallet earns. The slider drives the live rebalancing panel below it.
+- **Trade receipt** (Swap): after a real swap, a card with what you received (read from the trade's own event), what the other venue quoted for the same trade (0 wei apart), the transaction link, *Copy to share* and *Share on X*.
+- **Fees and volume** (My index): fees earned per venue, fill by fill, and volume by venue. **Explore** cards show each index's fills, fees and a sparkline of its fill prices.
 - **Docs** (`/docs`): quickstart, run the app, deploy to Base Sepolia, launch an index, quote both venues, trade (router, Uniswap v4 pool key, 1inch order), private reads, contracts with this build's addresses, tests and limits; every code block has a copy button.
 - **Swap:** the everyday screen. Pay / receive, both venues' quotes side by side (identical, with each venue's remaining limit), rate, price impact, fee, minimum received (0.5% slippage), and one button that walks you through *get test tokens → approve → swap*. Defaults to the demo index so you trade against a real counterparty; makers can switch to their own.
 - **Create:** assets and weights (always sum to 100%), quote preview per pair computed by the contracts' own math (`UnisonLens.previewSpot` / `previewOutGivenIn`).

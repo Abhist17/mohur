@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { NETWORK } from "@/lib/config";
-import { fmt, readIndexes, TOKEN_STYLE, units, type IndexCard } from "@/lib/unison";
+import { fmt, readFills, readIndexes, TOKEN_STYLE, units, type IndexCard } from "@/lib/unison";
+import { Sparkline } from "@/components/Sparkline";
 import { useWallet } from "@/lib/wallet";
 import { NotDeployed } from "@/components/NotDeployed";
 import { TokenIcon } from "@/components/TokenIcon";
@@ -20,11 +21,34 @@ export default function Explore() {
   const [cards, setCards] = useState<IndexCard[]>();
   const [err, setErr] = useState<string>();
 
+  // per index: real fills -> count, fees, and the ETH/USDC price path for a sparkline
+  const [stats, setStats] = useState<Record<string, { fills: number; fees: number; path: number[] }>>({});
+
   usePoll(
     async () => {
       try {
-        setCards(await readIndexes());
+        const cs = await readIndexes();
+        setCards(cs);
         setErr(undefined);
+        const entries = await Promise.all(
+          cs.filter((c) => c.book).map(async (c) => {
+            const b = c.book!;
+            const fills = await readFills(c.hook, c.maker).catch(() => []);
+            const tok = (a: string) => b.tokens.find((t) => t.token.toLowerCase() === a.toLowerCase());
+            const fee = Number(b.fee) / 1e18;
+            let fees = 0;
+            const path: number[] = [];
+            for (const f of [...fills].reverse()) {
+              const ti = tok(f.tokenIn), to = tok(f.tokenOut);
+              if (!ti || !to) continue;
+              fees += units(f.amountIn, ti.decimals) * fee * (REF[ti.symbol] ?? 0);
+              if (ti.symbol === "tWETH" && to.symbol === "tUSDC") path.push(units(f.amountOut, 6) / units(f.amountIn, 18));
+              if (ti.symbol === "tUSDC" && to.symbol === "tWETH") path.push(units(f.amountIn, 6) / units(f.amountOut, 18));
+            }
+            return [c.hook, { fills: fills.length, fees, path }] as const;
+          }),
+        );
+        setStats(Object.fromEntries(entries));
       } catch (e) {
         setErr(String((e as Error).message).slice(0, 160));
       }
@@ -90,6 +114,13 @@ export default function Explore() {
                   <div className="row faint" style={{ gap: 12, fontSize: 12.5 }}>
                     <VenueMark venue={0} size={14} short /> <VenueMark venue={1} size={14} short />
                     <span>fee {(Number(b.fee) / 1e16).toFixed(2)}%</span>
+                  </div>
+                  <div className="spread explore-stats" data-testid="explore-stats">
+                    <span><b className="mono">{stats[c.hook]?.fills ?? "…"}</b> <span className="faint">fills</span></span>
+                    <span><b className="mono">{stats[c.hook] ? "$" + fmt(stats[c.hook].fees) : "…"}</b> <span className="faint">fees</span></span>
+                    <span title="ETH price of each real ETH/USDC fill, oldest to newest">
+                      <Sparkline points={stats[c.hook]?.path ?? []} label="ETH price of each fill" />
+                    </span>
                   </div>
                   <div className="row">
                     <Link href={`/swap?index=${c.hook}`} className="btn small primary">Trade</Link>

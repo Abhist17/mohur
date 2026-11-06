@@ -454,3 +454,13 @@ body { font-variant-numeric: tabular-nums; }
 .privacy-banner.warn { background: var(--tint); border-bottom-color: var(--tint-line); }
 .privacy-banner-in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding-top: 10px; padding-bottom: 10px; }
 .card td { overflow-wrap: anywhere; }
+.chart-mark { stroke: var(--accent); stroke-width: 1.5; }
+/* trade receipt (after a real swap) */
+.receipt { display: grid; gap: 12px; border-color: var(--good-line); background: linear-gradient(180deg, var(--good-tint), var(--panel)); }
+.receipt-tag { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--good); }
+.receipt-main { display: grid; gap: 2px; }
+.receipt-main b { font-family: var(--display); font-size: 30px; font-variant-numeric: tabular-nums; }
+.receipt-compare { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--panel); border: 1px solid var(--line); font-size: 14px; }
+.receipt-compare b { font-variant-numeric: tabular-nums; }
+.spark { display: block; }
+.explore-stats { align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13.5px; }

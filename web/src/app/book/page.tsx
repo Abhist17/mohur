@@ -14,6 +14,7 @@ import { Concept } from "@/components/Concept";
 import { VenueMark, venueIndex } from "@/components/VenueMark";
 import { Explain } from "@/components/Explain";
 import { LineChart } from "@/components/Chart";
+import { MoveTheMarket } from "@/components/MoveTheMarket";
 
 type PairQuote = { a: Address; b: Address; amt: string; v4Out: bigint; aquaOut: bigint; v4Ok: boolean; aquaOk: boolean };
 
@@ -140,7 +141,7 @@ export default function BookPage() {
     const over = rows.reduce((a, r) => (r.delta * r.p < a.delta * a.p ? r : a)); // wallet sells most of this
     const under = rows.reduce((a, r) => (r.delta * r.p > a.delta * a.p ? r : a)); // wallet wants this
     const feeCost = rows.reduce((a, r) => a + Math.max(0, r.delta) * r.p, 0) * feeRate;
-    return { rows, profit, net: dust(profit - feeCost), over, under, v0 };
+    return { rows, profit, net: dust(profit - feeCost), over, under, v0, feeCost };
   })();
 
   const flush = async () => {
@@ -330,6 +331,8 @@ export default function BookPage() {
           </div>
         )}
       </div>
+
+      {book && <MoveTheMarket book={book} px={px} setPx={setPx} rb={rb} />}
 
       {rb && (
         <div className="card" style={{ marginTop: 16 }}>

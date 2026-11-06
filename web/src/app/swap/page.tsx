@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { formatUnits, maxUint256, parseUnits, type Address } from "viem";
+import { formatUnits, maxUint256, parseEventLogs, parseUnits, type Address } from "viem";
 import { UnisonHookAbi, UnisonLoopRouterAbi, UnisonTestTokenAbi } from "@/generated/abis";
 import { deployment, NETWORK } from "@/lib/config";
 import { keys, readClient } from "@/lib/anon";
 import { prettyError } from "@/lib/errors";
-import { quoteBoth, readBook, TOKEN_STYLE, type Book } from "@/lib/unison";
+import { fillEvt, quoteBoth, readBook, swappedEvt, TOKEN_STYLE, type Book } from "@/lib/unison";
 import { useWallet } from "@/lib/wallet";
 import { TokenIcon } from "@/components/TokenIcon";
 import { NotDeployed } from "@/components/NotDeployed";
@@ -16,6 +16,7 @@ import { usePoll, useIndex } from "@/components/useIndex";
 import { VenueMark } from "@/components/VenueMark";
 import { Explain } from "@/components/Explain";
 import { GasHint } from "@/components/GasHint";
+import { TradeReceipt, type Receipt } from "@/components/TradeReceipt";
 
 const SYMS = ["tWETH", "tWBTC", "tUSDC"] as const;
 type Sym = (typeof SYMS)[number];
@@ -70,6 +71,7 @@ export default function SwapPage() {
   const [allow, setAllow] = useState<bigint>(0n);
   const [busy, setBusy] = useState<string>();
   const [err, setErr] = useState<string>();
+  const [receipt, setReceipt] = useState<Receipt>();
 
   // prefill from a link, e.g. /swap?in=tUSDC&out=tWETH&amount=500 (the Live book's "Be that trader")
   useEffect(() => {
@@ -192,7 +194,30 @@ export default function SwapPage() {
     cta = {
       label: `Swap on ${VENUES[venue]}`,
       primary: true,
-      onClick: () => act(() => w.write({ address: d.loopRouter, abi: UnisonLoopRouterAbi, functionName: "execute", args: [hook, [addr(tin), addr(tout)], [venue], amountIn, minOut, w.account], label: `Swap ${amount} ${TOKEN_STYLE[tin].name} → ${TOKEN_STYLE[tout].name}` }), "Swapping…"),
+      onClick: () =>
+        act(async () => {
+          // remember both venues' quotes for this exact trade, then read what actually arrived from the trade's own event
+          const q = quote!;
+          const chosen = venue;
+          const tx = await w.write({ address: d.loopRouter, abi: UnisonLoopRouterAbi, functionName: "execute", args: [hook, [addr(tin), addr(tout)], [venue], amountIn, minOut, w.account], label: `Swap ${amount} ${TOKEN_STYLE[tin].name} → ${TOKEN_STYLE[tout].name}` });
+          const rcpt = await readClient("swap: receipt", keys.trader(w.account)).getTransactionReceipt({ hash: tx });
+          const ev = parseEventLogs({ abi: [fillEvt, swappedEvt], logs: rcpt.logs })
+            .map((l) => l.args as { tokenOut: Address; amountOut: bigint })
+            .find((a) => a.tokenOut.toLowerCase() === addr(tout).toLowerCase());
+          const got = ev?.amountOut ?? (chosen === 0 ? q.v4Out : q.aquaOut);
+          const other = chosen === 0 ? q.aquaOut : q.v4Out;
+          const mine = chosen === 0 ? q.v4Out : q.aquaOut;
+          setReceipt({
+            venue: chosen,
+            amountIn: amount,
+            symbolIn: TOKEN_STYLE[tin].name,
+            got: show(got, dec(tout), 8),
+            otherQuote: show(other, dec(tout), 8),
+            symbolOut: TOKEN_STYLE[tout].name,
+            gapWei: (mine > other ? mine - other : other - mine).toString(),
+            tx,
+          });
+        }, "Swapping…"),
     };
 
   return (
@@ -286,6 +311,8 @@ export default function SwapPage() {
           </button>
           {err && <div className="err" style={{ textAlign: "center" }}>{err}</div>}
         </div>
+
+        {receipt && <TradeReceipt r={receipt} onClose={() => setReceipt(undefined)} />}
 
         <Concept caption={<><b>Same price on both.</b> Pick either venue. Testnet tokens.</>} />
       </div>

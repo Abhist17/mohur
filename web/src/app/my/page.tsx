@@ -13,7 +13,7 @@ import { NotDeployed } from "@/components/NotDeployed";
 import { TokenIcon } from "@/components/TokenIcon";
 import { VenueMark } from "@/components/VenueMark";
 import { Explain } from "@/components/Explain";
-import { LineChart } from "@/components/Chart";
+import { ColumnChart, LineChart } from "@/components/Chart";
 
 type Status = { nonce: bigint; v4: "live" | "paused" | "none"; aqua: ("live" | "paused" | "none")[]; pairs: [Address, Address][]; rwStart: number; rwEnd: number; target: bigint[] };
 const DOCKED = 255;
@@ -119,6 +119,18 @@ export default function MyIndex() {
     fees += ain * feeRate * (px[si] ?? 0);
     vol[f.venue] += ain * (px[si] ?? 0);
   }
+  // ---- fees earned over time, per venue (oldest fill first), at the prices you type
+  const feeSeries = (() => {
+    const rows = [...fills].reverse();
+    let u = 0, i1 = 0;
+    const x: number[] = [], uni: number[] = [], inch: number[] = [];
+    rows.forEach((f, k) => {
+      const usdFee = units(f.amountIn, dec(f.tokenIn)) * feeRate * (px[sym(f.tokenIn)] ?? 0);
+      if (f.venue === "Uniswap v4") u += usdFee; else i1 += usdFee;
+      x.push(k + 1); uni.push(u); inch.push(i1);
+    });
+    return { x, uni, inch };
+  })();
   const value = (b: Record<string, number>) => Object.entries(b).reduce((a, [s, v]) => a + v * (px[s] ?? 0), 0);
   const vNow = value(nowBal), vHold = value(start);
   const edge = vNow - vHold;
@@ -249,6 +261,50 @@ export default function MyIndex() {
           </div>
         );
       })()}
+
+      {fills.length > 0 && (
+        <div className="grid g2" style={{ marginTop: 16 }}>
+          <div className="card" data-testid="fees-chart">
+            <div className="spread" style={{ alignItems: "baseline" }}>
+              <h3>Fees earned, fill by fill</h3>
+              <span className="tag live">on-chain fills</span>
+            </div>
+            <p className="muted" style={{ fontSize: 14, margin: "4px 0 12px" }}>The 0.30% fee from every real trade, added up per venue (in dollars at the prices above).</p>
+            {feeSeries.x.length > 1 ? (
+              <LineChart
+                x={feeSeries.x}
+                series={[
+                  { name: "Uniswap v4", color: "var(--c-uni)", points: feeSeries.uni },
+                  { name: "1inch Aqua", color: "var(--c-inch)", points: feeSeries.inch },
+                ]}
+                xFmt={(v) => `#${v}`}
+                yFmt={(v) => "$" + fmt(v)}
+                xLabel="Fill"
+                yLabel="Fees earned"
+                height={200}
+              />
+            ) : (
+              <p className="faint" style={{ fontSize: 14 }}>One fill so far: {"$" + fmt(fees)} in fees.</p>
+            )}
+          </div>
+          <div className="card" data-testid="volume-chart">
+            <div className="spread" style={{ alignItems: "baseline" }}>
+              <h3>Volume by venue</h3>
+              <span className="tag live">on-chain fills</span>
+            </div>
+            <p className="muted" style={{ fontSize: 14, margin: "4px 0 12px" }}>Where traders came from. Both venues trade the same coins at the same price, so this is only about who showed up.</p>
+            <ColumnChart
+              items={[
+                { label: "Uniswap v4", value: vol["Uniswap v4"], note: `${fills.filter((f) => f.venue === "Uniswap v4").length} fills`, color: "var(--c-uni)" },
+                { label: "1inch Aqua", value: vol["1inch Aqua"], note: `${fills.filter((f) => f.venue === "1inch Aqua").length} fills`, color: "var(--c-inch)" },
+              ]}
+              yFmt={(v) => "$" + fmt(v)}
+              height={200}
+              showLabels
+            />
+          </div>
+        </div>
+      )}
 
       <div className="grid g2" style={{ marginTop: 16 }}>
         {/* ---------- allocation ---------- */}

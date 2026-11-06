@@ -44,6 +44,8 @@ export function LineChart({
   height = 240,
   area = false,
   zeroLine = false,
+  markX,
+  markLabel,
   caption,
   testId,
 }: {
@@ -56,13 +58,18 @@ export function LineChart({
   height?: number;
   area?: boolean;
   zeroLine?: boolean;
+  /** a vertical reference line (e.g. "you are here") at this x */
+  markX?: number;
+  markLabel?: string;
   caption?: string;
   testId?: string;
 }) {
   const [ref, width] = useWidth<HTMLDivElement>();
   const [hover, setHover] = useState<number>();
   const ends = series.some((s) => s.endLabel);
-  const m = { l: 56, r: ends ? 72 : 16, t: 12, b: xLabel ? 44 : 28 };
+  // room on the right for the longest end label (~7 px per character at 12 px), so it is never clipped
+  const endRoom = Math.max(0, ...series.filter((s) => s.endLabel).map((s) => s.name.length * 7 + 16));
+  const m = { l: 56, r: ends ? Math.max(72, endRoom) : 16, t: 12, b: xLabel ? 44 : 28 };
   const iw = width - m.l - m.r, ih = height - m.t - m.b;
 
   const { y0, y1, yt } = useMemo(() => {
@@ -125,6 +132,12 @@ export function LineChart({
             <text key={v} x={sx(v)} y={m.t + ih + 18} className="chart-tick" textAnchor="middle">{xFmt(v)}</text>
           ))}
           {xLabel && <text x={m.l + iw / 2} y={height - 6} className="chart-axis" textAnchor="middle">{xLabel}</text>}
+          {markX !== undefined && markX >= x0 && markX <= x1 && (
+            <g>
+              <line x1={sx(markX)} x2={sx(markX)} y1={m.t} y2={m.t + ih} className="chart-mark" />
+              {markLabel && <text x={sx(markX) + 6} y={m.t + 12} className="chart-end">{markLabel}</text>}
+            </g>
+          )}
           {/* series */}
           {series.map((s) => (
             <g key={s.name}>
@@ -198,17 +211,21 @@ export function ColumnChart({
   height = 180,
   caption,
   testId,
+  showLabels = false,
 }: {
-  items: { label: string; value: number; note?: string }[];
+  /** `color` per item overrides the chart colour (e.g. each venue in its own colour) */
+  items: { label: string; value: number; note?: string; color?: string }[];
   color?: string;
   yFmt?: (v: number) => string;
   height?: number;
   caption?: string;
   testId?: string;
+  /** category label under each column (for a handful of columns) */
+  showLabels?: boolean;
 }) {
   const [ref, width] = useWidth<HTMLDivElement>();
   const [hover, setHover] = useState<number>();
-  const m = { l: 48, r: 12, t: 10, b: 12 };
+  const m = { l: 56, r: 12, t: 10, b: showLabels ? 30 : 12 };
   const iw = width - m.l - m.r, ih = height - m.t - m.b;
   const max = Math.max(1, ...items.map((i) => i.value));
   const yt = ticks(0, max * 1.12, 3);
@@ -231,7 +248,8 @@ export function ColumnChart({
             return (
               <g key={i} onPointerEnter={() => setHover(i)} onPointerLeave={() => setHover(undefined)} tabIndex={0} onFocus={() => setHover(i)} onBlur={() => setHover(undefined)}>
                 <rect x={m.l + i * slot} y={m.t} width={slot} height={ih} fill="transparent" />
-                <path d={`M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + bw - r}Q${x + bw},${y} ${x + bw},${y + r}V${y + h}Z`} fill={color} opacity={hover === undefined || hover === i ? 1 : 0.55} />
+                <path d={`M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + bw - r}Q${x + bw},${y} ${x + bw},${y + r}V${y + h}Z`} fill={it.color ?? color} opacity={hover === undefined || hover === i ? 1 : 0.55} />
+                {showLabels && <text x={m.l + i * slot + slot / 2} y={m.t + ih + 18} className="chart-tick" textAnchor="middle">{it.label}</text>}
               </g>
             );
           })}

@@ -3,7 +3,7 @@
 #   1. contract tests (incl. invariants, audit PoC, live fork tests)   2. web type-check + lint
 #   3. fresh anvil fork -> deploy, launch demo index, demo fills       4. 36 on-chain smoke checks
 #   5. headless user flows (Launch, Swap both venues, Arbitrage, re-weight, pause/resume, friendly errors)
-#   6. browser suite: every screen in real Chrome on another fresh fork (Playwright, 17 specs)
+#   6. browser suite: every screen in real Chrome on another fresh fork (Playwright, 18 specs)
 # Usage: ./scripts/check-all.sh        (restarts the anvil on :8545; NO_BROWSER=1 skips step 6)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

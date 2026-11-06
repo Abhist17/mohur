@@ -9,7 +9,7 @@
 #   cast wallet import mohur-deployer --interactive
 # Then fund that address with ~0.01 Base Sepolia ETH and run:
 #   ./scripts/deploy-base-sepolia.sh
-# Optional: ACCOUNT=<keystore name>  RPC=<rpc url>  FRESH=1 (redeploy everything)  NO_PUSH=1
+# Optional: PASSWORD_FILE=<file with the keystore password>  ACCOUNT=<keystore name>  RPC=<rpc url>  FRESH=1 (redeploy everything)  NO_PUSH=1
 set -euo pipefail
 ACCOUNT="${ACCOUNT:-mohur-deployer}"
 RPC="${RPC:-https://sepolia.base.org}"
@@ -23,7 +23,9 @@ cast wallet list 2>/dev/null | grep -q "^$ACCOUNT" || {
   echo "No Foundry keystore account '$ACCOUNT'. Create it (you type the key):"
   echo "  cast wallet import $ACCOUNT --interactive"; exit 1; }
 
-SENDER=$(cast wallet address --account "$ACCOUNT")
+# PASSWORD_FILE: lets the deploy run unattended (the key stays encrypted; the password file stays on your machine, chmod 600)
+PW=(); [ -n "${PASSWORD_FILE:-}" ] && PW=(--password-file "$PASSWORD_FILE")
+SENDER=$(cast wallet address --account "$ACCOUNT" "${PW[@]}")
 CHAIN=$(cast chain-id --rpc-url "$RPC")
 [ "$CHAIN" = "84532" ] || { echo "RPC is chain $CHAIN, expected Base Sepolia (84532)"; exit 1; }
 BAL=$(cast balance "$SENDER" --rpc-url "$RPC")
@@ -38,7 +40,7 @@ fi
 
 cd "$ROOT/contracts"
 [ -d lib/v4-periphery/lib/v4-core/out ] || npm run build:v4 >/dev/null
-run() { forge script "script/$1.s.sol" --rpc-url "$RPC" --account "$ACCOUNT" --sender "$SENDER" --broadcast --slow; }
+run() { forge script "script/$1.s.sol" --rpc-url "$RPC" --account "$ACCOUNT" "${PW[@]}" --sender "$SENDER" --broadcast --slow; }
 
 if [ -n "${FRESH:-}" ] || [ ! -f "$J" ] || [ "$(jq -r '.lens // empty' "$J")" = "" ]; then
   say "1/4 deploying shared contracts"; run DeployMohur

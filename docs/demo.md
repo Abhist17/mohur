@@ -35,4 +35,6 @@ Open **Demo** in the nav, or click **Run the demo** on the landing page. It's la
 - **Idempotent:** the faucet and approve steps check balances and allowances on chain first and skip if already done.
 - **Resumable:** progress and transaction hashes are saved per wallet and index in this browser. After a reload, the button reads "Resume the demo".
 - **Testnet:** on Base Sepolia, each trade links to its transaction on Basescan.
-- **Tested:** `web/e2e/specs/08-demo.spec.ts` covers all six steps, the reload, resuming, and the idempotent rerun.
+- **Stops at the first failure:** if a step fails (for example, no ETH for gas), the run stops there instead of opening a wallet prompt for every later step. A wallet with almost no ETH gets faucet links before it starts.
+- **Exact numbers:** each trade's received amount comes from the trade's own on-chain event (`Fill` on Uniswap, `Swapped` on 1inch), and it equals the quote.
+- **Tested:** `web/e2e/specs/08-demo.spec.ts` covers all six steps, the reload, resuming, the idempotent rerun, received == quoted on both venues, and stopping at the first failure.

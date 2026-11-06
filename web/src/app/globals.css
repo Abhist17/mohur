@@ -1,4 +1,4 @@
-/* Theme: light + dark. Muted gold accent. One sans (Geist) everywhere; mono only for addresses.
+/* Theme: light + dark. Every text colour meets WCAG AA (≥4.5:1) on every surface it sits on, in both themes. Muted gold accent. One sans (Geist) everywhere; mono only for addresses.
    --gold is the text-safe accent; --gold-fill is for filled buttons/coins (dark text on top). */
 :root {
   --bg: #faf8f4;
@@ -8,16 +8,16 @@
   --line-2: #d8cfbf;
   --text: #1b1915;
   --muted: #5d564a;
-  --faint: #8a8173;
-  --gold: #946614;
+  --faint: #716a5e;
+  --gold: #8e6213;
   --gold-2: #b8862b;
   --gold-fill: #d6a64c;
   --on-gold: #1a1206;
   --copper: #b56a3c;
   --silver: #8b939c;
-  --good: #2c8556;
-  --bad: #c0473a;
-  --warn: #9c6a12;
+  --good: #28794e;
+  --bad: #b84438;
+  --warn: #906211;
   --tint: #fbf3e1;
   --tint-line: #ead6aa;
   --good-tint: #e7f4ec;
@@ -45,7 +45,7 @@
   --line-2: #3a352e;
   --text: #f3eee6;
   --muted: #b2a999;
-  --faint: #857c6f;
+  --faint: #8b8376;
   --gold: #d6a85a;
   --gold-2: #ecc98a;
   --gold-fill: #d6a64c;

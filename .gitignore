@@ -18,3 +18,5 @@ out/
 .vscode/
 contracts/deployments/local.json
 .next-check/
+.next-*/
+web/site/

@@ -12,6 +12,7 @@ import { NotDeployed } from "@/components/NotDeployed";
 import { TokenIcon } from "@/components/TokenIcon";
 import { Concept } from "@/components/Concept";
 import { VenueMark, venueIndex } from "@/components/VenueMark";
+import { Explain } from "@/components/Explain";
 
 type PairQuote = { a: Address; b: Address; amt: string; v4Out: bigint; aquaOut: bigint; v4Ok: boolean; aquaOk: boolean };
 
@@ -296,6 +297,12 @@ export default function BookPage() {
           </div>
         </div>
       </div>
+      <Explain anchor="6-why-both-venues-always-agree" points={[
+        "Weights vs target: how the wallet's value is split now, at the market prices you type in.",
+        "Same quote on both venues: one trade quoted on Uniswap and 1inch in a single call. Δ is the difference in the token's smallest unit.",
+        "Rebalancing: when your prices differ from the wallet's, traders profit by moving it back to target, and pay the fee to the wallet.",
+        "Venue limits: how much each venue may still sell. Uniswap input waits as claims until someone flushes it into the wallet.",
+      ]} />
     </div>
   );
 }

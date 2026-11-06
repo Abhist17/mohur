@@ -12,6 +12,7 @@ import { Concept } from "@/components/Concept";
 import { NotDeployed } from "@/components/NotDeployed";
 import { TokenIcon } from "@/components/TokenIcon";
 import { VenueMark } from "@/components/VenueMark";
+import { Explain } from "@/components/Explain";
 
 type Status = { nonce: bigint; v4: "live" | "paused" | "none"; aqua: ("live" | "paused" | "none")[]; pairs: [Address, Address][]; rwStart: number; rwEnd: number; target: bigint[] };
 const DOCKED = 255;
@@ -73,11 +74,19 @@ export default function MyIndex() {
     if (book && !newW) setNewW(Object.fromEntries(book.tokens.map((t, i) => [t.symbol, Math.round(Number(st?.target[i] ?? t.weight) / 1e16)])));
   }, [book, st, newW]);
 
+  const explain = (
+    <Explain anchor="9-changing-the-mix-slowly-gradual-weights" points={[
+        "Performance: value now against simply holding the starting coins, at the prices you type. The difference is fees earned minus LVR.",
+        "Change allocation: a gradual change lets traders walk you to the new mix in small, fee-paying trades ($25 vs $1,991 in tests).",
+        "Venues: caps are permissions, not coins moved. Top up / re-split opens a new epoch with new caps; Pause stops both venues at once.",
+      ]} />
+  );
   if (!d) return <NotDeployed />;
   if (!w.account)
     return (
       <div className="wrap page">
         <div className="page-head"><div className="eyebrow">My index</div><h2>Your stockroom</h2><p>Connect the wallet that runs your index.</p></div>
+        {explain}
       </div>
     );
   if (hook === null)
@@ -85,6 +94,7 @@ export default function MyIndex() {
       <div className="wrap page">
         <div className="page-head"><div className="eyebrow">My index</div><h2>You don&apos;t run an index yet</h2><p>Launch one in six clicks.</p></div>
         <Link href="/create" className="btn primary">Launch an index</Link>
+        {explain}
       </div>
     );
 
@@ -278,6 +288,7 @@ export default function MyIndex() {
           </div>
         </div>
       </div>
+      {explain}
     </div>
   );
 }

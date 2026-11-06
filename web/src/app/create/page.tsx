@@ -9,6 +9,7 @@ import { deployment } from "@/lib/config";
 import { keys, readClient } from "@/lib/anon";
 import { TokenIcon } from "@/components/TokenIcon";
 import { Concept } from "@/components/Concept";
+import { Explain } from "@/components/Explain";
 
 const SYMS = ["tWETH", "tWBTC", "tUSDC"];
 
@@ -143,6 +144,10 @@ export default function CreatePage() {
           <Link href="/launch" className="btn primary" style={{ marginTop: 8 }}>Launch →</Link>
         </div>
       </div>
+      <Explain anchor="11-launching-an-index" points={[
+        "Pick tokens and target weights. Preview prices come from the contracts' own math (MohurLens), not a JavaScript copy.",
+        "Use a dedicated wallet: quotes read its live balances, so spending index coins elsewhere moves the prices.",
+      ]} />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { useWallet } from "@/lib/wallet";
 import { useIndex } from "@/components/useIndex";
 import { NotDeployed } from "@/components/NotDeployed";
 import { VenueLogo } from "@/components/VenueMark";
+import { Explain } from "@/components/Explain";
 
 /**
  * Guided demo: six real steps against the demo index from the connected wallet.
@@ -198,6 +199,10 @@ export default function DemoPage() {
           )}
         </>
       )}
+      <Explain anchor="2-the-idea-one-stockroom-two-stalls" points={[
+        "The same story as ./scripts/demo.sh, from your own wallet: tokens, approval, parity check, one trade per venue, a losing loop.",
+        "Safe to rerun: steps already done on chain are skipped.",
+      ]} />
     </div>
   );
 }

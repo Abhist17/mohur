@@ -9,6 +9,7 @@ import { NotDeployed } from "@/components/NotDeployed";
 import { TokenIcon } from "@/components/TokenIcon";
 import { VenueMark } from "@/components/VenueMark";
 import { usePoll, useIndex } from "@/components/useIndex";
+import { Explain } from "@/components/Explain";
 
 // reference prices for sizing cards only (Mohur itself never uses an oracle)
 const REF: Record<string, number> = { tWETH: 4000, tWBTC: 100000, tUSDC: 1 };
@@ -107,6 +108,11 @@ export default function Explore() {
       <p className="faint" style={{ fontSize: 12.5, marginTop: 16 }}>
         Values use reference prices (ETH $4,000, BTC $100,000) only to size the cards. Mohur&apos;s own prices come from each wallet, never an oracle.
       </p>
+      <Explain anchor="14-every-screen" points={[
+        "Every index launched through the Mohur factory, found from its on-chain HookDeployed events.",
+        "Each card is somebody's wallet. Dollar values use reference prices only to size the cards; the indexes never use an oracle.",
+        "Trade against one, open its live Book, or Share its card.",
+      ]} />
     </div>
   );
 }

@@ -23,6 +23,7 @@ export default function How() {
         <div className="eyebrow">How Mohur works</div>
         <h1 style={{ fontSize: "clamp(40px, 6vw, 72px)", marginTop: 10 }}>One wallet. One price. Every venue.</h1>
         <p className="lead" style={{ marginTop: 16 }}>The whole idea in 11 lines. Tap any one for more.</p>
+        <p style={{ marginTop: 8, fontSize: 14 }}><a className="gold" href="https://github.com/Abhist17/mohur/blob/main/docs/explained.md" target="_blank" rel="noreferrer">The long version, with diagrams ↗</a></p>
       </div>
 
       <Concept caption={<><b>One stockroom, two stalls.</b> One shelf, so one price.</>} />

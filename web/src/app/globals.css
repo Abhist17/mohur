@@ -244,6 +244,7 @@ details.more > summary::after { content: "Show"; font-size: 13px; color: var(--g
 details.more[open] > summary::after { content: "Hide"; }
 details.more[open] > summary { margin-bottom: 10px; }
 details.more > summary h3 { margin: 0; }
+.explain-list { margin: 0 0 12px; padding-left: 18px; display: grid; gap: 6px; color: var(--muted); font-size: 14px; line-height: 1.55; }
 details.how-more > summary { list-style: none; cursor: pointer; }
 details.how-more > summary::-webkit-details-marker { display: none; }
 .how-tldr { color: var(--muted); font-size: 16.5px; }

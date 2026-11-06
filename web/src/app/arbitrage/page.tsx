@@ -10,6 +10,7 @@ import { useWallet } from "@/lib/wallet";
 import { useIndex } from "@/components/useIndex";
 import { NotDeployed } from "@/components/NotDeployed";
 import { Concept } from "@/components/Concept";
+import { Explain } from "@/components/Explain";
 
 type Leg = { venue: 0 | 1; to: string };
 const SYMS = ["tWETH", "tWBTC", "tUSDC"] as const;
@@ -163,6 +164,11 @@ export default function ArbitragePage() {
           {err && <div className="err">{err}</div>}
         </div>
       </div>
+      <Explain anchor="7-why-arbitrage-loops-lose" points={[
+        "Build any loop across both venues. Without fees every trade keeps the wallet's weighted product constant, so a loop back to the start returns at most what went in.",
+        "The 0.30% fee is then taken on every leg, and rounding always favours the maker.",
+        "Run it for real: the result must equal the quote, and it loses.",
+      ]} />
     </div>
   );
 }

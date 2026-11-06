@@ -11,6 +11,7 @@ import { loadDraft, type Draft } from "@/lib/draft";
 import { useWallet } from "@/lib/wallet";
 import { NotDeployed } from "@/components/NotDeployed";
 import { Concept } from "@/components/Concept";
+import { Explain } from "@/components/Explain";
 
 const pmAbi = parseAbi([
   "function initialize((address currency0,address currency1,uint24 fee,int24 tickSpacing,address hooks) key, uint160 sqrtPriceX96) returns (int24)",
@@ -185,6 +186,11 @@ export default function LaunchPage() {
           <Link href="/book" className="btn primary">Open the live book →</Link>
         </div>
       )}
+      <Explain anchor="11-launching-an-index" points={[
+        "Six transactions turn this wallet into an index quoted on both venues. Reload any time: the flow resumes from chain state.",
+        "Your browser mines the hook's address so it carries Uniswap v4's permission bits.",
+        "The wallet's only approval is to 1inch Aqua. Not the hook, router or PoolManager.",
+      ]} />
     </div>
   );
 }

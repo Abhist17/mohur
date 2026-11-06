@@ -9,10 +9,9 @@
 #   ./scripts/setup-deployer.sh            (fresh testnet wallet)   or   cast wallet import mohur-deployer --interactive
 # Then fund that address with ~0.01 Base Sepolia ETH and run:
 #   ./scripts/deploy-base-sepolia.sh
-# Optional: PASSWORD_FILE=<file with the keystore password>  ACCOUNT=<keystore name>  RPC=<rpc url>  FRESH=1 (redeploy everything)  NO_PUSH=1
+# Optional: PASSWORD_FILE=<file with the keystore password>  ACCOUNT=<keystore name>  RPC=<rpc url, default: first of publicnode / sepolia.base.org / drpc that answers>  FRESH=1 (redeploy everything)  NO_PUSH=1
 set -euo pipefail
 ACCOUNT="${ACCOUNT:-mohur-deployer}"
-RPC="${RPC:-https://sepolia.base.org}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 J="$ROOT/contracts/deployments/base-sepolia.json"
 export PATH="$HOME/.foundry/bin:$PATH"
@@ -28,8 +27,17 @@ cast wallet list 2>/dev/null | grep -q "^$ACCOUNT" || {
 # PASSWORD_FILE: lets the deploy run unattended (the key stays encrypted; the password file stays on your machine, chmod 600)
 PW=(); [ -n "${PASSWORD_FILE:-}" ] && PW=(--password-file "$PASSWORD_FILE")
 SENDER=$(cast wallet address --account "$ACCOUNT" "${PW[@]}")
+# pick the first Base Sepolia RPC that answers (sepolia.base.org times out from some networks); RPC=<url> overrides
+if [ -z "${RPC:-}" ]; then
+  for r in https://base-sepolia-rpc.publicnode.com https://sepolia.base.org https://base-sepolia.drpc.org; do
+    if [ "$(timeout 15 cast chain-id --rpc-url "$r" 2>/dev/null)" = "84532" ]; then RPC=$r; break; fi
+    echo "  $r did not answer, trying the next RPC"
+  done
+  [ -n "${RPC:-}" ] || { echo "No Base Sepolia RPC answered. Check your connection, or pass RPC=<url>."; exit 1; }
+fi
 CHAIN=$(cast chain-id --rpc-url "$RPC")
 [ "$CHAIN" = "84532" ] || { echo "RPC is chain $CHAIN, expected Base Sepolia (84532)"; exit 1; }
+echo "  using RPC $RPC"
 BAL=$(cast balance "$SENDER" --rpc-url "$RPC")
 say "deployer / maker / demo trader: $SENDER  balance: $(cast from-wei "$BAL") ETH"
 if [ "$(python3 -c "print(int($BAL < 5*10**15))")" = "1" ]; then

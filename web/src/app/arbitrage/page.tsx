@@ -5,7 +5,7 @@ import { formatUnits, maxUint256, parseUnits, type Address } from "viem";
 import { MohurLoopRouterAbi, MohurTestTokenAbi } from "@/generated/abis";
 import { deployment } from "@/lib/config";
 import { keys, readClient } from "@/lib/anon";
-import { fmt, quoteRoute, TOKEN_STYLE } from "@/lib/mohur";
+import { amt, fmt, quoteRoute, TOKEN_STYLE } from "@/lib/mohur";
 import { useWallet } from "@/lib/wallet";
 import { useIndex } from "@/components/useIndex";
 import { NotDeployed } from "@/components/NotDeployed";
@@ -153,7 +153,7 @@ export default function ArbitragePage() {
           {result && ranQuote && (
             <div className={result[result.length - 1] === ranQuote[ranQuote.length - 1] ? "good" : "bad"} data-testid="arb-result" data-match={String(result[result.length - 1] === ranQuote[ranQuote.length - 1])} data-in={String(ranQuote[0])} data-out={String(result[result.length - 1])}>
               {result[result.length - 1] === ranQuote[ranQuote.length - 1]
-                ? `Ran for real: returned exactly its quote (${formatUnits(result[result.length - 1], dec(end))} ${end}). Re-quoted on the new balances above.`
+                ? `Ran for real: returned exactly its quote (${amt(result[result.length - 1], dec(end), 8)} ${TOKEN_STYLE[end].name}). Re-quoted on the new balances above.`
                 : "Executed amount differs from the quote (state changed in between)."}
             </div>
           )}

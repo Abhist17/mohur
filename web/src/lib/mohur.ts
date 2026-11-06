@@ -25,6 +25,8 @@ export function fmt(x: number, d = 4) {
   return x.toLocaleString(undefined, { maximumSignificantDigits: d });
 }
 export const units = (v: bigint, d: number) => Number(v) / 10 ** d;
+/** On-chain amount -> short human string (never 18 raw decimals). */
+export const amt = (v: bigint, d: number, sig = 6) => fmt(units(v, d), sig);
 
 // ------------------------------------------------------------------------------------------------
 // Float weighted-pool math (for simulations and previews only - the chain uses MohurMath)

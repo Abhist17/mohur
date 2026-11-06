@@ -7,6 +7,7 @@ import { quoteBoth, readBook } from "@/lib/mohur";
 import { usePoll, useIndex } from "@/components/useIndex";
 import { NETWORK, WORKERS, type WorkerId } from "@/lib/config";
 import { useAnon } from "@/components/Providers";
+import { AnonMark } from "@/components/VenueMark";
 
 const PROXY = process.env.NEXT_PUBLIC_MOHUR_PROXY_URL;
 
@@ -66,7 +67,7 @@ export default function PrivacyPage() {
   return (
     <div className="wrap page">
       <div className="page-head">
-        <div className="eyebrow">Privacy</div>
+        <div className="eyebrow row" style={{ gap: 8 }}><AnonMark size={14} label="Privacy · Anon-RPC" /></div>
         <h2>Nobody watching</h2>
         <p>Every read goes through EF&apos;s Anon-RPC. One isolation key per maker, strategy and trader.</p>
       </div>

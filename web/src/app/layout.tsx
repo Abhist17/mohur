@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Nav } from "@/components/Nav";
-import { VenueMark } from "@/components/VenueMark";
+import { AnonMark, VenueMark } from "@/components/VenueMark";
 
 const sans = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
@@ -52,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <b>Built on</b>
                 <VenueMark venue={0} size={16} />
                 <VenueMark venue={1} size={16} />
-                <span>Anon-RPC</span>
+                <AnonMark label="Anon-RPC · Ethereum Foundation" />
               </div>
             </div>
             <div className="wrap" style={{ marginTop: 24, fontSize: 12.5 }}>Testnet demo with test tokens that have no value. Not audited.</div>

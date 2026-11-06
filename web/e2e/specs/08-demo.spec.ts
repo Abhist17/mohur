@@ -25,7 +25,7 @@ test("guided demo: runs all six steps for real, resumes after reload, and is ide
   await expect(page.getByTestId("demo-out-aqua")).toContainText("100 USDC →");
   await expect(page.getByTestId("demo-out-loop")).toContainText("the loop loses");
   await expect(run).toHaveText("All done");
-  await shot(page, "08-demo");
+  await shot(page, "13-demo");
 
   // start over: faucet/approve are skipped against chain state (no duplicate mint/approve)
   await page.getByRole("button", { name: "Start over" }).click();

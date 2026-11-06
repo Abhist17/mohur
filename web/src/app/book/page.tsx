@@ -80,11 +80,13 @@ export default function BookPage() {
     const K = Math.exp(lnK);
     const rows = t.map((x) => ({ ...x, target: (x.w * K) / x.p, delta: (x.w * K) / x.p - x.b }));
     const v0 = t.reduce((a, x) => a + x.b * x.p, 0);
-    const profit = v0 - K;
+    // below a cent the gap is float noise from the log/exp round trip, not an opportunity
+    const dust = (x: number) => (Math.abs(x) < 0.01 ? 0 : x);
+    const profit = dust(v0 - K);
     const over = rows.reduce((a, r) => (r.delta * r.p < a.delta * a.p ? r : a)); // wallet sells most of this
     const under = rows.reduce((a, r) => (r.delta * r.p > a.delta * a.p ? r : a)); // wallet wants this
     const feeCost = rows.reduce((a, r) => a + Math.max(0, r.delta) * r.p, 0) * feeRate;
-    return { rows, profit, net: profit - feeCost, over, under, v0 };
+    return { rows, profit, net: dust(profit - feeCost), over, under, v0 };
   })();
 
   const flush = async () => {

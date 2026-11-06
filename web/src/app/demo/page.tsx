@@ -6,7 +6,7 @@ import { formatUnits, maxUint256, type Address, type Hash } from "viem";
 import { MohurLoopRouterAbi, MohurTestTokenAbi } from "@/generated/abis";
 import { deployment, EXPLORER, NETWORK } from "@/lib/config";
 import { keys, readClient } from "@/lib/anon";
-import { quoteBoth, quoteRoute } from "@/lib/mohur";
+import { amt, quoteBoth, quoteRoute } from "@/lib/mohur";
 import { useWallet } from "@/lib/wallet";
 import { useIndex } from "@/components/useIndex";
 import { NotDeployed } from "@/components/NotDeployed";
@@ -28,7 +28,7 @@ const STEPS: { id: StepId; title: string; what: string }[] = [
   { id: "loop", title: "Try to arbitrage", what: "Quote ETH → USDC → BTC → ETH across both venues." },
 ];
 const TRADE = 100_000_000n; // 100 tUSDC
-const e = (v: bigint) => Number(formatUnits(v, 18)).toLocaleString(undefined, { maximumSignificantDigits: 7 });
+const e = (v: bigint) => amt(v, 18, 7);
 
 export default function DemoPage() {
   const d = deployment();

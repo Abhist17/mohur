@@ -12,10 +12,21 @@ const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 // set the theme before first paint (saved choice, else the system setting) so there is no flash
 const THEME_SCRIPT = `try{var t=localStorage.getItem("mohur-theme");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="light"}`;
 
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+const DESCRIPTION =
+  "A self-custodial weighted index that Uniswap v4 and 1inch Aqua trade against at one oracle-free price, monitored privately through Anon-RPC.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(BASE ? "https://abhist17.github.io" : "http://localhost:3000"),
   title: "Mohur: one wallet, one price, every venue",
-  description:
-    "A self-custodial weighted index that Uniswap v4 and 1inch Aqua trade against at one oracle-free price, monitored privately through Anon-RPC.",
+  description: DESCRIPTION,
+  openGraph: {
+    title: "Mohur: one wallet, one price, every venue",
+    description: DESCRIPTION,
+    images: [{ url: `${BASE}/og.png`, width: 1200, height: 630, alt: "Mohur: the wallet as three coin stacks, quoted on Uniswap v4 and 1inch Aqua at the same price" }],
+    type: "website",
+  },
+  twitter: { card: "summary_large_image", title: "Mohur", description: DESCRIPTION, images: [`${BASE}/og.png`] },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

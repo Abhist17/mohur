@@ -28,16 +28,27 @@ export async function injectWallet(page: Page, address: Address) {
         if (j.error) throw Object.assign(new Error(j.error.message), { code: j.error.code, data: j.error.data });
         return j.result;
       };
+      let current = address;
+      const listeners: Record<string, ((...a: unknown[]) => void)[]> = {};
+      // test hook: switch the wallet's account like a user would in MetaMask (fires accountsChanged)
+      (window as unknown as { __mohurSwitchAccount: (a: string) => void }).__mohurSwitchAccount = (a: string) => {
+        current = a as typeof address;
+        for (const f of listeners.accountsChanged ?? []) f(a ? [a] : []);
+      };
       (window as unknown as { ethereum: unknown }).ethereum = {
         isMohurTestWallet: true,
         request: async ({ method, params }: { method: string; params?: unknown[] }) => {
-          if (method === "eth_requestAccounts" || method === "eth_accounts") return [address];
+          if (method === "eth_requestAccounts" || method === "eth_accounts") return [current];
           if (method === "eth_chainId") return "0x7a69";
           if (method === "wallet_switchEthereumChain" || method === "wallet_addEthereumChain") return null;
           return call(method, params ?? []);
         },
-        on() {},
-        removeListener() {},
+        on(e: string, f: (...a: unknown[]) => void) {
+          (listeners[e] ??= []).push(f);
+        },
+        removeListener(e: string, f: (...a: unknown[]) => void) {
+          listeners[e] = (listeners[e] ?? []).filter((x) => x !== f);
+        },
       };
     },
     { address, rpc: RPC },
@@ -73,3 +84,7 @@ export async function shot(page: Page, name: string, fullPage = true) {
 }
 
 export { base as test, expect };
+
+/** Switch the injected test wallet to another account (as a user would in their wallet). */
+export const switchAccount = (page: Page, address: Address) =>
+  page.evaluate((a) => (window as unknown as { __mohurSwitchAccount: (a: string) => void }).__mohurSwitchAccount(a), address);

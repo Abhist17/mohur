@@ -84,4 +84,4 @@ Documented in the README's honest limits and in the app (Launch, How it works).
 
 `scripts/smoke.sh <network>` makes 36 read-only on-chain checks of a deployment; the full Base Sepolia deploy was rehearsed on a chain-84532 fork and passed all 36.
 
-`cd web && npm run e2e` drives every screen in real Chrome against a fresh fork (14 specs), including the paths that touch these findings: venue parity after fills, losing loops run for real, and venue limits.
+`cd web && npm run e2e` drives every screen in real Chrome against a fresh fork (15 specs), including the paths that touch these findings: venue parity after fills, losing loops run for real, and venue limits.

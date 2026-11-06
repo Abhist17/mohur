@@ -61,6 +61,7 @@ const HUMAN: Record<string, string> = {
 export function prettyError(e: unknown): string {
   const msg = String((e as Error)?.message ?? e);
   if (/user rejected|user denied|rejected the request/i.test(msg)) return "Transaction rejected in your wallet.";
+  if (/does not match the target chain|ChainMismatch/i.test(msg)) return "Your wallet is on another network. Switch it to Base Sepolia and try again.";
   if (/insufficient funds/i.test(msg)) return "Not enough ETH for gas. On Base Sepolia, get free test ETH from a faucet (Coinbase, Alchemy or QuickNode).";
   if (e instanceof BaseError) {
     const rev = e.walk((x) => x instanceof ContractFunctionRevertedError) as ContractFunctionRevertedError | null;

@@ -112,6 +112,21 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   }, [connectLocal]);
 
+  // follow the browser wallet: switching accounts updates the app; disconnecting there disconnects here
+  useEffect(() => {
+    if (kind !== "injected") return;
+    const eth = (globalThis as unknown as { ethereum?: EthProvider & { removeListener?: (e: string, f: (...a: unknown[]) => void) => void } }).ethereum;
+    if (!eth?.on) return;
+    const onAccounts = (...a: unknown[]) => {
+      const [next] = (a[0] as Address[] | undefined) ?? [];
+      if (!next) return disconnect();
+      setAccount(next);
+      setClient(createWalletClient({ account: next, chain: CHAIN, transport: custom(eth) }));
+    };
+    eth.on("accountsChanged", onAccounts);
+    return () => eth.removeListener?.("accountsChanged", onAccounts);
+  }, [kind, disconnect]);
+
   const write = useCallback<Wallet["write"]>(
     async ({ address, abi, functionName, args, label }) => {
       if (!client || !account) throw new Error("Connect a wallet first");
@@ -120,6 +135,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         const reader = readClient(`tx receipt: ${label}`, keys.maker(account));
         // simulate first through the read path: a revert surfaces as a readable reason, before any signature
         await reader.simulateContract({ address, abi: [...abi, ...ALL_ERRORS], functionName, args, account } as never);
+        if (kind === "injected") {
+          const eth = (globalThis as unknown as { ethereum?: EthProvider }).ethereum;
+          await eth?.request({ method: "wallet_switchEthereumChain", params: [{ chainId: numberToHex(CHAIN.id) }] }).catch(() => {});
+        }
         const hash = await client.writeContract({ address, abi, functionName, args, account, chain: CHAIN } as never);
         toast.update(id, { body: "Submitted. Waiting for confirmation…", href: EXPLORER ? `${EXPLORER}/tx/${hash}` : undefined });
         const receipt = await reader.waitForTransactionReceipt({ hash });

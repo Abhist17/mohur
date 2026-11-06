@@ -27,6 +27,21 @@ It forks Base Sepolia, deploys, launches a 40/30/30 index, trades on both venues
 
 **New here?** [docs/explained.md](docs/explained.md) explains every part in plain words, with diagrams: the trade on each venue, why prices match, why loops lose, rebalancing, limits, the fill lock, privacy, every screen and contract.
 
+## Live on Base Sepolia
+
+**App:** https://abhist17.github.io/mohur/ · every read goes through Anon-RPC · the demo index has real fills on both venues · 36/36 on-chain checks (`./scripts/smoke.sh base-sepolia`).
+
+| Contract | Address | What it is |
+| --- | --- | --- |
+| Demo index (MohurHook) | [`0xb6879F5F560597B7C1dbfA176c4ac6928Eac6888`](https://sepolia.basescan.org/address/0xb6879F5F560597B7C1dbfA176c4ac6928Eac6888) | the live 40/30/30 index: trade it on either venue |
+| MohurHookFactory | [`0x2F4578C47671b7147908BB9A46a6F8E48c51B18D`](https://sepolia.basescan.org/address/0x2F4578C47671b7147908BB9A46a6F8E48c51B18D) | one hook per maker |
+| MohurSwapVMRouter | [`0x758fFD698fF6A7662ad3094eF3d644f436F1db93`](https://sepolia.basescan.org/address/0x758fFD698fF6A7662ad3094eF3d644f436F1db93) | 1inch AquaSwapVMRouter + opcode 0xd0 |
+| Aqua | [`0x78999A40d392C402b743b810De4c5DbFdD370239`](https://sepolia.basescan.org/address/0x78999A40d392C402b743b810De4c5DbFdD370239) | 1inch Aqua (official source, redeployed: not on testnets) |
+| MohurLens | [`0xe0410dAE32b3cA5f966B13FC6Ee4D8c274F9ca5b`](https://sepolia.basescan.org/address/0xe0410dAE32b3cA5f966B13FC6Ee4D8c274F9ca5b) | whole book, quotes on both venues, previews |
+| MohurLoopRouter | [`0xcA34ABc7f1D6b488cecf3Af6d5E57434cF671b25`](https://sepolia.basescan.org/address/0xcA34ABc7f1D6b488cecf3Af6d5E57434cF671b25) | multi-leg trades across both venues |
+| PoolManager | [`0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408`](https://sepolia.basescan.org/address/0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408) | official Uniswap v4 |
+| Test tokens | [tWETH](https://sepolia.basescan.org/address/0xc0a02AdD604782C723D170d87aE8bFC478ce53D2) · [tWBTC](https://sepolia.basescan.org/address/0x44F7330F03c46aa75135E757DB320370208fdcCC) · [tUSDC](https://sepolia.basescan.org/address/0xc931D7EA4a7102E3F16173b077A4c26671Dab54d) | tWETH / tWBTC / tUSDC (no value) |
+
 ## What to remember
 
 | Claim | Evidence (this repo's tests) |
@@ -253,7 +268,7 @@ venues, and the PoC is kept as a regression test. `scripts/smoke.sh` checks any 
 
 ## Try it
 
-- **Live app:** https://abhist17.github.io/mohur/ (GitHub Pages, every read through Anon-RPC; trading screens go live once the contracts are deployed to Base Sepolia).
+- **Live app:** https://abhist17.github.io/mohur/ (GitHub Pages, every read through Anon-RPC, contracts live on Base Sepolia; addresses above).
 - **Deploy to Base Sepolia:** `./scripts/setup-deployer.sh` (or `cast wallet import mohur-deployer --interactive`), fund it with at least 0.005 test ETH, then `./scripts/deploy-base-sepolia.sh`. It deploys, launches the demo index, makes fills on both venues, runs the smoke test, and pushes the addresses (the live site rebuilds).
 
 ## Honest limits

@@ -35,7 +35,7 @@ Copy-paste text for the ETHGlobal form, the five lines to say to judges, and wha
 
 **Links:**
 - GitHub: https://github.com/Abhist17/mohur
-- Live app: https://abhist17.github.io/mohur/
+- Live app: https://abhist17.github.io/mohur/ (contracts live on Base Sepolia)
 - Explainer: https://github.com/Abhist17/mohur/blob/main/docs/explained.md
 - Video: *(add after recording)*
 
@@ -56,7 +56,7 @@ Copy-paste text for the ETHGlobal form, the five lines to say to judges, and wha
 
 | # | Task | Why | How |
 |---|---|---|---|
-| 1 | **Deploy to Base Sepolia** | Without it the live site's trading screens show a "not live yet" explainer with screenshots instead of real data | `./scripts/setup-deployer.sh` (creates a fresh testnet wallet; you choose a password) or `cast wallet import mohur-deployer --interactive`, fund it with at least 0.005 Base Sepolia ETH (the full deploy is 34 transactions, ~21.7M gas, about 0.0002 ETH at today's gas price), then `./scripts/deploy-base-sepolia.sh`. It was rehearsed end to end on a chain-84532 fork: smoke 36/36. About 5 minutes, and it pushes when done so the live site rebuilds. |
+| 1 | ~~Deploy to Base Sepolia~~ **Done (7 Nov)** | Live: demo index `0xb6879F5F560597B7C1dbfA176c4ac6928Eac6888`, 36/36 on-chain checks | Addresses in the README's *Live on Base Sepolia* table |
 | 2 | **Record the video** | Judges watch it first | Follow [demo-script.md](demo-script.md) |
 | 3 | **Uniswap feedback form** | Needed for the Uniswap prize | Paste from [FEEDBACK.md](../FEEDBACK.md) |
 | 4 | **Submit on ETHGlobal** | | Fields above, plus the video link |

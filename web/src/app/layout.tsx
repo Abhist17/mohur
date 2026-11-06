@@ -66,7 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <AnonMark label="Anon-RPC · Ethereum Foundation" />
               </div>
             </div>
-            <div className="wrap" style={{ marginTop: 24, fontSize: 12.5 }}>Testnet demo with test tokens that have no value. Not audited.</div>
+            <div className="wrap" style={{ marginTop: 24, fontSize: 12.5 }}>Testnet demo with test tokens that have no value. Not externally audited.</div>
           </footer>
         </Providers>
       </body>

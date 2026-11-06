@@ -7,7 +7,7 @@ const GLOSSARY: [string, string][] = [
   ["Index", "A wallet that holds several assets at fixed target shares by value, for example 40% ETH, 30% BTC, 30% USDC."],
   ["Weight", "An asset's target share of the index. The weights are the whole strategy: every price Mohur quotes keeps the wallet on them."],
   ["Venue", "A place traders can buy from you. Mohur has two: Uniswap v4 and 1inch Aqua."],
-  ["Venue limit", "The most each venue may sell of each coin, tracked by 1inch Aqua (50% of each balance at launch). The wallet keeps the rest."],
+  ["Venue limit", "The most each venue may sell of each coin, tracked by 1inch Aqua (at launch: Uniswap 50% of each coin, 1inch 25% per pair). The wallet keeps the rest; Top up on My index changes it."],
   ["1inch Aqua", "A registry that lets one wallet back many strategies without moving coins. It is the only contract your wallet approves."],
   ["Hook", "A small contract Uniswap v4 calls during a swap. Mohur's hook replaces the pool's own pricing with your wallet's price."],
   ["Opcode 0xd0", "A custom instruction added to 1inch's SwapVM. It asks the same hook for the price, so 1inch quotes exactly what Uniswap quotes."],
@@ -91,8 +91,8 @@ export default function How() {
         <p style={{ marginTop: 12 }}>Your wallet approves exactly one contract, Aqua, which gives each venue its own selling limit. Neither venue can touch your coins directly.</p>
       </Section>
 
-      <Section n="4" title="It can't be gamed" tldr="Every loop loses at least the fee: −0.88% across both venues in tests.">
-        Without fees, every trade keeps the wallet&apos;s value (by its own prices) constant, so a loop back to where you started returns exactly
+      <Section n="4" title="It can't be gamed" tldr="Every loop loses money: −0.88% across both venues in tests.">
+        Without fees, every trade keeps the weighted product of the wallet&apos;s balances constant, so a loop back to where you started returns exactly
         what went in. Fees only add to the wallet, and every rounding step favours you, so any loop, on one venue or bouncing between both,
         loses money. In the tests a 0.1 ETH loop ETH → USDC (Uniswap) → BTC (1inch) → ETH (Uniswap) loses 0.88%.{" "}
         <Link href="/arbitrage" className="gold">Try it yourself →</Link>
@@ -127,13 +127,15 @@ export default function How() {
         <Link href="/privacy" className="gold">Watch every read →</Link>
       </Section>
 
-      <Section n="8" title="Honest limits" tldr="LVR stays, per-trade caps, testnet only, not audited.">
+      <Section n="8" title="Honest limits" tldr="LVR stays, per-trade caps, testnet only, not externally audited.">
         <ul className="steps">
           <li>Mohur doesn&apos;t remove LVR: the traders who rebalance you capture the move; you earn the fee.</li>
           <li>One trade can move at most 30% of a balance, and each venue sells only up to its limit.</li>
           <li>Uniswap input waits as claims until the next swap or a flush. It&apos;s priced in at once, but 1inch can only sell what&apos;s already in the wallet.</li>
           <li>Use a dedicated maker wallet. Prices come from what the wallet holds, so spending the index tokens elsewhere moves the price (and gifting tokens to it only enriches the maker).</li>
-          <li>This is a testnet demo with test tokens. Not audited.</li>
+          <li>Every round trip loses, but not always a full 0.30% fee: the proven floor is a little lower for some sizes.</li>
+          <li>Raising a venue limit starts a new epoch: both venues are docked and re-shipped, so old 1inch orders stop filling.</li>
+          <li>This is a testnet demo with test tokens. Not externally audited; our own review found and fixed one critical bug (see AUDIT.md).</li>
         </ul>
       </Section>
 

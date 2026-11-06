@@ -50,7 +50,7 @@ The name is the Mohur, a Mughal gold coin. Built at ETHGlobal (hack day 5–6 No
 
 | Risk | Defence | Test |
 | --- | --- | --- |
-| Loops through the maker's pairs or across venues | Invariant math: every loop loses at least the fee | [3-leg cross-venue loop](https://github.com/Abhist17/mohur/blob/main/contracts/test/CrossVenue.t.sol#L57), [fuzzed loops over any venue mix](https://github.com/Abhist17/mohur/blob/main/contracts/test/CrossVenue.t.sol#L79), [round-trip floor (fuzzed)](https://github.com/Abhist17/mohur/blob/main/contracts/test/MohurMath.t.sol#L93) |
+| Loops through the maker's pairs or across venues | Invariant math: every loop loses (fees only add to the wallet; rounding favours the maker), with a proven per-round-trip floor | [3-leg cross-venue loop](https://github.com/Abhist17/mohur/blob/main/contracts/test/CrossVenue.t.sol#L57), [fuzzed loops over any venue mix](https://github.com/Abhist17/mohur/blob/main/contracts/test/CrossVenue.t.sol#L79), [round-trip floor (fuzzed)](https://github.com/Abhist17/mohur/blob/main/contracts/test/MohurMath.t.sol#L93) |
 | Inconsistent prices between venues | One `quote()` for both | [0 units difference, 6 directions × 2 modes](https://github.com/Abhist17/mohur/blob/main/contracts/test/CrossVenue.t.sol#L15), [a fill moves the other venue](https://github.com/Abhist17/mohur/blob/main/contracts/test/CrossVenue.t.sol#L40) |
 | Donating tokens to move the price | Donations only enrich the maker | [donate-then-swap never profits (fuzzed)](https://github.com/Abhist17/mohur/blob/main/contracts/test/MohurMath.t.sol#L141) |
 | Approval scope | The maker approves **only Aqua** (tighter than the original "Aqua and the hook" plan) | [no allowance to hook, router or PoolManager](https://github.com/Abhist17/mohur/blob/main/contracts/test/CrossVenue.t.sol#L125) |
@@ -242,7 +242,7 @@ venues, and the PoC is kept as a regression test. `scripts/smoke.sh` checks any 
 - A round trip doesn't always lose a full fee: part of the first leg's fee is won back by the return leg. Every loop still loses.
 - Uniswap input waits as claims until the next swap or a flush. It is priced in immediately, but 1inch can only sell what is in the wallet as ERC-20.
 - Venue limits shrink as a venue sells (Uniswap's grows back as its input is flushed via `Aqua.push`). Raising them is one click on My index (**Top up / re-split**), but under the hood it is a new epoch: venues are docked, then re-shipped at `venueNonce + 1`, so open 1inch orders from the old epoch stop filling.
-- Testnet demo with test tokens. Not audited.
+- Testnet demo with test tokens. Not externally audited; our own review ([AUDIT.md](AUDIT.md)) found and fixed one critical bug.
 
 ## Repo map
 

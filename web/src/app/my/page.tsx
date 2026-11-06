@@ -208,12 +208,12 @@ export default function MyIndex() {
       <div className="grid g2" style={{ marginTop: 16 }}>
         {/* ---------- allocation ---------- */}
         <div className="card stack">
-          <div className="spread"><h3>Allocation</h3>{gliding && <span className="tag live">{fmtLeft(st!.rwEnd - now)} left</span>}</div>
+          <div className="spread"><h3>Allocation</h3>{gliding && <span className="tag live" data-testid="glide-left">{fmtLeft(st!.rwEnd - now)} left</span>}</div>
           {tokens.map((t, i) => (
             <div key={t.token}>
               <div className="spread" style={{ fontSize: 14 }}>
                 <span className="row" style={{ gap: 8 }}><TokenIcon symbol={t.symbol} size={18} />{TOKEN_STYLE[t.symbol]?.name}</span>
-                <span className="mono">
+                <span className="mono" data-testid={`alloc-now-${t.symbol}`} data-w={Number(t.weight) / 1e16}>
                   now {(Number(t.weight) / 1e16).toFixed(1)}%
                   {gliding && st && <span className="gold"> → {(Number(st.target[i]) / 1e16).toFixed(1)}%</span>}
                 </span>
@@ -227,15 +227,15 @@ export default function MyIndex() {
             <label key={t.token} className="spread" style={{ fontSize: 14 }}>
               <span className="row" style={{ gap: 8 }}><TokenIcon symbol={t.symbol} size={16} />{TOKEN_STYLE[t.symbol]?.name}</span>
               <span className="row" style={{ gap: 6 }}>
-                <input type="number" min={1} max={98} value={newW[t.symbol]} style={{ width: 70 }} onChange={(e) => setNewW({ ...newW, [t.symbol]: Math.max(0, Math.round(Number(e.target.value))) })} />%
+                <input type="number" data-testid={`alloc-in-${t.symbol}`} min={1} max={98} value={newW[t.symbol]} style={{ width: 70 }} onChange={(e) => setNewW({ ...newW, [t.symbol]: Math.max(0, Math.round(Number(e.target.value))) })} />%
               </span>
             </label>
           ))}
           <div className="spread">
-            <select value={dur} onChange={(e) => setDur(Number(e.target.value))}>
+            <select data-testid="reweight-dur" value={dur} onChange={(e) => setDur(Number(e.target.value))}>
               {DURATIONS.map(([l, s]) => <option key={s} value={s}>{l}</option>)}
             </select>
-            <button className="btn primary small" disabled={!!busy || sumNew !== 100} onClick={reweight}>
+            <button className="btn primary small" data-testid="reweight-go" disabled={!!busy || sumNew !== 100} onClick={reweight}>
               {sumNew !== 100 ? `Total ${sumNew}% (needs 100)` : dur === 0 ? "Switch now" : "Start gradual re-weight"}
             </button>
           </div>
@@ -255,26 +255,26 @@ export default function MyIndex() {
               <tr>
                 <td><VenueMark venue={0} /></td>
                 <td>{st ? <VenueTag s={st.v4} /> : "…"}</td>
-                <td className="num">{fmt(units(tokens[0]?.v4Limit ?? 0n, tokens[0]?.decimals ?? 18))}</td>
+                <td className="num" data-testid="my-limit-v4" data-raw={String(tokens[0]?.v4Limit ?? 0n)}>{fmt(units(tokens[0]?.v4Limit ?? 0n, tokens[0]?.decimals ?? 18))}</td>
               </tr>
               <tr>
                 <td><VenueMark venue={1} /></td>
                 <td>{st ? <VenueTag s={st.aqua.includes("live") ? "live" : st.aqua.includes("paused") ? "paused" : "none"} /> : "…"}</td>
-                <td className="num">{fmt(units(tokens[0]?.aquaLimit ?? 0n, tokens[0]?.decimals ?? 18))}</td>
+                <td className="num" data-testid="my-limit-aqua" data-raw={String(tokens[0]?.aquaLimit ?? 0n)}>{fmt(units(tokens[0]?.aquaLimit ?? 0n, tokens[0]?.decimals ?? 18))}</td>
               </tr>
             </tbody>
           </table>
           <div>
             <div className="spread" style={{ fontSize: 14 }}><span>Uniswap may sell</span><b className="mono">{splitV4}% of each coin</b></div>
-            <input type="range" min={0} max={100} value={splitV4} onChange={(e) => setSplitV4(Number(e.target.value))} />
+            <input type="range" data-testid="split-v4" min={0} max={100} value={splitV4} onChange={(e) => setSplitV4(Number(e.target.value))} />
             <div className="spread" style={{ fontSize: 14 }}><span>1inch may sell, per pair</span><b className="mono">{splitAqua}% of each coin</b></div>
-            <input type="range" min={0} max={50} value={splitAqua} onChange={(e) => setSplitAqua(Number(e.target.value))} />
+            <input type="range" data-testid="split-aqua" min={0} max={50} value={splitAqua} onChange={(e) => setSplitAqua(Number(e.target.value))} />
             <p className="faint" style={{ fontSize: 13, margin: "4px 0 0" }}>Caps, not piles: coins stay in your wallet.</p>
           </div>
           <div className="row">
-            <button className="btn primary small" disabled={!!busy || !st} onClick={resume}>{live ? "Top up / re-split" : "Resume trading"}</button>
+            <button className="btn primary small" data-testid="topup" disabled={!!busy || !st} onClick={resume}>{live ? "Top up / re-split" : "Resume trading"}</button>
             <button className="btn small" disabled={!!busy || !live} onClick={pause}>Pause both venues</button>
-            {busy && <span className="faint" style={{ fontSize: 13 }}>{busy}</span>}
+            {busy && <span className="faint" style={{ fontSize: 13 }} data-testid="my-busy">{busy}</span>}
           </div>
         </div>
       </div>

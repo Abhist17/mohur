@@ -214,7 +214,7 @@ venues, and the PoC is kept as a regression test. `scripts/smoke.sh` checks any 
 - Mohur does not reduce LVR against the outside market; it earns the fee on the trades that rebalance it.
 - A round trip doesn't always lose a full fee: part of the first leg's fee is won back by the return leg. Every loop still loses.
 - Uniswap input waits as claims until the next swap or a flush. It is priced in immediately, but 1inch can only sell what is in the wallet as ERC-20.
-- Venue limits are fixed at launch and shrink as a venue sells (Uniswap's grows back as its input is flushed via `Aqua.push`). Topping up 1inch means shipping a new strategy.
+- Venue limits shrink as a venue sells (Uniswap's grows back as its input is flushed via `Aqua.push`). Raising them is one click on My index (**Top up / re-split**), but under the hood it is a new epoch: venues are docked, then re-shipped at `venueNonce + 1`, so open 1inch orders from the old epoch stop filling.
 - Testnet demo with test tokens. Not audited.
 
 ## Repo map

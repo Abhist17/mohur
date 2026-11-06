@@ -66,6 +66,10 @@ export function watchErrors(page: Page) {
   return errors;
 }
 
-export const shot = (page: Page, name: string, fullPage = true) => page.screenshot({ path: join(ART, `${name}.png`), fullPage });
+/** Full-page screenshot from the top (a scrolled page would paint the sticky nav mid-capture). */
+export async function shot(page: Page, name: string, fullPage = true) {
+  if (fullPage) await page.evaluate(() => window.scrollTo(0, 0));
+  return page.screenshot({ path: join(ART, `${name}.png`), fullPage });
+}
 
 export { base as test, expect };

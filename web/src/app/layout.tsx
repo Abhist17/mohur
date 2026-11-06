@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Nav } from "@/components/Nav";
@@ -9,7 +9,7 @@ import { Logo } from "@/components/Logo";
 
 const sans = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
-const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-display", weight: ["500", "600", "700"] });
+const display = Fraunces({ subsets: ["latin"], variable: "--font-display", weight: ["500", "600", "700"] });
 
 // set the theme before first paint (saved choice, else the system setting) so there is no flash
 const THEME_SCRIPT = `try{var t=localStorage.getItem("mohur-theme");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="light"}`;
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Unison: one wallet, one price, every venue",
     description: DESCRIPTION,
-    images: [{ url: `${BASE}/og.png`, width: 1200, height: 630, alt: "Unison. Today: coins split per venue, two prices drift. With Unison: one wallet, one price on Uniswap v4 and 1inch Aqua, 0 wei apart." }],
+    images: [{ url: `${BASE}/og.png`, width: 1200, height: 630, alt: "Unison: stop splitting your coins across exchanges. One wallet, Uniswap v4 and 1inch Aqua, 0 wei apart." }],
     type: "website",
   },
   twitter: { card: "summary_large_image", title: "Unison", description: DESCRIPTION, images: [`${BASE}/og.png`] },

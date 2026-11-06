@@ -4,7 +4,7 @@
 
 **One wallet, one price, every venue, nobody watching.**
 
-![Today: coins split per venue and two prices drift. With Unison: one wallet, one price on Uniswap v4 and 1inch Aqua, 0 wei apart](web/public/og.png)
+![Unison: stop splitting your coins across exchanges. One wallet, both venues, 0 wei apart](web/public/og.png)
 
 Unison turns a self-custodial wallet into a weighted index (for example 40% ETH / 30% BTC / 30% USDC)
 that **Uniswap v4** and **1inch Aqua** both trade against at the same time, from the same coins, at the
@@ -165,7 +165,7 @@ python3 reference/mohur_math.py              # regenerates the 80-digit referenc
 
 | Spec | Proves |
 | --- | --- |
-| `01-landing` | One-sentence hero, the live same-trade card (both venues equal, 0 wei), every story section, no console errors |
+| `01-landing` | The hook sentence, the live price board (both venues equal, 0 wei), the shop story, the receipts, no console errors |
 | `02-create` | Weights always sum to 100%; preview equals the contracts' math |
 | `03-launch` | Six real launch transactions; a reload mid-launch resumes from chain state |
 | `04-book` | Identical quotes per pair; a fill on one venue moves the other; flush; venue limits |
@@ -190,7 +190,7 @@ Next.js 15 + viem + three.js. Everything shown comes from the chain or is labell
 Every transaction gets a toast (confirm in wallet → submitted, with explorer link → confirmed), and contract
 reverts are decoded into plain sentences ("Trade too large: one trade can move at most 30% of a balance").
 
-- **Landing:** one sentence ("One wallet, traded on every venue at one price."), Launch app / Run the demo, a trust row, a live card quoting the same trade on both venues (0 wei apart), one big number, the problem (Today vs With Unison), how it works in three steps, a "Measured on a fork of the live chain" band, the re-weight cost chart, security, a developer teaser and an FAQ.
+- **Landing:** the hook ("Stop splitting your coins across exchanges."), a live price board (one wallet, both venues quoting the same trade, 0 wei apart), the idea told as a shop (Today vs With Unison, one shelf, the trade flow), the real `demo.sh` receipts, a checklist where every claim links to its test, what we checked and what it doesn't do, a developer teaser and an FAQ.
 - **Docs** (`/docs`): quickstart, run the app, deploy to Base Sepolia, launch an index, quote both venues, trade (router, Uniswap v4 pool key, 1inch order), private reads, contracts with this build's addresses, tests and limits; every code block has a copy button.
 - **Swap:** the everyday screen. Pay / receive, both venues' quotes side by side (identical, with each venue's remaining limit), rate, price impact, fee, minimum received (0.5% slippage), and one button that walks you through *get test tokens → approve → swap*. Defaults to the demo index so you trade against a real counterparty; makers can switch to their own.
 - **Create:** assets and weights (always sum to 100%), quote preview per pair computed by the contracts' own math (`MohurLens.previewSpot` / `previewOutGivenIn`).

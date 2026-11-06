@@ -10,9 +10,8 @@ import { Logo } from "@/components/Logo";
 
 /** On the landing and docs pages the nav tells the story; inside the app it lists the screens. */
 const SITE_LINKS = [
-  ["/#how", "How it works"],
+  ["/#idea", "The idea"],
   ["/#proof", "Proof"],
-  ["/#security", "Security"],
   ["/docs", "Docs"],
   ["/#faq", "FAQ"],
 ] as const;
@@ -120,7 +119,7 @@ export function Nav() {
             <a href={REPO} target="_blank" rel="noreferrer">GitHub ↗</a>
           </nav>
           <ThemeToggle />
-          <Link href="/swap" className="btn small nav-launch" data-testid="nav-launch">Launch app</Link>
+          <Link href="/swap" className="btn small nav-open" data-testid="nav-launch">Open the app</Link>
           <button className="btn small nav-burger" aria-label="Menu" aria-expanded={menu} onClick={() => setMenu(!menu)}>
             {menu ? "✕" : "☰"}
           </button>
@@ -131,7 +130,7 @@ export function Nav() {
               <Link key={href} href={href} onClick={() => setMenu(false)}>{label}</Link>
             ))}
             <a href={REPO} target="_blank" rel="noreferrer">GitHub ↗</a>
-            <Link href="/swap" onClick={() => setMenu(false)}>Launch app →</Link>
+            <Link href="/swap" onClick={() => setMenu(false)}>Open the app →</Link>
           </nav>
         )}
       </header>

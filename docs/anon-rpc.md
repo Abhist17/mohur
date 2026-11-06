@@ -1,4 +1,4 @@
-# Anon-RPC in Mohur
+# Anon-RPC in Unison
 
 - Package: `@anon-rpc/browser-harness` 0.4.0 (Ethereum Foundation). The harness reads a worker
   specifier contract on mainnet, fetches the bundle, verifies `keccak256(bytes) == workerHash()`, and runs

@@ -209,7 +209,7 @@ export default function SwapPage() {
                   switch to {isOwn ? "demo" : "yours"}
                 </button>
               )}
-              <Link href="/book" className="gold">live book</Link>
+              <Link href="/book" className="accent">live book</Link>
             </div>
           </div>
           <span className="pill">fee 0.30% · slippage 0.5%</span>
@@ -291,7 +291,7 @@ export default function SwapPage() {
       </div>
       <Explain anchor="4-a-trade-on-uniswap-v4" points={[
         "Both venue quotes come from one function over the maker's wallet, which is why they match to the wei.",
-        "Uniswap v4 fills through the Mohur hook; 1inch fills through SwapVM opcode 0xd0. Coins move between your wallet and the maker's through 1inch Aqua.",
+        "Uniswap v4 fills through the Unison hook; 1inch fills through SwapVM opcode 0xd0. Coins move between your wallet and the maker's through 1inch Aqua.",
         "“Can sell” is that venue's remaining limit. One trade can move at most 30% of a balance.",
         "Every trade changes the maker's balances, so the next quote moves the same way on both venues.",
       ]} />

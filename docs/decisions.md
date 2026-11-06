@@ -5,7 +5,7 @@
 | Decision | Outcome |
 |---|---|
 | Add-ons | 1 and 2 turned out to be built already, and are now covered by e2e `09-manage`. 3 (shareable index card) is built at `/share?index=0x…` and covered by `10-share`. 6 (mobile pass) is covered by `11-mobile`. 4 and 5 are not built (they need mainnet / a working Tor gateway). |
-| Name | Keep **Mohur**. |
+| Name | First kept **Mohur**; renamed to **Unison** on 6 Nov evening (user's pick, with an indigo accent). Contract names keep `Mohur*`. |
 | Look | **Ledger**: tabular figures everywhere, radius tokens, one `amt()` formatter, shorter nav, Anon-RPC / Ethereum Foundation mark. |
 
 The original analysis is kept below for the record.

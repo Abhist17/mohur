@@ -1,6 +1,6 @@
-# Mohur, explained
+# Unison, explained
 
-Every part of Mohur in plain words, with a picture for each. If you only have a minute, read the first two sections. The [README](../README.md) has the judge-facing evidence and links into the code.
+Every part of Unison in plain words, with a picture for each. If you only have a minute, read the first two sections. The [README](../README.md) has the judge-facing evidence and links into the code.
 
 **Contents**
 1. [The problem](#1-the-problem)
@@ -19,7 +19,7 @@ Every part of Mohur in plain words, with a picture for each. If you only have a 
 14. [Every screen](#14-every-screen)
 15. [Every contract](#15-every-contract)
 16. [How we know it works](#16-how-we-know-it-works)
-17. [What Mohur does not do](#17-what-mohur-does-not-do)
+17. [What Unison does not do](#17-what-mohur-does-not-do)
 18. [Glossary](#18-glossary)
 
 ---
@@ -54,7 +54,7 @@ flowchart LR
 
 ## 3. The price rule
 
-Mohur uses the weighted-pool rule (the same family as Balancer). `w` is a token's target weight, `B` its balance in the wallet, `f` the 0.30% fee:
+Unison uses the weighted-pool rule (the same family as Balancer). `w` is a token's target weight, `B` its balance in the wallet, `f` the 0.30% fee:
 
 ```
 price of i in j        p = (w_i / w_j) · (B_j / B_i)
@@ -67,7 +67,7 @@ Example from the demo: with 10 ETH, 0.3 BTC and 30,000 USDC at 40/30/30, the boa
 
 ## 4. A trade on Uniswap v4
 
-Uniswap v4 lets a pool attach a **hook**. Mohur's hook replaces the pool's own curve: the pool holds nothing, and the hook fills every trade from the wallet.
+Uniswap v4 lets a pool attach a **hook**. Unison's hook replaces the pool's own curve: the pool holds nothing, and the hook fills every trade from the wallet.
 
 ```mermaid
 sequenceDiagram
@@ -95,7 +95,7 @@ sequenceDiagram
 
 ## 5. A trade on 1inch Aqua
 
-1inch Aqua lets a wallet "ship" a strategy: an order program that SwapVM runs when a taker fills it. The wallet keeps its coins; Aqua only records how much each strategy may sell (a **virtual balance**). Mohur adds one instruction to SwapVM, **opcode `0xd0` (PortfolioPrice)**, which asks the hook for the price.
+1inch Aqua lets a wallet "ship" a strategy: an order program that SwapVM runs when a taker fills it. The wallet keeps its coins; Aqua only records how much each strategy may sell (a **virtual balance**). Unison adds one instruction to SwapVM, **opcode `0xd0` (PortfolioPrice)**, which asks the hook for the price.
 
 ```mermaid
 sequenceDiagram
@@ -144,7 +144,7 @@ flowchart LR
 
 ## 8. How the wallet rebalances itself
 
-When the outside market moves (say ETH goes from $4,000 to $5,000), Mohur's ETH is now cheap compared with the market. Traders buy ETH from the wallet until Mohur's price matches the market again, and at that point the wallet's value is back at 40/30/30.
+When the outside market moves (say ETH goes from $4,000 to $5,000), Unison's ETH is now cheap compared with the market. Traders buy ETH from the wallet until Unison's price matches the market again, and at that point the wallet's value is back at 40/30/30.
 
 | | ETH | BTC | USDC |
 |---|---|---|---|
@@ -222,11 +222,11 @@ The lock fails closed: if anything skips the unlock, pricing stays blocked for t
 
 ## 13. Privacy: Anon-RPC
 
-A normal RPC provider sees every read: which hook you check, which pairs you quote, when you look. Mohur's app sends **every** chain read through the Ethereum Foundation's Anon-RPC, which routes it through an anonymity network (Tor, falling back to Nym).
+A normal RPC provider sees every read: which hook you check, which pairs you quote, when you look. Unison's app sends **every** chain read through the Ethereum Foundation's Anon-RPC, which routes it through an anonymity network (Tor, falling back to Nym).
 
 ```mermaid
 flowchart LR
-    App[Mohur app in your browser] -->|"key: maker"| AR
+    App[Unison app in your browser] -->|"key: maker"| AR
     App -->|"key: strategy per pair"| AR
     App -->|"key: trader"| AR
     App -->|"key: public"| AR
@@ -286,7 +286,7 @@ flowchart LR
 | Testnet check (`npm run e2e:testnet`) | 3 | Against the deployed site: reads really go through Anon-RPC; every chain screen either works or explains itself; optional logging-proxy check |
 | One-click demo (`./scripts/demo.sh`) | | Prints the key numbers straight from chain |
 
-## 17. What Mohur does not do
+## 17. What Unison does not do
 
 - **It does not reduce LVR.** When the market moves, the traders who rebalance you capture that move; you earn the fee. The landing page shows the cost.
 - **Round trips don't always lose a full fee.** They always lose, with a proven floor, but not always the full 0.30%.
@@ -304,11 +304,11 @@ flowchart LR
 | **Index / weights** | The target split of the wallet's value, e.g. 40/30/30 |
 | **Maker** | The wallet owner who runs the index |
 | **Venue** | A place traders can fill against the index: Uniswap v4 or 1inch Aqua |
-| **Hook** | A contract Uniswap v4 calls during a swap; Mohur's replaces the pool's curve |
+| **Hook** | A contract Uniswap v4 calls during a swap; Unison's replaces the pool's curve |
 | **Aqua** | 1inch's shared-liquidity layer: coins stay in the wallet, strategies get virtual balances |
-| **SwapVM / opcode** | 1inch's order-execution machine; `0xd0` is Mohur's added pricing instruction |
+| **SwapVM / opcode** | 1inch's order-execution machine; `0xd0` is Unison's added pricing instruction |
 | **Venue limit (cap)** | The most a venue may sell, enforced by Aqua |
-| **Claims (ERC-6909)** | Uniswap's IOU tokens; Mohur holds trader input as claims until `flush()` |
+| **Claims (ERC-6909)** | Uniswap's IOU tokens; Unison holds trader input as claims until `flush()` |
 | **Epoch / venueNonce** | A version number for the venue setup; reopening bumps it |
 | **LVR** | Loss-versus-rebalancing: what a passive maker loses to better-informed traders when prices move |
 | **Anon-RPC** | The Ethereum Foundation's private RPC access over Tor or Nym |

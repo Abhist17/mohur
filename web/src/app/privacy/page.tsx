@@ -129,7 +129,7 @@ export default function PrivacyPage() {
         <summary><h3>Who learns what</h3></summary>
         <div className="table-scroll">
           <table>
-            <thead><tr><th>Party</th><th>Plain RPC</th><th>Mohur via Anon-RPC</th></tr></thead>
+            <thead><tr><th>Party</th><th>Plain RPC</th><th>Unison via Anon-RPC</th></tr></thead>
             <tbody>
               <tr><td>RPC provider</td><td>Your IP + every wallet, pair and quote you poll</td><td className="good">A Tor exit (or mix exit) and the requests; not who you are</td></tr>
               <tr><td>Tor relays / gateway</td><td>-</td><td>Guard sees your IP but not the content; exit sees content but not your IP</td></tr>

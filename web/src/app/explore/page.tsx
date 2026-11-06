@@ -11,7 +11,7 @@ import { VenueMark } from "@/components/VenueMark";
 import { usePoll, useIndex } from "@/components/useIndex";
 import { Explain } from "@/components/Explain";
 
-// reference prices for sizing cards only (Mohur itself never uses an oracle)
+// reference prices for sizing cards only (Unison itself never uses an oracle)
 const REF: Record<string, number> = { tWETH: 4000, tWBTC: 100000, tUSDC: 1 };
 
 export default function Explore() {
@@ -39,7 +39,7 @@ export default function Explore() {
     <div className="wrap page">
       <div className="page-head">
         <div className="eyebrow">Explore</div>
-        <h2>Every Mohur index</h2>
+        <h2>Every Unison index</h2>
         <p>Each one is somebody&apos;s wallet, quoted on both venues at one price. Pick one to trade against.</p>
       </div>
       {err && <div className="err" style={{ marginBottom: 12 }}>{err}</div>}
@@ -56,7 +56,7 @@ export default function Explore() {
       )}
       {cards && cards.length === 0 && (
         <div className="card">
-          No indexes yet. <Link href="/create" className="gold">Launch the first one →</Link>
+          No indexes yet. <Link href="/create" className="accent">Launch the first one →</Link>
         </div>
       )}
       <div className="grid g3">
@@ -68,7 +68,7 @@ export default function Explore() {
           return (
             <div key={c.hook} className="card stack" style={{ gap: 12 }}>
               <div className="spread">
-                <span className="addr faint">{c.maker.slice(0, 6)}…{c.maker.slice(-4)}{mine && <span className="gold"> · you</span>}</span>
+                <span className="addr faint">{c.maker.slice(0, 6)}…{c.maker.slice(-4)}{mine && <span className="accent"> · you</span>}</span>
                 <span className={`tag ${live ? "live" : "sim"}`}>{!b ? "setting up" : live ? "live" : "paused"}</span>
               </div>
               {b ? (
@@ -106,10 +106,10 @@ export default function Explore() {
         })}
       </div>
       <p className="faint" style={{ fontSize: 12.5, marginTop: 16 }}>
-        Values use reference prices (ETH $4,000, BTC $100,000) only to size the cards. Mohur&apos;s own prices come from each wallet, never an oracle.
+        Values use reference prices (ETH $4,000, BTC $100,000) only to size the cards. Unison&apos;s own prices come from each wallet, never an oracle.
       </p>
       <Explain anchor="14-every-screen" points={[
-        "Every index launched through the Mohur factory, found from its on-chain HookDeployed events.",
+        "Every index launched through the Unison factory, found from its on-chain HookDeployed events.",
         "Each card is somebody's wallet. Dollar values use reference prices only to size the cards; the indexes never use an oracle.",
         "Trade against one, open its live Book, or Share its card.",
       ]} />

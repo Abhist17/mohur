@@ -10,7 +10,7 @@ export function Explain({ points, anchor, title = "How this page works" }: { poi
       <ul className="explain-list">
         {points.map((p, i) => <li key={i}>{p}</li>)}
       </ul>
-      <a href={`${DOC}#${anchor}`} target="_blank" rel="noreferrer" className="gold" style={{ fontSize: 13.5 }}>
+      <a href={`${DOC}#${anchor}`} target="_blank" rel="noreferrer" className="accent" style={{ fontSize: 13.5 }}>
         Full explanation with diagrams ↗
       </a>
     </details>

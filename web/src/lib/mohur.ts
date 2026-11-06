@@ -99,7 +99,7 @@ export async function hookOf(maker: Address): Promise<Address | undefined> {
   return h === ZERO ? undefined : h;
 }
 
-/** Mine a CREATE2 salt whose hook address carries exactly Mohur's v4 permission bits - in the browser. */
+/** Mine a CREATE2 salt whose hook address carries exactly Unison's v4 permission bits - in the browser. */
 export async function mineHookSalt(maker: Address, onProgress?: (n: number) => void) {
   const d = deployment()!;
   const c = readClient("hook init code hash", keys.maker(maker));

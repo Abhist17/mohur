@@ -1,12 +1,12 @@
-# Mohur
+# Unison
 
 [![Tests](https://github.com/Abhist17/mohur/actions/workflows/test.yml/badge.svg)](https://github.com/Abhist17/mohur/actions/workflows/test.yml) [![Live app](https://img.shields.io/badge/live-abhist17.github.io%2Fmohur-d6a64c)](https://abhist17.github.io/mohur/)
 
 **One wallet, one price, every venue, nobody watching.**
 
-![Today: coins split per venue and two prices drift. With Mohur: one wallet, one price on Uniswap v4 and 1inch Aqua, 0 wei apart](web/public/og.png)
+![Today: coins split per venue and two prices drift. With Unison: one wallet, one price on Uniswap v4 and 1inch Aqua, 0 wei apart](web/public/og.png)
 
-Mohur turns a self-custodial wallet into a weighted index (for example 40% ETH / 30% BTC / 30% USDC)
+Unison turns a self-custodial wallet into a weighted index (for example 40% ETH / 30% BTC / 30% USDC)
 that **Uniswap v4** and **1inch Aqua** both trade against at the same time, from the same coins, at the
 same price, with no oracle. Every chain read the dashboard makes goes through the Ethereum Foundation's
 **Anon-RPC**, with a separate isolation key per strategy.
@@ -15,7 +15,7 @@ same price, with no oracle. Every chain read the dashboard makes goes through th
 > from it. There is only one shelf, so there is only one price: a sale at either stall moves the shelf,
 > and both price tags change together. Nothing has to be synced.
 
-The name is the Mohur, a Mughal gold coin. Built at ETHGlobal (hack day 5–6 Nov 2026).
+Unison: both venues move in unison, at one price. Built at ETHGlobal (hack day 5–6 Nov 2026). The contracts keep their original `Unison*` names (`MohurHook`, `MohurMath`, …); the product is Unison.
 
 **Try it in one command** (needs Foundry and Node):
 
@@ -37,13 +37,13 @@ It forks Base Sepolia, deploys, launches a 40/30/30 index, trades on both venues
 | **New: change your allocation without paying to rebalance.** `scheduleWeights` glides the target weights on both venues at once, so the market walks the wallet to the new mix through small, fee-paying trades. | Moving a $100k index 40/30/30 → 50/25/25 at constant prices: instant switch costs **$1,991** to arbitrage, a 50-step glide costs **$25**; both reach 50% ETH (`Reweight.t.sol`). |
 | **The maker stays in control.** Pause both venues in one click; resume, top up or re-split under a new epoch. | `Manage.t.sol`: pause stops both venues and leaves the wallet untouched; resume re-opens both with identical quotes. |
 | **Nobody watches you.** | 100% of app reads go through Anon-RPC (Tor by default) on Base Sepolia, keys per maker / strategy / trader, live read log, logging proxy. |
-| **Honest limit.** Mohur does not reduce LVR against the outside market. The traders who rebalance you capture the move; you earn the fee. | The landing page states the cost: at ETH $6,400 a $100k index trails holding by ~$3,316 before fees. |
+| **Honest limit.** Unison does not reduce LVR against the outside market. The traders who rebalance you capture the move; you earn the fee. | The landing page states the cost: at ETH $6,400 a $100k index trails holding by ~$3,316 before fees. |
 
 ## Pitch
 
 **One-liner.** A self-custodial index wallet quoted on Uniswap v4 and 1inch Aqua at once, priced on both from the same real balances with oracle-free index math, run from a dashboard nobody can watch.
 
-**30 seconds.** A market maker quoting on two venues usually splits its capital and keeps two inconsistent sets of prices. Mohur turns one self-custodial wallet into a 40/30/30 weighted index quoted on both Uniswap v4 and 1inch Aqua. Both venues price every trade from the same wallet balances, so a fill on one venue moves the other venue's quote immediately, loops against the maker always lose, and trader flow pulls the wallet back to its target weights. There is no oracle and no tuning knob. The maker's dashboard reads everything through EF's Anon-RPC, so no RPC provider learns who runs the book or what it watches.
+**30 seconds.** A market maker quoting on two venues usually splits its capital and keeps two inconsistent sets of prices. Unison turns one self-custodial wallet into a 40/30/30 weighted index quoted on both Uniswap v4 and 1inch Aqua. Both venues price every trade from the same wallet balances, so a fill on one venue moves the other venue's quote immediately, loops against the maker always lose, and trader flow pulls the wallet back to its target weights. There is no oracle and no tuning knob. The maker's dashboard reads everything through EF's Anon-RPC, so no RPC provider learns who runs the book or what it watches.
 
 **In plain words (Raju's shop).** Raju keeps mangoes, rice and cash in one stockroom and opens two stalls in two markets. Both stalls sell from the same stockroom and read prices off one board whose rule keeps the stock at 40/30/30: too many mangoes makes mangoes cheaper until customers buy them back down. A sale at one stall changes the price at the other immediately, so nobody can buy cheap at one stall and sell dear at the other, and no loop through his products makes free money.
 
@@ -77,9 +77,9 @@ It forks Base Sepolia, deploys, launches a 40/30/30 index, trades on both venues
 - **Does the Universal Router / quoter work with a custom-curve hook pool?** Yes, unchanged: the fork tests use the live V4Quoter and Universal Router on Base Sepolia.
 - **Which Anon-RPC network reaches our testnet?** Nym did (Base Sepolia reads in ~6 s, 6 Nov 2026). The EF demo Tor gateway was unreachable that day, so the app falls back from Tor to Nym automatically.
 
-## Prior art and how Mohur differs
+## Prior art and how Unison differs
 
-| Area | Closest prior work | Mohur |
+| Area | Closest prior work | Unison |
 | --- | --- | --- |
 | Aqua apps | ScubaSwap, Batas, Plimsoll, AquaPilot / Sluice, KSwap-VM, Aqua0 | None prices from shared portfolio balances or links Aqua to Uniswap v4 |
 | v4 hooks sourcing outside liquidity | Uniswap's aggregator hooks; Iceberg (ETHGlobal Tokyo 2026: v4 hook + Aqua at one price) | A self-custodial multi-token index that self-rebalances through trader flow, with private monitoring; no LVR claim |
@@ -97,7 +97,7 @@ tokens out for input a    out = B_j · (1 − (B_i / (B_i + a(1−f)))^(w_i / w_
 
 - **One inventory.** Both venues read the same balances. A fill on Uniswap changes the wallet, so the very next 1inch quote reflects it, and the other way round.
 - **Loops lose.** Without fees every trade preserves the invariant ∏B^w, so a loop that returns to its start token returns exactly what went in. Fees only add to the wallet and every rounding step favours the maker.
-- **Self-rebalancing.** At Mohur's own prices a weighted pool is always on target. When the outside price moves by `k`, arbitrage leaves `B_ETH·k^(w−1)` ETH and `B_j·k^w` of each other token: back on weight by value.
+- **Self-rebalancing.** At Unison's own prices a weighted pool is always on target. When the outside price moves by `k`, arbitrage leaves `B_ETH·k^(w−1)` ETH and `B_j·k^w` of each other token: back on weight by value.
 - **Limits.** One trade moves at most 30% of a balance (keeps the fixed-point `pow` accurate). Each venue has its own selling limit, enforced by Aqua (50% of each balance at launch).
 
 ```
@@ -130,7 +130,7 @@ tokens out for input a    out = B_j · (1 − (B_i / (B_i + a(1−f)))^(w_i / w_
 
 Pinned dependencies: `swap-vm` main @ `e91dea5`, `aqua` `v1.0.2-rc.2`, `@1inch/solidity-utils` 7.0.3,
 `v4-periphery` main (with `v4-core`). Aqua and SwapVM are not deployed on any testnet, so the deploy
-script deploys the official Aqua source and the Mohur router on Base Sepolia; Uniswap v4 (PoolManager,
+script deploys the official Aqua source and the Unison router on Base Sepolia; Uniswap v4 (PoolManager,
 V4Quoter, Universal Router, Permit2) is the real Base Sepolia deployment.
 
 ## Tests
@@ -254,7 +254,7 @@ venues, and the PoC is kept as a regression test. `scripts/smoke.sh` checks any 
 
 ## Honest limits
 
-- Mohur does not reduce LVR against the outside market; it earns the fee on the trades that rebalance it.
+- Unison does not reduce LVR against the outside market; it earns the fee on the trades that rebalance it.
 - A round trip doesn't always lose a full fee: part of the first leg's fee is won back by the return leg. Every loop still loses.
 - Uniswap input waits as claims until the next swap or a flush. It is priced in immediately, but 1inch can only sell what is in the wallet as ERC-20.
 - Venue limits shrink as a venue sells (Uniswap's grows back as its input is flushed via `Aqua.push`). Raising them is one click on My index (**Top up / re-split**), but under the hood it is a new epoch: venues are docked, then re-shipped at `venueNonce + 1`, so open 1inch orders from the old epoch stop filling.

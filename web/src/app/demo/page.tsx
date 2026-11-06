@@ -25,7 +25,7 @@ const STEPS: { id: StepId; title: string; what: string }[] = [
   { id: "faucet", title: "Get test tokens", what: "Mints test ETH, BTC and USDC to your wallet (no value)." },
   { id: "approve", title: "Approve the router", what: "Lets the trade router spend your test USDC and ETH." },
   { id: "quote", title: "Quote both venues", what: "Same trade, Uniswap v4 vs 1inch Aqua, one eth_call." },
-  { id: "v4", title: "Trade on Uniswap v4", what: "Sell 100 USDC for ETH through the Mohur hook." },
+  { id: "v4", title: "Trade on Uniswap v4", what: "Sell 100 USDC for ETH through the Unison hook." },
   { id: "aqua", title: "Trade on 1inch Aqua", what: "Sell 100 USDC for ETH through SwapVM opcode 0xd0." },
   { id: "loop", title: "Try to arbitrage", what: "Quote ETH → USDC → BTC → ETH across both venues." },
 ];
@@ -191,7 +191,7 @@ export default function DemoPage() {
             <span className="faint" style={{ fontSize: 13, marginLeft: "auto" }} data-testid="demo-progress">{doneCount} of {STEPS.length} steps</span>
           </div>
           <div className="bar" style={{ height: 6, marginBottom: 16 }} aria-hidden="true">
-            <span style={{ width: `${(doneCount / STEPS.length) * 100}%`, background: "var(--gold-fill)" }} />
+            <span style={{ width: `${(doneCount / STEPS.length) * 100}%`, background: "var(--accent-fill)" }} />
           </div>
           <div className="grid g3" style={{ marginBottom: 16 }} data-testid="demo-proofs">
             {proofs.map((p) => (

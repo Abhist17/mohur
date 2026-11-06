@@ -155,7 +155,7 @@ export default function LaunchPage() {
         <div className="eyebrow">Step 2 · Launch</div>
         <h2>Six clicks to go live</h2>
         <p>
-          {tokens.map((t) => `${draft?.weights[t.s]}% ${TOKEN_STYLE[t.s].name}`).join(" · ")} · <Link href="/create" className="gold">edit</Link>
+          {tokens.map((t) => `${draft?.weights[t.s]}% ${TOKEN_STYLE[t.s].name}`).join(" · ")} · <Link href="/create" className="accent">edit</Link>
         </p>
       </div>
       <Concept caption={<><b>Coins stay in your wallet</b> until someone buys them.</>} />
@@ -163,7 +163,7 @@ export default function LaunchPage() {
       {!w.account && <div className="banner">Connect a wallet to launch{NETWORK === "local" ? " (on the local fork, use Dev #3 for a fresh maker)" : ""}.</div>}
       <div className="stack" style={{ marginTop: 16 }}>
         {STEPS.map(([title, body], i) => (
-          <div key={title} className="card spread" data-testid={`launch-step-${i}`} data-state={state[i]} style={{ opacity: state[i] === "done" ? 0.7 : 1, borderColor: i === next ? "var(--gold)" : undefined }}>
+          <div key={title} className="card spread" data-testid={`launch-step-${i}`} data-state={state[i]} style={{ opacity: state[i] === "done" ? 0.7 : 1, borderColor: i === next ? "var(--accent)" : undefined }}>
             <div style={{ flex: 1, minWidth: 240 }}>
               <div className="row">
                 <span className="mono faint">{i + 1}</span>

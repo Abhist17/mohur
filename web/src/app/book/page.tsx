@@ -57,7 +57,7 @@ export default function BookPage() {
   );
 
   if (!deployed) return <NotDeployed />;
-  if (!hook) return <div className="wrap page">No index yet. <Link className="gold" href="/create">Launch one →</Link></div>;
+  if (!hook) return <div className="wrap page">No index yet. <Link className="accent" href="/create">Launch one →</Link></div>;
 
   const sym = (a: Address) => book?.tokens.find((t) => t.token === a)?.symbol ?? a.slice(0, 6);
   /** display name (ETH / BTC / USDC) for a token address */
@@ -231,7 +231,7 @@ export default function BookPage() {
           </div>
           <div className="spread" style={{ marginTop: 14 }}>
             <span className="muted" style={{ fontSize: 14 }}>
-              Arbitrage available ≈ <b className="gold">${fmt(Math.max(0, rb.profit))}</b> before fees,{" "}
+              Arbitrage available ≈ <b className="accent">${fmt(Math.max(0, rb.profit))}</b> before fees,{" "}
               <b className={rb.net > 0 ? "good" : "faint"}>${fmt(Math.max(0, rb.net))}</b> after the 0.30% fee. The fee goes to the wallet.
             </span>
             {rb.net > 0 && rb.under.delta > 0 && (
@@ -276,7 +276,7 @@ export default function BookPage() {
         <div className="card">
           <div className="spread">
             <h3>Fills, both venues</h3>
-            <span className="mono gold">fees ≈ ${fmt(feesUsd)}</span>
+            <span className="mono accent">fees ≈ ${fmt(feesUsd)}</span>
           </div>
           <div className="table-scroll" style={{ maxHeight: 320, overflowY: "auto" }}>
             <table>
@@ -290,7 +290,7 @@ export default function BookPage() {
                       {fmt(units(f.amountIn, dec(f.tokenIn)))} {nm(f.tokenIn)} → {fmt(units(f.amountOut, dec(f.tokenOut)))} {nm(f.tokenOut)}
                     </td>
                     <td className="num">
-                      {EXPLORER ? <a href={`${EXPLORER}/tx/${f.tx}`} target="_blank" rel="noreferrer" className="gold">{f.block.toString()}</a> : f.block.toString()}
+                      {EXPLORER ? <a href={`${EXPLORER}/tx/${f.tx}`} target="_blank" rel="noreferrer" className="accent">{f.block.toString()}</a> : f.block.toString()}
                     </td>
                   </tr>
                 ))}

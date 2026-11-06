@@ -4,12 +4,12 @@ test("landing renders, the 3D scene draws, no console errors", async ({ page }) 
   const errors = watchErrors(page);
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  // first screen: the question, then the answer as a picture (today vs with Mohur), and the demo as the main action
+  // first screen: the question, then the answer as a picture (today vs with Unison), and the demo as the main action
   await expect(page.getByTestId("hero-question")).toContainText("What if one wallet could serve both?");
   const ps = page.getByTestId("problem-solution");
   await expect(ps).toBeVisible();
   await expect(ps).toContainText("Today");
-  await expect(ps).toContainText("With Mohur");
+  await expect(ps).toContainText("With Unison");
   await expect(ps).toContainText("0 wei apart");
   expect((await ps.boundingBox())!.y).toBeLessThan(900); // above the fold on a laptop screen
   await expect(page.getByTestId("landing-demo")).toHaveClass(/primary/);

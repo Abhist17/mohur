@@ -4,13 +4,13 @@ Copy-paste text for the ETHGlobal form, the five lines to say to judges, and wha
 
 ## Form fields
 
-**Project name:** Mohur
+**Project name:** Unison
 
 **Short description (≤100 chars):**
 > One wallet, one price, every venue: a self-custodial index quoted on Uniswap v4 and 1inch Aqua.
 
 **Description:**
-> Mohur turns an ordinary self-custodial wallet into a weighted index (for example 40% ETH, 30% BTC, 30% USDC) that Uniswap v4 and 1inch Aqua both trade against at the same time, from the same coins, at the same price, with no oracle.
+> Unison turns an ordinary self-custodial wallet into a weighted index (for example 40% ETH, 30% BTC, 30% USDC) that Uniswap v4 and 1inch Aqua both trade against at the same time, from the same coins, at the same price, with no oracle.
 >
 > A Uniswap v4 hook and a custom 1inch SwapVM instruction (opcode 0xd0) call one pricing function over the wallet's real balances. A fill on either venue changes the wallet, so both venues' next quotes move together. On a Base Sepolia fork the same trade quotes 0 wei apart on the two venues, and a 3-leg arbitrage loop across both loses about 0.8%.
 >
@@ -50,7 +50,7 @@ Copy-paste text for the ETHGlobal form, the five lines to say to judges, and wha
 2. **"Arbitrage loses."** Any loop through the wallet, on one venue or across both, loses money. That is proven by fuzzing and shown live on the Arbitrage page (−0.8% for a 1 ETH loop).
 3. **"The index manages itself."** When prices move, traders bring the wallet back to 40/30/30 and pay it a fee. Changing the mix gradually costs $25 instead of $1,991.
 4. **"Nobody watching."** Every read goes through Anon-RPC with isolation keys per maker, pair and trader, and the Privacy page lists each one.
-5. **"We attacked it ourselves."** Our review found a critical cross-venue reentrancy ($752 PoC), fixed with a fail-closed fill lock; AUDIT.md has the details. Also say the honest limits: Mohur does not reduce LVR, and it has not been externally audited.
+5. **"We attacked it ourselves."** Our review found a critical cross-venue reentrancy ($752 PoC), fixed with a fail-closed fill lock; AUDIT.md has the details. Also say the honest limits: Unison does not reduce LVR, and it has not been externally audited.
 
 ## Still to do by hand
 

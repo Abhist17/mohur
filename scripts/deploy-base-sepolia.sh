@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-command Base Sepolia deploy of Mohur, end to end:
+# One-command Base Sepolia deploy of Unison, end to end:
 #   1. shared contracts (official Aqua source, MohurSwapVMRouter, hook factory, lens, loop router, test tokens)
 #   2. a 40/30/30 demo index launched from your wallet (hook, approvals, weights, v4 pools, Aqua strategies)
 #   3. real demo fills on both venues
@@ -61,7 +61,7 @@ cd "$ROOT/web" && npm run sync
 if [ -z "${NO_PUSH:-}" ]; then
   cd "$ROOT"
   git add contracts/deployments/base-sepolia.json web/src/generated contracts/broadcast 2>/dev/null || true
-  git commit -qm "Deploy Mohur to Base Sepolia (demo index $(jq -r .demoHook "$J"))" && git push -q && \
+  git commit -qm "Deploy Unison to Base Sepolia (demo index $(jq -r .demoHook "$J"))" && git push -q && \
     echo "pushed: the live site rebuilds at https://abhist17.github.io/mohur/ in ~2 minutes"
 fi
 say "done. addresses: contracts/deployments/base-sepolia.json"

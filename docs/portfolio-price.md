@@ -1,7 +1,7 @@
 # PortfolioPrice: SwapVM opcode 0xd0
 
 `PortfolioPrice` is a custom 1inch SwapVM instruction that makes an Aqua strategy quote from the maker
-wallet's **real** balances, through the same function Mohur's Uniswap v4 hook uses.
+wallet's **real** balances, through the same function Unison's Uniswap v4 hook uses.
 
 ## Encoding
 
@@ -9,7 +9,7 @@ wallet's **real** balances, through the same function Mohur's Uniswap v4 hook us
 [0xd0][0x14][pricer: 20 bytes]          # pricer = the maker's MohurHook (IMohurPricer)
 ```
 
-A Mohur strategy program is `[Salt (0x02, optional)] ++ [PortfolioPrice(hook)]`. The order uses
+A Unison strategy program is `[Salt (0x02, optional)] ++ [PortfolioPrice(hook)]`. The order uses
 `useAquaInsteadOfSignature`, so the Aqua strategy bytes are `abi.encode(order)` and the strategy hash is the
 order hash.
 
@@ -36,7 +36,7 @@ balances: the PoC took $752.92 from the maker. Now:
 
 - `quoteAndLock` is callable only by the trusted router (immutable on the hook) and sets a transient lock;
 - `MohurHook.quote` reverts with `FillInProgress` while the lock is set, so both venues stop pricing;
-- Mohur orders carry `postTransferIn` / `postTransferOut` maker hooks targeting the hook (router-only,
+- Unison orders carry `postTransferIn` / `postTransferOut` maker hooks targeting the hook (router-only,
   maker-checked); the lock clears after **both** transfers;
 - it fails closed: an order without the hooks keeps the lock for the rest of the transaction.
 

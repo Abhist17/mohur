@@ -1,4 +1,5 @@
 import { VenueLogo } from "./VenueMark";
+import { Logo } from "./Logo";
 
 type Step = { title: string; body: string; shared?: boolean };
 
@@ -47,7 +48,7 @@ export function TradeFlow() {
         </div>
       ))}
       <div className="flow-foot">
-        <span className="coin-dot" style={{ flex: "0 0 auto" }} />
+        <Logo size={20} />
         <span>Both rows read and change <b>one wallet</b>, so a trade on either venue moves the next quote on both.</span>
       </div>
     </div>

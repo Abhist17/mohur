@@ -1,7 +1,7 @@
 import { asset, VENUE_LOGO } from "./VenueMark";
 
 /**
- * The Mohur idea in one picture: one wallet (the stockroom: gold ETH, copper BTC, silver USDC) feeding two
+ * The Unison idea in one picture: one wallet (the stockroom: gold ETH, copper BTC, silver USDC) feeding two
  * stalls (Uniswap v4, 1inch Aqua) that show the same price tag. Used across screens so every page says
  * where it sits in the story.
  */

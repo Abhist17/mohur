@@ -205,7 +205,7 @@ export default function MyIndex() {
         <div className="grid g4" style={{ marginTop: 14 }}>
           <Stat label="Value now" value={`$${fmt(vNow)}`} />
           <Stat label="vs just holding" value={`${edge >= 0 ? "+" : "−"}$${fmt(Math.abs(edge))}`} tone={edge >= 0 ? "good" : "bad"} sub={`hold value $${fmt(vHold)}`} />
-          <Stat label="Fees earned" value={`$${fmt(fees)}`} tone="gold" sub={`${fills.length} fills`} />
+          <Stat label="Fees earned" value={`$${fmt(fees)}`} tone="accent" sub={`${fills.length} fills`} />
           <Stat label="Depth without splitting" value={`$${fmt(vNow)} × 2`} sub="one inventory quotes on two venues" />
         </div>
         <div className="row" style={{ marginTop: 14, gap: 24, fontSize: 14 }}>
@@ -225,7 +225,7 @@ export default function MyIndex() {
                 <span className="row" style={{ gap: 8 }}><TokenIcon symbol={t.symbol} size={18} />{TOKEN_STYLE[t.symbol]?.name}</span>
                 <span className="mono" data-testid={`alloc-now-${t.symbol}`} data-w={Number(t.weight) / 1e16}>
                   now {(Number(t.weight) / 1e16).toFixed(1)}%
-                  {gliding && st && <span className="gold"> → {(Number(st.target[i]) / 1e16).toFixed(1)}%</span>}
+                  {gliding && st && <span className="accent"> → {(Number(st.target[i]) / 1e16).toFixed(1)}%</span>}
                 </span>
               </div>
               <div className="bar" style={{ marginTop: 6 }}><span style={{ width: `${Number(t.weight) / 1e16}%`, background: TOKEN_STYLE[t.symbol]?.color }} /></div>
@@ -293,7 +293,7 @@ export default function MyIndex() {
   );
 }
 
-function Stat({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "good" | "bad" | "gold" }) {
+function Stat({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "good" | "bad" | "accent" }) {
   return (
     <div>
       <div className="faint" style={{ fontSize: 12.5, fontWeight: 500 }}>{label}</div>

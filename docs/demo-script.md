@@ -10,7 +10,7 @@
 
 | Time | Screen | Show | Say |
 |---|---|---|---|
-| 0:00–0:15 | Home | The 3D coin stacks feeding two counters | "Mohur turns one wallet into an index (40% ETH, 30% BTC, 30% USDC) that Uniswap and 1inch both trade against, at one price." |
+| 0:00–0:15 | Home | The 3D coin stacks feeding two counters | "Unison turns one wallet into an index (40% ETH, 30% BTC, 30% USDC) that Uniswap and 1inch both trade against, at one price." |
 | 0:15–0:45 | **Demo** | Press **Run the demo**; step 3 shows *difference 0 wei*; steps 4 and 5 trade 100 USDC on each venue | "Same trade, both venues: zero wei apart, because both call one pricing function over the wallet's real balances. No oracle, nothing to sync." |
 | 0:45–1:10 | Demo → Book | Step 6 shows the loop losing; open the Book: both fills in one feed, quotes still equal | "Try to arbitrage across both venues: the loop loses. A fill on one venue moves the other venue's price instantly." |
 | 1:10–1:35 | Book | Type ETH $5,000: "opportunity open", what the wallet will buy and sell | "When the market moves, traders rebalance the wallet back to 40/30/30 and pay it the fee. That's the index managing itself." |

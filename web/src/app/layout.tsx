@@ -5,6 +5,7 @@ import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Nav } from "@/components/Nav";
 import { AnonMark, VenueMark } from "@/components/VenueMark";
+import { Logo } from "@/components/Logo";
 
 const sans = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
@@ -18,15 +19,15 @@ const DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE ? "https://abhist17.github.io" : "http://localhost:3000"),
-  title: "Mohur: one wallet, one price, every venue",
+  title: "Unison: one wallet, one price, every venue",
   description: DESCRIPTION,
   openGraph: {
-    title: "Mohur: one wallet, one price, every venue",
+    title: "Unison: one wallet, one price, every venue",
     description: DESCRIPTION,
-    images: [{ url: `${BASE}/og.png`, width: 1200, height: 630, alt: "Mohur. Today: coins split per venue, two prices drift. With Mohur: one wallet, one price on Uniswap v4 and 1inch Aqua, 0 wei apart." }],
+    images: [{ url: `${BASE}/og.png`, width: 1200, height: 630, alt: "Unison. Today: coins split per venue, two prices drift. With Unison: one wallet, one price on Uniswap v4 and 1inch Aqua, 0 wei apart." }],
     type: "website",
   },
-  twitter: { card: "summary_large_image", title: "Mohur", description: DESCRIPTION, images: [`${BASE}/og.png`] },
+  twitter: { card: "summary_large_image", title: "Unison", description: DESCRIPTION, images: [`${BASE}/og.png`] },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -42,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <footer className="foot">
             <div className="wrap foot-grid">
               <div>
-                <div className="brand" style={{ fontSize: 24 }}><span className="coin-dot" /> Mohur</div>
+                <div className="brand" style={{ fontSize: 24 }}><Logo size={26} /> Unison</div>
                 <p style={{ marginTop: 10, maxWidth: 340 }}>One wallet, one price, every venue, nobody watching.</p>
               </div>
               <div className="foot-col">

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useWallet } from "@/lib/wallet";
 import { NETWORK, WORKERS } from "@/lib/config";
 import { useAnon } from "./Providers";
+import { Logo } from "@/components/Logo";
 
 const LINKS = [
   ["/swap", "Swap"],
@@ -96,7 +97,7 @@ export function Nav() {
       <a href="#main" className="skip">Skip to content</a>
       <div className="wrap nav-in">
         <Link href="/" className="brand">
-          <span className="coin-dot" /> Mohur
+          <Logo size={24} /> Unison
         </Link>
         <nav className="nav-links" aria-label="Main">
           {LINKS.map(([href, label]) => (

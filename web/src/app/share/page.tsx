@@ -8,6 +8,7 @@ import { NotDeployed } from "@/components/NotDeployed";
 import { TokenIcon } from "@/components/TokenIcon";
 import { AnonMark, VenueMark } from "@/components/VenueMark";
 import { usePoll, useIndex } from "@/components/useIndex";
+import { Logo } from "@/components/Logo";
 
 /** A shareable card for one index: /share?index=0x… (static-export friendly: the hook is a query param). */
 export default function Share() {
@@ -59,7 +60,7 @@ export default function Share() {
       {err && <div className="err" style={{ marginBottom: 12 }}>{err}</div>}
       <div className="card stack share-card" data-testid="share-card" style={{ gap: 16, padding: 28 }}>
         <div className="spread">
-          <span className="brand" style={{ fontSize: 18 }}><span className="coin-dot" /> Mohur index</span>
+          <span className="brand" style={{ fontSize: 18 }}><Logo size={22} /> Unison index</span>
           <span className={`tag ${live ? "live" : "sim"}`}>{!book ? "loading" : live ? "live" : "paused"}</span>
         </div>
         {!book ? (

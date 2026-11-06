@@ -18,7 +18,7 @@ export function NotDeployed() {
       <div className="page-head">
         <div className="eyebrow">Not live on {NETWORK === "base-sepolia" ? "Base Sepolia" : NETWORK} yet</div>
         <h2>This screen needs the contracts</h2>
-        <p>Mohur&apos;s contracts aren&apos;t deployed on this network yet, so there&apos;s nothing real to show here. Everything runs on a local fork of Base Sepolia in one command.</p>
+        <p>Unison&apos;s contracts aren&apos;t deployed on this network yet, so there&apos;s nothing real to show here. Everything runs on a local fork of Base Sepolia in one command.</p>
       </div>
       <div className="grid g2" style={{ alignItems: "start" }}>
         <div className="card stack">
@@ -34,7 +34,7 @@ cd mohur && ./scripts/demo.sh`}
             <Link href="/privacy" className="btn small primary">Privacy works now</Link>
             <a href={DOC} target="_blank" rel="noreferrer" className="btn small">How it works ↗</a>
           </div>
-          <p className="faint" style={{ margin: 0, fontSize: 12.5 }}>The Privacy page reads Base Sepolia through Anon-RPC right now; it doesn&apos;t need Mohur&apos;s contracts.</p>
+          <p className="faint" style={{ margin: 0, fontSize: 12.5 }}>The Privacy page reads Base Sepolia through Anon-RPC right now; it doesn&apos;t need Unison&apos;s contracts.</p>
         </div>
         {page && (
           <figure className="card" style={{ margin: 0, padding: 10 }}>

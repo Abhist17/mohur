@@ -9,7 +9,7 @@ import {
   MohurTestTokenAbi,
 } from "@/generated/abis";
 
-/** Every custom error from every Mohur contract, so a revert anywhere in a call decodes by name. */
+/** Every custom error from every Unison contract, so a revert anywhere in a call decodes by name. */
 export const ALL_ERRORS: Abi = [
   ...MohurHookAbi,
   ...MohurHookFactoryAbi,
@@ -48,7 +48,7 @@ const HUMAN: Record<string, string> = {
   ZeroAmount: "Enter an amount.",
   TokenNotInIndex: "That token is not part of this index.",
   NotMaker: "Only the index owner can do that.",
-  LiquidityNotAccepted: "Mohur pools don't take LP deposits: liquidity comes from the maker's wallet.",
+  LiquidityNotAccepted: "Unison pools don't take LP deposits: liquidity comes from the maker's wallet.",
   BadWeights: "Weights must each be at least 1% and add up to 100%.",
   PendingClaims: "Flush pending Uniswap input into the wallet first.",
   ERC20InsufficientBalance: "Not enough balance.",

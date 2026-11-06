@@ -1,6 +1,6 @@
-# Mohur internal security review
+# Unison internal security review
 
-**Date:** 6 November 2026 · **Commit reviewed:** `aef0740` and earlier · **Reviewer:** the Mohur team (internal, not an independent audit)
+**Date:** 6 November 2026 · **Commit reviewed:** `aef0740` and earlier · **Reviewer:** the Unison team (internal, not an independent audit)
 
 ## Scope
 
@@ -16,7 +16,7 @@ Out of scope: Uniswap v4, 1inch Aqua / SwapVM and Balancer's LogExpMath (used as
 
 ## Method
 
-1. Line-by-line read of every in-scope contract against Mohur's promises: one price on both venues, no profitable loops, the wallet changes only by fills, the maker approves only Aqua, each venue sells at most its limit.
+1. Line-by-line read of every in-scope contract against Unison's promises: one price on both venues, no profitable loops, the wallet changes only by fills, the maker approves only Aqua, each venue sells at most its limit.
 2. Ordering review of every external call made while a trade is in flight: v4 unlock/settle order, SwapVM's `runLoop → maker hooks → taker callbacks → transfers` order.
 3. Proof-of-concept tests for anything suspicious (`contracts/test/audit/`).
 4. Property tests: fuzzing (1,000 runs per fuzz test) and an invariant suite (64 runs × 40 random actions over both venues).
@@ -39,9 +39,9 @@ Out of scope: Uniswap v4, 1inch Aqua / SwapVM and Balancer's LogExpMath (used as
 **Impact.** Value extraction from the maker, repeatable. PoC (`test/audit/CrossVenueReentrancy.t.sol`): two 4,000 USDC → ETH buys followed by a full sell-back. Done honestly this loses **$39.54** (fees). With the second buy nested in the callback it gained **$752.92**, taken from the maker.
 
 **Fix.**
-- `PortfolioPrice` calls `MohurHook.quoteAndLock` on real fills (not on `SwapVM.quote`). It is callable only by the trusted Mohur router (`swapVM` immutable, set by the factory), and it sets a transient fill lock.
+- `PortfolioPrice` calls `MohurHook.quoteAndLock` on real fills (not on `SwapVM.quote`). It is callable only by the trusted Unison router (`swapVM` immutable, set by the factory), and it sets a transient fill lock.
 - `MohurHook.quote` reverts with `FillInProgress` while the lock is set. Both venues price through `quote`, so both are blocked during the window.
-- Mohur orders carry `postTransferIn` and `postTransferOut` maker hooks targeting the hook (router-only, maker-checked). The lock clears after **both** transfers.
+- Unison orders carry `postTransferIn` and `postTransferOut` maker hooks targeting the hook (router-only, maker-checked). The lock clears after **both** transfers.
 - Fails closed: an order without the hooks leaves the lock set for the rest of that transaction, which blocks further pricing but cannot leak value.
 
 **Verification.** The PoC now reverts with `FillInProgress()` (`0xf6b8f3d1`). `test/audit/FillLock.t.sol` checks that only the router can lock, an outsider can't clear the lock, it stays locked after one transfer, and it unlocks after both. Same-transaction 1inch → Uniswap routes still work (`LensLoop.t.sol`).
@@ -73,7 +73,7 @@ Documented in the README's honest limits and in the app (Launch, How it works).
 
 ## Residual risks (not fixable in code)
 
-- **LVR:** arbitrageurs who rebalance the wallet capture the move; Mohur earns the fee and does not remove LVR.
+- **LVR:** arbitrageurs who rebalance the wallet capture the move; Unison earns the fee and does not remove LVR.
 - **Sandwiching:** as with any AMM, traders must set a minimum output. The Swap screen uses 0.5% slippage; `MohurLoopRouter.execute` takes `minOut`.
 - **Anon-RPC trust:** the chosen worker sees every request and could censor or lie (see the anon-rpc trust model). The bootstrap read and wallet-broadcast transactions are not anonymised.
 - **Not independently audited.** Testnet only, with test tokens.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-click Mohur demo on a local Base Sepolia fork:
+# One-click Unison demo on a local Base Sepolia fork:
 #   boot fork -> deploy -> launch a 40/30/30 index -> real fills on Uniswap v4 and 1inch Aqua
 #   -> narrated numbers read straight from the contracts -> start the app and open it.
 # Everything printed is read from chain on the fork. Nothing here is simulated in JS.
@@ -15,7 +15,7 @@ step() { printf '\n%s%s%s\n' "$B$G" "$*" "$N"; }
 c() { cast call "$@" --rpc-url $R; }
 first() { awk '{print $1}'; }
 
-step "1/5  Booting a local fork of Base Sepolia (real Uniswap v4 PoolManager) and deploying Mohur"
+step "1/5  Booting a local fork of Base Sepolia (real Uniswap v4 PoolManager) and deploying Unison"
 if [ "${SKIP_FORK:-}" = 1 ] && cast block-number --rpc-url $R >/dev/null 2>&1 && [ -f "$ROOT/contracts/deployments/local.json" ]; then
   say "  ${D}reusing the fork on :8545${N}"
 else

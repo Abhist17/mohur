@@ -144,7 +144,7 @@ export default function Landing() {
                 <br />
                 One price.
                 <br />
-                <span className="gold">Every venue.</span>
+                <span className="accent">Every venue.</span>
                 <br />
                 Nobody watching.
               </h1>
@@ -174,7 +174,7 @@ export default function Landing() {
             <p>Today you split your coins across venues. Each pile drifts to its own price.</p>
           </section>
           <section {...sec("mohur")}>
-            <div className="eyebrow">2 · Mohur</div>
+            <div className="eyebrow">2 · Unison</div>
             <h2>One pile feeding both counters.</h2>
             <p>A v4 hook and a 1inch opcode read the same balances. You approve only Aqua.</p>
           </section>
@@ -194,8 +194,8 @@ export default function Landing() {
             </label>
             <div className="row" style={{ gap: 20, fontSize: 14 }}>
               <span className="muted">Hold <b className="mono" style={{ color: "var(--text)" }}>${fmt(holdV)}</b></span>
-              <span className="muted">Mohur <b className="mono" style={{ color: "var(--text)" }}>${fmt(mohurV)}</b></span>
-              {holdV > mohurV + 1 && <span className="muted" title="This gap is LVR: Mohur does not remove it, the fee pays you for it">LVR <b className="mono bad">−${fmt(holdV - mohurV)}</b></span>}
+              <span className="muted">Unison <b className="mono" style={{ color: "var(--text)" }}>${fmt(mohurV)}</b></span>
+              {holdV > mohurV + 1 && <span className="muted" title="This gap is LVR: Unison does not remove it, the fee pays you for it">LVR <b className="mono bad">−${fmt(holdV - mohurV)}</b></span>}
             </div>
             <span className="tag sim">computed with the contracts&apos; formula</span>
           </section>
@@ -222,13 +222,13 @@ export default function Landing() {
                 </div>
               </div>
             )}
-            <Link href="/arbitrage" className="gold" style={{ marginTop: 12 }}>Try to beat it →</Link>
+            <Link href="/arbitrage" className="accent" style={{ marginTop: 12 }}>Try to beat it →</Link>
           </section>
           <section {...sec("private")}>
             <div className="eyebrow">6 · Private</div>
             <h2>Nobody watching.</h2>
             <p>Every read goes through EF&apos;s Anon-RPC, so no RPC provider learns what you watch.</p>
-            <Link href="/privacy" className="gold">Watch every read →</Link>
+            <Link href="/privacy" className="accent">Watch every read →</Link>
           </section>
         </div>
 
@@ -260,7 +260,7 @@ export default function Landing() {
             ["$25", "to re-weight $100k (vs $1,991)"],
           ].map(([n, t]) => (
             <div key={n} className="card">
-              <div className="serif gold" style={{ fontSize: 40 }}>{n}</div>
+              <div className="serif accent" style={{ fontSize: 40 }}>{n}</div>
               <div className="muted" style={{ fontSize: 14 }}>{t}</div>
             </div>
           ))}

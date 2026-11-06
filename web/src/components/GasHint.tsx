@@ -41,7 +41,7 @@ export function GasHint() {
           {FAUCETS.map(([name, url], i) => (
             <span key={name}>
               {i > 0 && " · "}
-              <a href={url} target="_blank" rel="noreferrer" className="gold">{name} ↗</a>
+              <a href={url} target="_blank" rel="noreferrer" className="accent">{name} ↗</a>
             </span>
           ))}
           . Then reload.

@@ -32,7 +32,8 @@ test.describe("@testnet deployed Base Sepolia build", () => {
         await expect(nd.getByText("./scripts/demo.sh")).toBeVisible();
         const img = nd.locator("img");
         await expect(img, p).toBeVisible();
-        expect(await img.evaluate((i: HTMLImageElement) => i.naturalWidth), p).toBeGreaterThan(0);
+        // wait for the download (a cold CDN can take a few seconds), then require a real image
+        await expect.poll(() => img.evaluate((i: HTMLImageElement) => (i.complete ? i.naturalWidth : -1)), { timeout: 30_000, message: p }).toBeGreaterThan(0);
         await expect(nd.getByText("Not live data")).toBeVisible();
       }
     }

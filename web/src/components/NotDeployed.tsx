@@ -39,7 +39,9 @@ cd mohur && ./scripts/demo.sh`}
         {page && (
           <figure className="card" style={{ margin: 0, padding: 10 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={asset(`/screens/${page}.jpg`)} alt={`Screenshot of the ${page} screen`} style={{ width: "100%", borderRadius: "var(--radius-sm)", display: "block" }} />
+            <img src={asset(`/screens/${page}.jpg`)} alt={`Screenshot of the ${page} screen`} width={1100}
+              height={1226}
+              style={{ width: "100%", height: "auto", aspectRatio: "1100 / 1226", objectFit: "cover", objectPosition: "top", borderRadius: "var(--radius-sm)", display: "block", background: "var(--bg-2)" }} />
             <figcaption className="faint" style={{ fontSize: 12.5, marginTop: 8 }}>
               <span className="tag sim">screenshot</span> This screen in the automated browser test on a local Base Sepolia fork. Not live data.
             </figcaption>

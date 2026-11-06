@@ -80,4 +80,8 @@ Documented in the README's honest limits and in the app (Launch, How it works).
 
 ## Test inventory
 
-`forge test` runs 54 tests: math vectors and fuzzing, hook, instruction, cross-venue, lens/loop, re-weighting, manage, the audit PoC, fill-lock tests, the invariant suite, and 2 fork tests against the live Uniswap v4 on Base Sepolia. `scripts/smoke.sh <network>` makes 36 read-only on-chain checks of a deployment.
+`forge test` runs 59 tests: math vectors and fuzzing, hook, instruction, cross-venue, lens/loop (including preview == live quote), re-weighting, manage, the audit PoC, fill-lock tests, the invariant suite, gas bounds, and 2 fork tests against the live Uniswap v4 on Base Sepolia. CI runs the 57 offline tests on every push (`.github/workflows/test.yml`).
+
+`scripts/smoke.sh <network>` makes 36 read-only on-chain checks of a deployment; the full Base Sepolia deploy was rehearsed on a chain-84532 fork and passed all 36.
+
+`cd web && npm run e2e` drives every screen in real Chrome against a fresh fork (13 specs), including the paths that touch these findings: venue parity after fills, losing loops run for real, and venue limits.

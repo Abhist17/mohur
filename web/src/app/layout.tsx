@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Nav } from "@/components/Nav";
+import { VenueMark } from "@/components/VenueMark";
 
 const sans = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
@@ -49,8 +50,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
               <div className="foot-col">
                 <b>Built on</b>
-                <span>Uniswap v4</span>
-                <span>1inch Aqua</span>
+                <VenueMark venue={0} size={16} />
+                <VenueMark venue={1} size={16} />
                 <span>Anon-RPC</span>
               </div>
             </div>

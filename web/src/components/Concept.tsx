@@ -1,3 +1,5 @@
+import { asset, VENUE_LOGO } from "./VenueMark";
+
 /**
  * The Mohur idea in one picture: one wallet (the stockroom: gold ETH, copper BTC, silver USDC) feeding two
  * stalls (Uniswap v4, 1inch Aqua) that show the same price tag. Used across screens so every page says
@@ -19,13 +21,15 @@ export function Concept({ caption, highlight }: { caption: React.ReactNode; high
         {/* stalls */}
         <g opacity={dim("uniswap")}>
           <rect x="4" y="30" width="88" height="40" rx="9" style={{ fill: "var(--panel)" }} stroke="#ff007a" />
-          <text x="48" y="47" textAnchor="middle" fontSize="11" fill="#ff5cae" fontWeight="600">Uniswap v4</text>
-          <text x="48" y="62" textAnchor="middle" fontSize="10" style={{ fill: "var(--muted)" }}>same price</text>
+          <image href={asset(VENUE_LOGO[0])} x="10" y="42" width="15" height="15" />
+          <text x="29" y="47" fontSize="10.5" fill="#ff5cae" fontWeight="600">Uniswap v4</text>
+          <text x="29" y="61" fontSize="9.5" style={{ fill: "var(--muted)" }}>same price</text>
         </g>
         <g opacity={dim("1inch")}>
           <rect x="268" y="30" width="88" height="40" rx="9" style={{ fill: "var(--panel)" }} stroke="#2f8af5" />
-          <text x="312" y="47" textAnchor="middle" fontSize="11" fill="#6fb0ff" fontWeight="600">1inch Aqua</text>
-          <text x="312" y="62" textAnchor="middle" fontSize="10" style={{ fill: "var(--muted)" }}>same price</text>
+          <image href={asset(VENUE_LOGO[1])} x="274" y="42" width="15" height="15" />
+          <text x="293" y="47" fontSize="10.5" fill="#6fb0ff" fontWeight="600">1inch Aqua</text>
+          <text x="293" y="61" fontSize="9.5" style={{ fill: "var(--muted)" }}>same price</text>
         </g>
         {/* wallet: three coin stacks */}
         <g opacity={dim("wallet")}>

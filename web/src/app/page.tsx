@@ -7,6 +7,7 @@ import { StacksScene, type SceneState } from "@/components/StacksScene";
 import { deployment, NETWORK } from "@/lib/config";
 import { fmt, quoteRoute, readBook, sim, units, type Book } from "@/lib/mohur";
 import { usePoll } from "@/components/useIndex";
+import { VenueMark } from "@/components/VenueMark";
 
 const BASE = { eth: 10, btc: 0.3, usdc: 30000 }; // $100k at $4,000 / $100,000
 const W = [0.4, 0.3, 0.3];
@@ -205,11 +206,11 @@ export default function Landing() {
         <div className="stage">
           <StacksScene state={scene} />
           <div className="tagbox" style={{ left: 8 }}>
-            <div style={{ color: "var(--uni)" }}>Uniswap v4</div>
+            <div style={{ color: "var(--uni)" }}><VenueMark venue={0} size={16} /></div>
             <div>1 ETH = {fmt(tags.uni)} USDC</div>
           </div>
           <div className="tagbox" style={{ right: 8, textAlign: "right" }}>
-            <div style={{ color: "var(--inch)" }}>1inch Aqua</div>
+            <div style={{ color: "var(--inch)" }}><VenueMark venue={1} size={16} /></div>
             <div>1 ETH = {fmt(tags.inch)} USDC</div>
           </div>
           <div style={{ position: "absolute", bottom: 16, left: 0, right: 0, textAlign: "center" }} className="faint mono">
@@ -240,12 +241,12 @@ export default function Landing() {
         <hr className="sep" />
         <div className="grid g2">
           <div className="card">
-            <div className="eyebrow" style={{ color: "var(--uni)" }}>Uniswap v4</div>
+            <div className="eyebrow" style={{ color: "var(--uni)" }}><VenueMark venue={0} size={16} /></div>
             <h3 style={{ marginTop: 8 }}>MohurHook</h3>
             <p className="muted" style={{ fontSize: 15 }}>Custom-curve hook. Prices from your wallet, pays out through Aqua.</p>
           </div>
           <div className="card">
-            <div className="eyebrow" style={{ color: "var(--inch)" }}>1inch Aqua</div>
+            <div className="eyebrow" style={{ color: "var(--inch)" }}><VenueMark venue={1} size={16} /></div>
             <h3 style={{ marginTop: 8 }}>PortfolioPrice · opcode 0xd0</h3>
             <p className="muted" style={{ fontSize: 15 }}>Custom SwapVM instruction. Same price as the hook, by construction.</p>
           </div>

@@ -175,4 +175,41 @@ export async function readFills(hook: Address, maker: Address): Promise<FillRow[
   return rows;
 }
 
+// ------------------------------------------------------------------------------------------------
+// Explore: every index launched through the factory
+// ------------------------------------------------------------------------------------------------
+
+const deployedEvt = parseAbiItem("event HookDeployed(address indexed maker, address hook, bytes32 salt)");
+export type IndexCard = { hook: Address; maker: Address; block: bigint; book?: Book };
+
+export async function readIndexes(): Promise<IndexCard[]> {
+  const d = deployment()!;
+  const c = readClient("explore indexes", keys.public);
+  const head = await c.getBlockNumber();
+  const from = BigInt(d.startBlock);
+  const ranges: [bigint, bigint][] = [];
+  const chunk = narrowLogs ? SAFE_LOG_CHUNK : LOG_CHUNK;
+  for (let s = from; s <= head; s += chunk) ranges.push([s, s + chunk - 1n > head ? head : s + chunk - 1n]);
+  const cards: IndexCard[] = [];
+  for (let k = 0; k < ranges.length; k += 5) {
+    let batch;
+    try {
+      batch = await Promise.all(
+        ranges.slice(k, k + 5).map(([fromBlock, toBlock]) => c.getLogs({ address: d.hookFactory, event: deployedEvt, fromBlock, toBlock })),
+      );
+    } catch (e) {
+      if (!narrowLogs && /limit|range|too many|exceed/i.test(String((e as Error).message))) {
+        narrowLogs = true;
+        return readIndexes();
+      }
+      throw e;
+    }
+    for (const logs of batch) for (const l of logs) cards.push({ hook: l.args.hook!, maker: l.args.maker!, block: l.blockNumber! });
+  }
+  // newest first; read each book in parallel (an index that hasn't set weights yet has no book)
+  cards.sort((a, b) => Number(b.block - a.block));
+  await Promise.all(cards.map(async (x) => { try { x.book = await readBook(x.hook, x.maker); } catch {} }));
+  return cards;
+}
+
 export { MohurHookAbi };

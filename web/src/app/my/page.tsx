@@ -11,6 +11,7 @@ import { useWallet } from "@/lib/wallet";
 import { Concept } from "@/components/Concept";
 import { NotDeployed } from "@/components/NotDeployed";
 import { TokenIcon } from "@/components/TokenIcon";
+import { VenueMark } from "@/components/VenueMark";
 
 type Status = { nonce: bigint; v4: "live" | "paused" | "none"; aqua: ("live" | "paused" | "none")[]; pairs: [Address, Address][]; rwStart: number; rwEnd: number; target: bigint[] };
 const DOCKED = 255;
@@ -198,8 +199,8 @@ export default function MyIndex() {
           <Stat label="Depth without splitting" value={`$${fmt(vNow)} × 2`} sub="one inventory quotes on two venues" />
         </div>
         <div className="row" style={{ marginTop: 14, gap: 24, fontSize: 14 }}>
-          <span><span style={{ color: "var(--uni)" }}>●</span> Uniswap volume <b className="mono">${fmt(vol["Uniswap v4"])}</b></span>
-          <span><span style={{ color: "var(--inch)" }}>●</span> 1inch volume <b className="mono">${fmt(vol["1inch Aqua"])}</b></span>
+          <span className="row" style={{ gap: 6 }}><VenueMark venue={0} short /> volume <b className="mono">${fmt(vol["Uniswap v4"])}</b></span>
+          <span className="row" style={{ gap: 6 }}><VenueMark venue={1} short /> volume <b className="mono">${fmt(vol["1inch Aqua"])}</b></span>
         </div>
         <p className="faint" style={{ fontSize: 13, marginTop: 10, marginBottom: 0 }}>vs just holding: fees earned minus LVR.</p>
       </div>
@@ -252,12 +253,12 @@ export default function MyIndex() {
             <thead><tr><th>Venue</th><th>Status</th><th className="num">ETH it may sell</th></tr></thead>
             <tbody>
               <tr>
-                <td><span style={{ color: "var(--uni)" }}>●</span> Uniswap v4</td>
+                <td><VenueMark venue={0} /></td>
                 <td>{st ? <VenueTag s={st.v4} /> : "…"}</td>
                 <td className="num">{fmt(units(tokens[0]?.v4Limit ?? 0n, tokens[0]?.decimals ?? 18))}</td>
               </tr>
               <tr>
-                <td><span style={{ color: "var(--inch)" }}>●</span> 1inch Aqua</td>
+                <td><VenueMark venue={1} /></td>
                 <td>{st ? <VenueTag s={st.aqua.includes("live") ? "live" : st.aqua.includes("paused") ? "paused" : "none"} /> : "…"}</td>
                 <td className="num">{fmt(units(tokens[0]?.aquaLimit ?? 0n, tokens[0]?.decimals ?? 18))}</td>
               </tr>

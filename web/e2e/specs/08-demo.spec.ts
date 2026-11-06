@@ -31,6 +31,12 @@ test("guided demo: runs all six steps for real, resumes after reload, and is ide
   }
   await expect(page.getByTestId("demo-out-loop")).toContainText("the loop loses");
   await expect(run).toHaveText("All done");
+  // the three proofs, big, at the top
+  await expect(page.getByTestId("demo-progress")).toHaveText("6 of 6 steps");
+  await expect(page.getByTestId("demo-proof-gap")).toContainText("0 wei");
+  await expect(page.getByTestId("demo-proof-exact")).toContainText("Exact");
+  await expect(page.getByTestId("demo-proof-loop")).toContainText("−0.");
+  for (const id of ["gap", "exact", "loop"]) await expect(page.getByTestId(`demo-proof-${id}`)).toHaveClass(/ok/);
   await shot(page, "13-demo");
 
   // start over: faucet/approve are skipped against chain state (no duplicate mint/approve)

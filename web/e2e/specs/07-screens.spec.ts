@@ -6,7 +6,10 @@ test("screens: swap, explore, my index, how it works (light + dark)", async ({ p
   await injectWallet(page, ACCOUNTS.launcher); // launched an index in 03-launch
   await page.goto("/swap");
   await connect(page);
-  await expect(page.getByTestId("venue-0")).toContainText(/\d/);
+  // wait for a real quote: the button offers an action (not a loading or limit message) and both venues quote
+  await expect(page.getByTestId("swap-cta")).toHaveText(/Swap on|Approve|Get test/, { timeout: 30_000 });
+  await expect(page.getByTestId("venue-0")).toContainText(/0\.\d/);
+  await expect(page.getByTestId("venue-1")).toContainText(/0\.\d/);
   await shot(page, "07-swap");
 
   await page.goto("/explore");

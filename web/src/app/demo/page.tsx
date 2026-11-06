@@ -130,6 +130,26 @@ export default function DemoPage() {
   };
 
   const next = STEPS.find((s) => !res[s.id]?.done);
+  const doneCount = STEPS.filter((s) => res[s.id]?.done).length;
+  // the three things the demo proves, read back from the saved step results (works for progress saved earlier too)
+  const gap = res.quote?.text?.match(/difference (\d+) wei/)?.[1];
+  const exactOf = (id: StepId) => {
+    const m = res[id]?.text?.match(/→ ([\d.,]+) ETH \(quoted ([\d.,]+)\)/);
+    return m ? m[1] === m[2] : undefined;
+  };
+  const exact = [exactOf("v4"), exactOf("aqua")].filter((x) => x !== undefined) as boolean[];
+  const loopPct = res.loop?.text?.match(/\((-?[\d.]+)%\)/)?.[1];
+  const proofs = [
+    { id: "gap", label: "Price gap between venues", value: gap !== undefined ? `${gap} wei` : "–", sub: "the same trade, quoted on Uniswap and 1inch", ok: gap === "0" },
+    {
+      id: "exact",
+      label: "Received vs quoted",
+      value: exact.length === 0 ? "–" : exact.every(Boolean) ? (exact.length === 2 ? "Exact" : "Exact (1 of 2)") : "Differs",
+      sub: "both real trades paid exactly their quote",
+      ok: exact.length === 2 && exact.every(Boolean),
+    },
+    { id: "loop", label: "Arbitrage loop", value: loopPct !== undefined ? `${loopPct.replace("-", "−")}%` : "–", sub: "ETH → USDC → BTC → ETH across both venues", ok: loopPct !== undefined && Number(loopPct) < 0 },
+  ];
   const runAll = async () => {
     for (const s of STEPS) if (!res[s.id]?.done && !(await run(s.id))) break; // stop at the first failure: no cascade of failing wallet prompts
   };
@@ -168,6 +188,19 @@ export default function DemoPage() {
               {running ? "Running…" : !next ? "All done" : Object.keys(res).length ? "Resume the demo" : "Run the demo"}
             </button>
             <button className="btn small" onClick={reset} disabled={!!running}>Start over</button>
+            <span className="faint" style={{ fontSize: 13, marginLeft: "auto" }} data-testid="demo-progress">{doneCount} of {STEPS.length} steps</span>
+          </div>
+          <div className="bar" style={{ height: 6, marginBottom: 16 }} aria-hidden="true">
+            <span style={{ width: `${(doneCount / STEPS.length) * 100}%`, background: "var(--gold-fill)" }} />
+          </div>
+          <div className="grid g3" style={{ marginBottom: 16 }} data-testid="demo-proofs">
+            {proofs.map((p) => (
+              <div key={p.id} className={`card demo-proof${p.ok ? " ok" : ""}`} data-testid={`demo-proof-${p.id}`}>
+                <div className="faint" style={{ fontSize: 12.5, fontWeight: 500 }}>{p.label}</div>
+                <div className="serif" style={{ fontSize: 34, lineHeight: 1.15 }}>{p.value}</div>
+                <div className="faint" style={{ fontSize: 12.5 }}>{p.sub}</div>
+              </div>
+            ))}
           </div>
           <div className="stack">
             {STEPS.map((s, i) => {
@@ -188,7 +221,7 @@ export default function DemoPage() {
                       </button>
                     )}
                   </div>
-                  {r?.text && <div className="mono num" style={{ marginTop: 8, fontSize: 13 }} data-testid={`demo-out-${s.id}`}>{r.text}</div>}
+                  {r?.text && <div className="demo-result" data-testid={`demo-out-${s.id}`}>{r.text}</div>}
                   {r?.tx && (
                     <div style={{ fontSize: 13, marginTop: 4 }}>
                       {EXPLORER ? <a href={`${EXPLORER}/tx/${r.tx}`} target="_blank" rel="noreferrer">View transaction ↗</a> : <span className="faint mono">tx {r.tx.slice(0, 10)}…</span>}

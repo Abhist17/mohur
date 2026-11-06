@@ -176,7 +176,7 @@ export default function SwapPage() {
   } else if (amountIn === 0n) cta = { label: "Enter an amount" };
   else if (balIn < amountIn)
     cta = { label: `Get test ${TOKEN_STYLE[tin].name}`, primary: true, onClick: () => act(() => w.write({ address: addr(tin), abi: MohurTestTokenAbi, functionName: "faucet", label: `Get test ${tin}` }), "Getting test tokens…") };
-  else if (quoting && !quote) cta = { label: "Fetching quote…" };
+  else if (!quote) cta = { label: quoting ? "Fetching quote…" : "Getting a quote…" }; // also before the first request fires: never show a limit message without a quote
   else if (quote?.err) cta = { label: "Amount too large" };
   else if (!ok) {
     // the other venue may still fill it: offer the switch instead of a dead end

@@ -260,3 +260,4 @@ body { font-variant-numeric: tabular-nums; }
 /* skip link: first tab stop on every page */
 .skip { position: absolute; left: -9999px; top: 8px; z-index: 100; background: var(--panel); color: var(--text); padding: 8px 12px; border: 1px solid var(--line-2); border-radius: var(--radius-sm); }
 .skip:focus { left: 12px; }
+.scene-loading { position: absolute; inset: 0; border-radius: var(--radius); background: linear-gradient(180deg, transparent, var(--bg-2)); }

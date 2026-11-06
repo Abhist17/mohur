@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { parseUnits } from "viem";
-import { StacksScene, type SceneState } from "@/components/StacksScene";
+import dynamic from "next/dynamic";
+import type { SceneState } from "@/components/StacksScene";
+
+// three.js is ~150 kB: load the 3D scene after the page paints, so the headline and buttons appear first
+const StacksScene = dynamic(() => import("@/components/StacksScene").then((m) => m.StacksScene), {
+  ssr: false,
+  loading: () => <div className="scene-loading" aria-hidden="true" />,
+});
 import { deployment, NETWORK } from "@/lib/config";
 import { fmt, quoteRoute, readBook, sim, units, type Book } from "@/lib/mohur";
 import { usePoll } from "@/components/useIndex";

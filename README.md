@@ -4,6 +4,8 @@
 
 **One wallet, one price, every venue, nobody watching.**
 
+![The wallet as three coin stacks (ETH, BTC, USDC) quoted on Uniswap v4 and 1inch Aqua at the same price](web/public/og.png)
+
 Mohur turns a self-custodial wallet into a weighted index (for example 40% ETH / 30% BTC / 30% USDC)
 that **Uniswap v4** and **1inch Aqua** both trade against at the same time, from the same coins, at the
 same price, with no oracle. Every chain read the dashboard makes goes through the Ethereum Foundation's
@@ -14,6 +16,14 @@ same price, with no oracle. Every chain read the dashboard makes goes through th
 > and both price tags change together. Nothing has to be synced.
 
 The name is the Mohur, a Mughal gold coin. Built at ETHGlobal (hack day 5–6 Nov 2026).
+
+**Try it in one command** (needs Foundry and Node):
+
+```bash
+git clone --recursive https://github.com/Abhist17/mohur && cd mohur && (cd contracts && npm ci) && (cd web && npm ci) && ./scripts/demo.sh
+```
+
+It forks Base Sepolia, deploys, launches a 40/30/30 index, trades on both venues, prints the on-chain numbers (0 wei apart; the arbitrage loop loses) and opens the app. About 5 minutes on a first run (clone, installs, compile); verified from a fresh clone of this repo. [docs/demo.md](docs/demo.md) walks through it.
 
 **New here?** [docs/explained.md](docs/explained.md) explains every part in plain words, with diagrams: the trade on each venue, why prices match, why loops lose, rebalancing, limits, the fill lock, privacy, every screen and contract.
 

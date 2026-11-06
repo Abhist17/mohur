@@ -48,6 +48,8 @@ contract DeployMohur is MohurScriptBase {
         vm.serializeAddress(o, "tWETH", address(tWETH));
         vm.serializeAddress(o, "tWBTC", address(tWBTC));
         string memory json = vm.serializeAddress(o, "tUSDC", address(tUSDC));
+        // a fresh clone has no deployments/ folder yet (its only file, local.json, is gitignored)
+        vm.createDir(string.concat(vm.projectRoot(), "/deployments"), true);
         vm.writeJson(json, deploymentsPath());
         console2.log("deployments written to", deploymentsPath());
     }

@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "sync": "node scripts/sync.mjs",
+    "demo": "../scripts/demo.sh",
     "e2e": "playwright test -c e2e/playwright.config.ts",
     "e2e:testnet": "E2E_TESTNET=1 playwright test -c e2e/playwright.config.ts"
   },

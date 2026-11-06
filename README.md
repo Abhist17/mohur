@@ -164,6 +164,7 @@ python3 reference/mohur_math.py              # regenerates the 80-digit referenc
 | `10-share` | Share card shows on-chain data; links keep the picked index |
 | `11-mobile` | All 11 pages fit a 390 px phone; the menu works |
 | `12-explain` | Every main page's "How this page works" box opens and links to the explainer |
+| `13-a11y` | Skip link is the first tab stop; keyboard focus is visible; the nav marks the current page; every image has alt text |
 
 `npm run e2e:testnet` checks the deployed site instead: reads really go through Anon-RPC (Tor, falling back to Nym) to Base Sepolia, and every chain screen either works or (before the contracts are deployed) explains itself with a labelled screenshot. Screenshots land in `web/e2e/artifacts/`.
 
@@ -184,7 +185,7 @@ reverts are decoded into plain sentences ("Trade too large: one trade can move a
 - **Privacy:** every chain read live (route, label, isolation key, latency), worker switcher (Tor / Nym / passthrough), who-learns-what, logging-proxy view.
 - **Demo:** a guided six-step tour from your wallet, labelled demo mode (test tokens → approve → parity check → one trade per venue → losing loop). Real transactions; steps already done on chain are skipped; progress resumes after a reload.
 - **Share:** a card for any index (`/share?index=0x…`): on-chain weights, spot prices, fill count, and a link to trade it.
-- **Explanations:** every main screen has a collapsed "How this page works" box linking to its section of [docs/explained.md](docs/explained.md). Every page fits a phone (checked at 390 px).
+- **Explanations:** every main screen has a collapsed "How this page works" box linking to its section of [docs/explained.md](docs/explained.md). Every page fits a phone (checked at 390 px). Text colours meet WCAG AA contrast in both themes, and the app is keyboard-navigable (skip link, visible focus).
 
 ### Privacy: Anon-RPC
 

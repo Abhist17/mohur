@@ -273,7 +273,7 @@ flowchart LR
 |---|---|---|
 | Contract tests (`forge test`) | 55 | Math against 80-digit references, 0-wei venue parity, losing loops (fuzzed), self-rebalance, gradual weights, pause/resume, venue limits, the fill-lock fix, invariants, and fork tests on Base Sepolia with the official V4Quoter and Universal Router |
 | Smoke checks (`scripts/smoke.sh`) | 36 | Every deployed contract answers correctly on a live chain |
-| Browser tests (`npm run e2e`) | 12 specs | Every screen driven in real Chrome against a fresh fork: launch with reload, Book parity, Arbitrage, Privacy log, Demo resume, re-weight glide, top up, Share, phone layout, explanation boxes |
+| Browser tests (`npm run e2e`) | 13 specs | Every screen driven in real Chrome against a fresh fork: launch with reload, Book parity, Arbitrage, Privacy log, Demo resume, re-weight glide, top up, Share, phone layout, explanation boxes, keyboard accessibility |
 | Testnet check (`npm run e2e:testnet`) | 3 | Against the deployed site: reads really go through Anon-RPC; every chain screen either works or explains itself; optional logging-proxy check |
 | One-click demo (`./scripts/demo.sh`) | | Prints the key numbers straight from chain |
 

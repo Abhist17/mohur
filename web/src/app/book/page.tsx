@@ -57,9 +57,11 @@ export default function BookPage() {
   );
 
   if (!deployed) return <NotDeployed />;
-  if (!hook) return <div className="wrap page">No index yet. <a className="gold" href="/launch">Launch one →</a></div>;
+  if (!hook) return <div className="wrap page">No index yet. <Link className="gold" href="/create">Launch one →</Link></div>;
 
   const sym = (a: Address) => book?.tokens.find((t) => t.token === a)?.symbol ?? a.slice(0, 6);
+  /** display name (ETH / BTC / USDC) for a token address */
+  const nm = (a: Address) => TOKEN_STYLE[sym(a)]?.name ?? sym(a);
   const dec = (a: Address) => book?.tokens.find((t) => t.token === a)?.decimals ?? 18;
   const values = book?.tokens.map((t) => units(t.effectiveBalance, t.decimals) * (px[t.symbol] ?? 0)) ?? [];
   const total = values.reduce((a, b) => a + b, 0);
@@ -186,7 +188,7 @@ export default function BookPage() {
                 ))}
                 {quotes.map((q) => (
                   <tr key={q.a + q.b} data-testid="quote-row" data-pair={`${sym(q.a)}/${sym(q.b)}`} data-v4={String(q.v4Out)} data-aqua={String(q.aquaOut)} data-ok={String(q.v4Ok && q.aquaOk)}>
-                    <td>{q.amt} {sym(q.a)} → {sym(q.b)}</td>
+                    <td>{q.amt} {nm(q.a)} → {nm(q.b)}</td>
                     <td className="num">{q.v4Ok ? fmt(units(q.v4Out, dec(q.b)), 8) : <span className="faint">limit</span>}</td>
                     <td className="num">{q.aquaOk ? fmt(units(q.aquaOut, dec(q.b)), 8) : <span className="faint">limit</span>}</td>
                     <td className="num good">{q.v4Ok && q.aquaOk ? (q.v4Out - q.aquaOut).toString() : "-"}</td>
@@ -285,7 +287,7 @@ export default function BookPage() {
                   <tr key={f.tx + f.venue + f.amountIn}>
                     <td><VenueMark venue={venueIndex(f.venue)} size={16} short /></td>
                     <td className="mono" style={{ fontSize: 13 }}>
-                      {fmt(units(f.amountIn, dec(f.tokenIn)))} {sym(f.tokenIn)} → {fmt(units(f.amountOut, dec(f.tokenOut)))} {sym(f.tokenOut)}
+                      {fmt(units(f.amountIn, dec(f.tokenIn)))} {nm(f.tokenIn)} → {fmt(units(f.amountOut, dec(f.tokenOut)))} {nm(f.tokenOut)}
                     </td>
                     <td className="num">
                       {EXPLORER ? <a href={`${EXPLORER}/tx/${f.tx}`} target="_blank" rel="noreferrer" className="gold">{f.block.toString()}</a> : f.block.toString()}

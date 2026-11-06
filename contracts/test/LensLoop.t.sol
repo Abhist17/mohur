@@ -64,6 +64,16 @@ contract LensLoopTest is MohurFixture {
         assertEq(b.tokens[2].effectiveBalance, USDC0);
     }
 
+    /// The Create screen's preview runs the same MohurMath as a live hook: identical on identical balances.
+    function test_preview_matchesLiveQuote() public view {
+        uint256 bi = hook.effectiveBalance(address(weth)); // 18 dec
+        uint256 bo = hook.effectiveBalance(address(usdc)) * 1e12; // scaled to 18 dec
+        uint256 out = lens.previewOutGivenIn(bi, 0.4e18, bo, 0.3e18, 1e18, FEE) / 1e12;
+        (, uint256 live) = hook.quote(address(weth), address(usdc), 1e18, true);
+        assertEq(out, live);
+        assertEq(lens.previewSpot(bi, 0.4e18, bo, 0.3e18), hook.price(address(weth), address(usdc)));
+    }
+
     function test_minOut_enforced() public {
         (address[] memory path, uint8[] memory venues) = _route();
         vm.prank(trader);

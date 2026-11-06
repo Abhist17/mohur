@@ -124,6 +124,29 @@ contract MohurLens {
     }
 
     // ------------------------------------------------------------------------------------------
+    // Previews: the contracts' own math on hypothetical balances (18-dec scaled), for the Create screen
+    // ------------------------------------------------------------------------------------------
+
+    function previewSpot(uint256 balanceI, uint256 weightI, uint256 balanceJ, uint256 weightJ)
+        external
+        pure
+        returns (uint256)
+    {
+        return MohurMath.spotPrice(balanceI, weightI, balanceJ, weightJ);
+    }
+
+    function previewOutGivenIn(
+        uint256 balanceIn,
+        uint256 weightIn,
+        uint256 balanceOut,
+        uint256 weightOut,
+        uint256 amountIn,
+        uint256 fee
+    ) external pure returns (uint256) {
+        return MohurMath.outGivenIn(balanceIn, weightIn, balanceOut, weightOut, amountIn, fee);
+    }
+
+    // ------------------------------------------------------------------------------------------
     // Quotes
     // ------------------------------------------------------------------------------------------
 
@@ -146,46 +169,46 @@ contract MohurLens {
     /// @notice Exact quote of a multi-leg exact-in route through the maker wallet. Because both venues price
     ///         from the same balances with the same formula, the venue choice only matters for the venue
     ///         limit, which is checked per leg. venues[k]: 0 = Uniswap v4, 1 = 1inch Aqua.
+    struct RouteCtx {
+        MohurHook hook;
+        address swapVM;
+        uint256 fee;
+        uint256[] bal; // running balances per path position (shared by repeated tokens)
+    }
+
     function quoteRoute(MohurHook hook, address swapVM, address[] calldata path, uint8[] calldata venues, uint256 amountIn)
         external
         view
         returns (uint256[] memory amounts, bool withinLimits)
     {
         require(path.length == venues.length + 1 && venues.length > 0, "route");
-        uint256 n = path.length;
-        uint256[] memory bal = new uint256[](n);
-        for (uint256 k; k < n; ++k) {
-            bal[k] = hook.effectiveBalance(path[k]);
+        RouteCtx memory r = RouteCtx(hook, swapVM, hook.fee(), new uint256[](path.length));
+        for (uint256 k; k < path.length; ++k) {
+            r.bal[k] = hook.effectiveBalance(path[k]);
         }
-        amounts = new uint256[](n);
+        amounts = new uint256[](path.length);
         amounts[0] = amountIn;
         withinLimits = true;
-        uint256 fee = hook.fee();
         for (uint256 k; k < venues.length; ++k) {
             bool ok;
-            (amounts[k + 1], ok) = _leg(hook, swapVM, path, bal, k, venues[k], amounts[k], fee);
+            (amounts[k + 1], ok) = _leg(r, path, k, venues[k], amounts[k]);
             if (!ok) withinLimits = false;
         }
     }
 
-    function _leg(
-        MohurHook hook,
-        address swapVM,
-        address[] calldata path,
-        uint256[] memory bal,
-        uint256 k,
-        uint8 venue,
-        uint256 amountIn,
-        uint256 fee
-    ) internal view returns (uint256 out, bool ok) {
+    function _leg(RouteCtx memory r, address[] calldata path, uint256 k, uint8 venue, uint256 amountIn)
+        internal
+        view
+        returns (uint256 out, bool ok)
+    {
         address tIn = path[k];
         address tOut = path[k + 1];
-        uint256 bIn = _bal(path, bal, tIn);
-        uint256 bOut = _bal(path, bal, tOut);
-        out = _out(hook, tIn, tOut, bIn, bOut, amountIn, fee);
-        _setBal(path, bal, tIn, bIn + amountIn);
-        _setBal(path, bal, tOut, bOut - out);
-        ok = _withinLimit(hook, swapVM, venue, tIn, tOut, out);
+        uint256 bIn = _bal(path, r.bal, tIn);
+        uint256 bOut = _bal(path, r.bal, tOut);
+        out = _out(r.hook, tIn, tOut, bIn, bOut, amountIn, r.fee);
+        _setBal(path, r.bal, tIn, bIn + amountIn);
+        _setBal(path, r.bal, tOut, bOut - out);
+        ok = _withinLimit(r.hook, r.swapVM, venue, tIn, tOut, out);
     }
 
     function _out(MohurHook hook, address tIn, address tOut, uint256 bIn, uint256 bOut, uint256 a, uint256 fee)

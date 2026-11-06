@@ -242,13 +242,15 @@ venues, and the PoC is kept as a regression test. `scripts/smoke.sh` checks any 
 - A round trip doesn't always lose a full fee: part of the first leg's fee is won back by the return leg. Every loop still loses.
 - Uniswap input waits as claims until the next swap or a flush. It is priced in immediately, but 1inch can only sell what is in the wallet as ERC-20.
 - Venue limits shrink as a venue sells (Uniswap's grows back as its input is flushed via `Aqua.push`). Raising them is one click on My index (**Top up / re-split**), but under the hood it is a new epoch: venues are docked, then re-shipped at `venueNonce + 1`, so open 1inch orders from the old epoch stop filling.
+- One trade can move at most 30% of a balance (keeps the fixed-point `pow` accurate).
+- Use a dedicated maker wallet: prices read the wallet's live balances, so spending index tokens elsewhere moves the quotes (and gifting tokens to it only enriches the maker).
 - Testnet demo with test tokens. Not externally audited; our own review ([AUDIT.md](AUDIT.md)) found and fixed one critical bug.
 
 ## Repo map
 
 | Folder | Contents |
 | --- | --- |
-| `contracts/` | Foundry project: `src`, `test` (52 + 2 fork), `script` (DeployMohur, LaunchIndex, DemoTrades), `reference` (Python math) |
+| `contracts/` | Foundry project: `src`, `test` (53 + 2 fork), `script` (DeployMohur, LaunchIndex, DemoTrades), `reference` (Python math) |
 | `web/` | Next.js dashboard; `src/lib/anon.ts` is the Anon-RPC transport |
 | `proxy/` | Logging JSON-RPC proxy |
 | `docs/` | **`explained.md` (start here)**, PortfolioPrice write-up, Anon-RPC notes, demo (`demo.md`), open decisions (`decisions.md`) |

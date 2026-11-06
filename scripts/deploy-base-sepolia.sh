@@ -5,8 +5,8 @@
 #   3. real demo fills on both venues
 #   4. sync the web app, run the on-chain smoke test, commit + push (GitHub Pages then rebuilds the live site)
 #
-# One-time setup (you type the key yourself; it is stored encrypted by Foundry):
-#   cast wallet import mohur-deployer --interactive
+# One-time setup (stored encrypted by Foundry; the key is never printed):
+#   ./scripts/setup-deployer.sh            (fresh testnet wallet)   or   cast wallet import mohur-deployer --interactive
 # Then fund that address with ~0.01 Base Sepolia ETH and run:
 #   ./scripts/deploy-base-sepolia.sh
 # Optional: PASSWORD_FILE=<file with the keystore password>  ACCOUNT=<keystore name>  RPC=<rpc url>  FRESH=1 (redeploy everything)  NO_PUSH=1
@@ -20,7 +20,9 @@ export PATH="$HOME/.foundry/bin:$PATH"
 say() { printf "\n\033[1;33m== %s\033[0m\n" "$*"; }
 for bin in forge cast jq node npm; do command -v $bin >/dev/null || { echo "missing: $bin"; exit 1; }; done
 cast wallet list 2>/dev/null | grep -q "^$ACCOUNT" || {
-  echo "No Foundry keystore account '$ACCOUNT'. Create it (you type the key):"
+  echo "No Foundry keystore account '$ACCOUNT'. Create a fresh testnet deployer (you choose a password):"
+  echo "  ./scripts/setup-deployer.sh"
+  echo "or import a testnet key you already have:"
   echo "  cast wallet import $ACCOUNT --interactive"; exit 1; }
 
 # PASSWORD_FILE: lets the deploy run unattended (the key stays encrypted; the password file stays on your machine, chmod 600)

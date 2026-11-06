@@ -224,8 +224,9 @@ cd ../web && npm install && npm run sync && npm run dev   # http://localhost:300
 **Base Sepolia:**
 
 ```bash
-cast wallet import mohur-deployer --interactive   # a funded test key (~0.02 Base Sepolia ETH)
-./scripts/deploy-base-sepolia.sh                  # deploy, launch demo index, demo fills, sync
+./scripts/setup-deployer.sh                       # fresh testnet wallet, encrypted (or: cast wallet import mohur-deployer --interactive)
+# fund the printed address with >= 0.005 Base Sepolia ETH (the deploy uses ~0.0002)
+./scripts/deploy-base-sepolia.sh                  # deploy, launch demo index, demo fills, smoke test, push (rehearsed on a fork: 36/36)
 cd web && NEXT_PUBLIC_MOHUR_NETWORK=base-sepolia npm run dev   # every read through Anon-RPC
 # optional: UPSTREAM=https://sepolia.base.org node proxy/server.mjs, expose it, set NEXT_PUBLIC_MOHUR_PROXY_URL
 ```
@@ -239,7 +240,7 @@ venues, and the PoC is kept as a regression test. `scripts/smoke.sh` checks any 
 ## Try it
 
 - **Live app:** https://abhist17.github.io/mohur/ (GitHub Pages, every read through Anon-RPC; trading screens go live once the contracts are deployed to Base Sepolia).
-- **Deploy to Base Sepolia:** `cast wallet import mohur-deployer --interactive`, fund it with ~0.01 test ETH, then `./scripts/deploy-base-sepolia.sh`. It deploys, launches the demo index, makes fills on both venues, runs the smoke test, and pushes the addresses (the live site rebuilds).
+- **Deploy to Base Sepolia:** `./scripts/setup-deployer.sh` (or `cast wallet import mohur-deployer --interactive`), fund it with at least 0.005 test ETH, then `./scripts/deploy-base-sepolia.sh`. It deploys, launches the demo index, makes fills on both venues, runs the smoke test, and pushes the addresses (the live site rebuilds).
 
 ## Honest limits
 
@@ -258,8 +259,8 @@ venues, and the PoC is kept as a regression test. `scripts/smoke.sh` checks any 
 | `contracts/` | Foundry project: `src`, `test` (57 + 2 fork), `script` (DeployMohur, LaunchIndex, DemoTrades), `reference` (Python math) |
 | `web/` | Next.js dashboard; `src/lib/anon.ts` is the Anon-RPC transport |
 | `proxy/` | Logging JSON-RPC proxy |
-| `docs/` | **`explained.md` (start here)**, PortfolioPrice write-up, Anon-RPC notes, demo (`demo.md`), open decisions (`decisions.md`) |
-| `scripts/` | `deploy-base-sepolia.sh` |
+| `docs/` | **`explained.md` (start here)**, PortfolioPrice write-up, Anon-RPC notes, demo (`demo.md`), video script (`demo-script.md`), submission pack (`submission.md`), decisions (`decisions.md`) |
+| `scripts/` | `demo.sh` (one-click demo), `check-all.sh` (every check), `setup-deployer.sh` + `deploy-base-sepolia.sh` (testnet), `smoke.sh` (36 on-chain checks), `fork-up.sh`, `check-readme-links.py` |
 
 ## License
 

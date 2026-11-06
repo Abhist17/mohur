@@ -267,11 +267,20 @@ flowchart LR
 | `MohurLens` | Read helper: whole book in one call, quotes on both venues, route quotes, previews |
 | `MohurLoopRouter` | Multi-leg trades across both venues in one transaction (used by Swap, Arbitrage and Demo) |
 
+**What it costs** (`Gas.t.sol`, measured inside a Foundry test, before refunds, excluding the 21,000 base cost of a transaction):
+
+| Action | Gas |
+|---|---|
+| Swap on Uniswap v4 through MohurHook (including the test router) | ~290k |
+| Fill on 1inch Aqua through opcode `0xd0` | ~216k |
+| `flush()`: move Uniswap claims into the wallet | ~143k |
+| `quote()`: the price both venues use | ~52k |
+
 ## 16. How we know it works
 
 | Suite | Count | What it proves |
 |---|---|---|
-| Contract tests (`forge test`) | 55 | Math against 80-digit references, 0-wei venue parity, losing loops (fuzzed), self-rebalance, gradual weights, pause/resume, venue limits, the fill-lock fix, invariants, and fork tests on Base Sepolia with the official V4Quoter and Universal Router |
+| Contract tests (`forge test`) | 59 | Math against 80-digit references, 0-wei venue parity, losing loops (fuzzed), self-rebalance, gradual weights, pause/resume, venue limits, the fill-lock fix, invariants, and fork tests on Base Sepolia with the official V4Quoter and Universal Router |
 | Smoke checks (`scripts/smoke.sh`) | 36 | Every deployed contract answers correctly on a live chain |
 | Browser tests (`npm run e2e`) | 13 specs | Every screen driven in real Chrome against a fresh fork: launch with reload, Book parity, Arbitrage, Privacy log, Demo resume, re-weight glide, top up, Share, phone layout, explanation boxes, keyboard accessibility |
 | Testnet check (`npm run e2e:testnet`) | 3 | Against the deployed site: reads really go through Anon-RPC; every chain screen either works or explains itself; optional logging-proxy check |

@@ -130,7 +130,7 @@ cd contracts
 npm install                                  # @1inch/solidity-utils, @openzeppelin (as upstream does)
 git submodule update --init --recursive
 npm run build:v4                             # builds the real v4 PoolManager artifact (solc 0.8.26)
-forge test --no-match-path 'test/fork/*'     # 53 tests (incl. invariant suite + audit PoC)
+forge test --no-match-path 'test/fork/*'     # 57 tests (incl. invariant suite, audit PoC, gas)
 forge test --match-path 'test/fork/*'        # 2 fork tests against live Uniswap v4 on Base Sepolia
 python3 reference/mohur_math.py              # regenerates the 80-digit reference vectors
 ```
@@ -147,6 +147,7 @@ python3 reference/mohur_math.py              # regenerates the 80-digit referenc
 | `audit/CrossVenueReentrancy.t.sol`, `audit/FillLock.t.sol` | Audit finding C-1: the callback double-dip PoC (now blocked) and the fill-lock guarantees. See [AUDIT.md](AUDIT.md). |
 | `LensLoop.t.sol` | A cross-venue loop returns exactly its Lens quote leg by leg; quoteBoth; book; minOut. |
 | `fork/V4BaseSepolia.t.sol` | Official V4Quoter == hook quote; a real Universal Router swap pays from the maker wallet. |
+| `Gas.t.sol` | What each action costs, with regression bounds: Uniswap v4 swap ~290k gas (incl. the test router), 1inch Aqua fill ~216k, flush ~143k, `quote()` ~52k (measured in-test, before refunds, excluding the 21k base). |
 
 **Browser tests** (Playwright, system Chrome, no browser download). `cd web && npm run e2e` boots a fresh Base Sepolia fork, deploys, and drives the real app with an injected wallet backed by anvil's dev accounts:
 
@@ -250,7 +251,7 @@ venues, and the PoC is kept as a regression test. `scripts/smoke.sh` checks any 
 
 | Folder | Contents |
 | --- | --- |
-| `contracts/` | Foundry project: `src`, `test` (53 + 2 fork), `script` (DeployMohur, LaunchIndex, DemoTrades), `reference` (Python math) |
+| `contracts/` | Foundry project: `src`, `test` (57 + 2 fork), `script` (DeployMohur, LaunchIndex, DemoTrades), `reference` (Python math) |
 | `web/` | Next.js dashboard; `src/lib/anon.ts` is the Anon-RPC transport |
 | `proxy/` | Logging JSON-RPC proxy |
 | `docs/` | **`explained.md` (start here)**, PortfolioPrice write-up, Anon-RPC notes, demo (`demo.md`), open decisions (`decisions.md`) |

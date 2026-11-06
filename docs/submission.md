@@ -27,7 +27,7 @@ Copy-paste text for the ETHGlobal form, the five lines to say to judges, and wha
 > Our own security review found a critical cross-venue reentrancy: SwapVM taker callbacks could price a nested trade on stale balances, and the proof of concept took $752 from the maker. We fixed it with a fail-closed transient fill lock that 1inch maker hooks clear.
 >
 > Testing:
-> - 55 Foundry tests, including fuzzed invariants and fork tests against the official V4Quoter and Universal Router on Base Sepolia.
+> - 59 Foundry tests, including fuzzed invariants and fork tests against the official V4Quoter and Universal Router on Base Sepolia.
 > - 36 smoke checks on a live chain.
 > - 13 Playwright browser tests that drive every screen against a fresh fork.
 >

@@ -22,15 +22,12 @@ export default function How() {
       <div className="page-head">
         <div className="eyebrow">How Mohur works</div>
         <h1 style={{ fontSize: "clamp(40px, 6vw, 72px)", marginTop: 10 }}>One wallet. One price. Every venue.</h1>
-        <p className="lead" style={{ marginTop: 16 }}>
-          Mohur turns your own wallet into an index fund that two of DeFi&apos;s biggest venues trade against at the same time, from the same coins,
-          at the same price, with no oracle and nobody watching you. Here is the whole idea, in plain language.
-        </p>
+        <p className="lead" style={{ marginTop: 16 }}>The whole idea in 11 lines. Tap any one for more.</p>
       </div>
 
-      <Concept caption={<><b>One stockroom, two stalls.</b> Your wallet is the stockroom. Uniswap and 1inch are two stalls selling from it. There is only one shelf, so there is only one price: a sale at either stall moves the shelf, and both price tags change together. Nothing has to be synced.</>} />
+      <Concept caption={<><b>One stockroom, two stalls.</b> One shelf, so one price.</>} />
 
-      <Section n="0" title="The idea in plain words">
+      <Section n="0" title="The idea in plain words" tldr="One stockroom, two stalls, one price board that keeps the stock at 40/30/30.">
         <p>
           Raju owns a shop with mangoes, rice and cash in one stockroom. He opens two stalls in two different markets: Uniswap and 1inch.
           Both stalls sell from the <b>same stockroom</b> and read prices off the <b>same board</b>, which follows one simple rule:
@@ -51,13 +48,13 @@ export default function How() {
         </p>
       </Section>
 
-      <Section n="1" title="The problem today">
+      <Section n="1" title="The problem today" tldr="Two venues means two piles, two prices, and rebalancing by hand.">
         To make markets on two venues you split your coins into two piles. Each pile quotes its own price, drifts on its own, and needs its own
         rebalancing. Your capital is fragmented and your prices disagree. If you just hold an index, keeping it at 40/30/30 means rebalancing
         by hand and paying fees to do it. And a dashboard that watches all this polls the same wallet all day through an RPC that sees your IP.
       </Section>
 
-      <Section n="2" title="One price, from what the wallet actually holds">
+      <Section n="2" title="One price, from what the wallet actually holds" tldr="price = (weight A ÷ weight B) × (balance B ÷ balance A). No oracle.">
         <p>Every quote, on both venues, comes from one formula over your wallet&apos;s real balances:</p>
         <div className="formula">
           price of A in B = (weight A ÷ weight B) × (balance B ÷ balance A)
@@ -69,10 +66,10 @@ export default function How() {
         </p>
       </Section>
 
-      <Section n="3" title="What happens when someone trades">
+      <Section n="3" title="What happens when someone trades" tldr="Both venues pay out of your wallet through Aqua, your only approval.">
         <div className="grid g2" style={{ marginTop: 4 }}>
           <div className="card">
-            <h3 style={{ color: "#ff5cae" }}>On Uniswap v4</h3>
+            <h3 style={{ color: "var(--uni)" }}>On Uniswap v4</h3>
             <ol className="steps">
               <li>A trader swaps through any Uniswap router.</li>
               <li>Mohur&apos;s hook prices the trade from your wallet and switches the pool&apos;s own curve off.</li>
@@ -81,7 +78,7 @@ export default function How() {
             </ol>
           </div>
           <div className="card">
-            <h3 style={{ color: "#6fb0ff" }}>On 1inch Aqua</h3>
+            <h3 style={{ color: "var(--inch)" }}>On 1inch Aqua</h3>
             <ol className="steps">
               <li>A trader fills your 1inch order.</li>
               <li>Instruction 0xd0 asks the same hook for the price.</li>
@@ -93,20 +90,20 @@ export default function How() {
         <p style={{ marginTop: 12 }}>Your wallet approves exactly one contract, Aqua, which gives each venue its own selling limit. Neither venue can touch your coins directly.</p>
       </Section>
 
-      <Section n="4" title="It can't be gamed">
+      <Section n="4" title="It can't be gamed" tldr="Every loop loses at least the fee: −0.88% across both venues in tests.">
         Without fees, every trade keeps the wallet&apos;s value (by its own prices) constant, so a loop back to where you started returns exactly
         what went in. Fees only add to the wallet, and every rounding step favours you, so any loop, on one venue or bouncing between both,
         loses money. In the tests a 0.1 ETH loop ETH → USDC (Uniswap) → BTC (1inch) → ETH (Uniswap) loses 0.88%.{" "}
         <Link href="/arbitrage" className="gold">Try it yourself →</Link>
       </Section>
 
-      <Section n="5" title="It rebalances itself">
+      <Section n="5" title="It rebalances itself" tldr="ETH $4k → $5k: traders alone bring you back to 40/30/30, paying you fees.">
         When ETH rises outside, your ETH is briefly cheap at Mohur. Traders buy it from you until your price matches the market, and that is
         exactly when each holding is back to its target share. In the tests, after ETH moved from $4,000 to $5,000, arbitrage alone brought
         the wallet back to 40.0 / 30.0 / 30.0. You earn the fee on every one of those trades.
       </Section>
 
-      <Section n="6" title="Change your mind, cheaply">
+      <Section n="6" title="Change your mind, cheaply" tldr="Glide to new weights: $25 instead of $1,991 on a $100k index.">
         <p>
           Want 50/25/25 instead of 40/30/30? Flip the weights instantly and the whole price gap opens at once: arbitrageurs take it in one go.
           Or let Mohur <b>glide</b> the weights on both venues over an hour, a day, or three days. Each moment&apos;s gap stays near the fee, so
@@ -122,14 +119,14 @@ export default function How() {
         </p>
       </Section>
 
-      <Section n="7" title="Nobody watching">
+      <Section n="7" title="Nobody watching" tldr="Every read via Anon-RPC, with a separate key per strategy, maker and trader.">
         Every chain read the app makes goes through the Ethereum Foundation&apos;s Anon-RPC (over Tor, or the Nym mixnet), with a separate isolation
         key for each strategy, each maker and each trader, so the RPC sees an exit node, not you, and can&apos;t stitch your activity together.
         Two things are honestly excluded: one bootstrap read that locates the anonymous client, and your transactions, which your wallet sends.{" "}
         <Link href="/privacy" className="gold">Watch every read →</Link>
       </Section>
 
-      <Section n="8" title="Honest limits">
+      <Section n="8" title="Honest limits" tldr="LVR stays, per-trade caps, testnet only, not audited.">
         <ul className="steps">
           <li>Mohur doesn&apos;t remove LVR: the traders who rebalance you capture the move; you earn the fee.</li>
           <li>One trade can move at most 30% of a balance, and each venue sells only up to its limit.</li>
@@ -139,7 +136,7 @@ export default function How() {
         </ul>
       </Section>
 
-      <Section n="9" title="Glossary">
+      <Section n="9" title="Glossary" tldr="Index, hook, Aqua, LVR and more, in one line each.">
         <dl className="gloss">
           {GLOSSARY.map(([t, d]) => (
             <div key={t}>
@@ -150,7 +147,7 @@ export default function How() {
         </dl>
       </Section>
 
-      <Section n="10" title="Why “Mohur”">
+      <Section n="10" title="Why “Mohur”" tldr="The Mughal gold coin: good at every market.">
         The mohur was the gold coin of the Mughal empire: one coin, good at every market in the land. Mohur does the same for your wallet: one
         set of coins, one price, accepted at every venue.
       </Section>
@@ -164,14 +161,17 @@ export default function How() {
   );
 }
 
-function Section({ n, title, children }: { n: string; title: string; children: React.ReactNode }) {
+function Section({ n, title, tldr, children }: { n: string; title: string; tldr: string; children: React.ReactNode }) {
   return (
     <section className="how-sec">
       <div className="how-n">{n}</div>
-      <div>
-        <h2 style={{ fontSize: 30, marginBottom: 10 }}>{title}</h2>
-        <div className="how-body">{children}</div>
-      </div>
+      <details className="how-more">
+        <summary>
+          <h2 style={{ fontSize: 26, marginBottom: 6 }}>{title}</h2>
+          <div className="how-tldr">{tldr}</div>
+        </summary>
+        <div className="how-body" style={{ marginTop: 12 }}>{children}</div>
+      </details>
     </section>
   );
 }

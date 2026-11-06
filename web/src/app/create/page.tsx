@@ -43,9 +43,9 @@ export default function CreatePage() {
       <div className="page-head">
         <div className="eyebrow">Step 1 · Create</div>
         <h2>Design your index</h2>
-        <p>Pick the assets and target weights. The weights are the whole strategy: both venues price every trade so that, at Mohur&apos;s own prices, your wallet always sits exactly on these weights.</p>
+        <p>Pick coins and drag the weights.</p>
       </div>
-      <Concept highlight="wallet" caption={<><b>Decide what&apos;s on the shelf.</b> The weights are the whole strategy: both stalls price every trade so that, at Mohur&apos;s prices, your wallet always sits exactly on them.</>} />
+      <Concept highlight="wallet" caption={<><b>Your weights are the strategy.</b> Both stalls price to keep you on them.</>} />
       <div className="grid g2">
         <div className="card stack">
           <h3>Assets &amp; weights</h3>
@@ -68,23 +68,22 @@ export default function CreatePage() {
             {SYMS.map((s) => <span key={s} style={{ width: `${d.weights[s]}%`, background: TOKEN_STYLE[s].color }} />)}
           </div>
           <div className="spread faint" style={{ fontSize: 13 }}>
-            <span>Total {SYMS.reduce((a, s) => a + d.weights[s], 0)}% · fee 0.30% on both venues</span>
+            <span>Total {SYMS.reduce((a, s) => a + d.weights[s], 0)}% · fee 0.30%</span>
             <span>min 1% per asset</span>
           </div>
         </div>
 
         <div className="card">
           <div className="spread">
-            <h3>Quote preview</h3>
+            <h3>Preview</h3>
             <span className="tag sim">simulated</span>
           </div>
           <p className="muted" style={{ fontSize: 14, marginTop: 0 }}>
-            Example book worth $
+            Index size $
             <input type="number" value={size} onChange={(e) => setSize(Math.max(1000, Number(e.target.value)))} style={{ width: 110, margin: "0 6px" }} />
-            at ETH $4,000 and BTC $100,000. The same numbers would show on Uniswap and on 1inch.
           </p>
           <table>
-            <thead><tr><th>Pair</th><th className="num">Spot</th><th className="num">Sell 1% of first</th></tr></thead>
+            <thead><tr><th>Pair</th><th className="num">Spot</th><th className="num">Sell 1% → cost</th></tr></thead>
             <tbody>
               {pairs.map(([a, b]) => {
                 const wa = d.weights[a] / 100, wb = d.weights[b] / 100;
@@ -101,8 +100,7 @@ export default function CreatePage() {
               })}
             </tbody>
           </table>
-          <p className="faint" style={{ fontSize: 12 }}>Cost column = fee + price impact versus spot.</p>
-          <Link href="/launch" className="btn primary" style={{ marginTop: 8 }}>Launch this index →</Link>
+          <Link href="/launch" className="btn primary" style={{ marginTop: 8 }}>Launch →</Link>
         </div>
       </div>
     </div>

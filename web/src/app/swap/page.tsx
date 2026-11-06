@@ -241,7 +241,7 @@ export default function SwapPage() {
               return (
                 <button key={v} className={`venue ${venue === v ? "on" : ""}`} disabled={!!quote && !vOk} onClick={() => setVenue(v)}>
                   <div className="row" style={{ gap: 6, fontSize: 13 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 4, background: v === 0 ? "#ff007a" : "#2f8af5" }} />
+                    <span style={{ width: 8, height: 8, borderRadius: 4, background: v === 0 ? "var(--uni)" : "var(--inch)" }} />
                     {VENUES[v]}
                   </div>
                   <div className="mono" style={{ fontSize: 15, marginTop: 4 }}>
@@ -256,7 +256,7 @@ export default function SwapPage() {
           </div>
           {quote && quote.v4Ok && quote.aquaOk && (
             <div className="good" style={{ fontSize: 12, textAlign: "center" }}>
-              Same price on both venues: {(quote.v4Out - quote.aquaOut).toString()} units apart
+              ✓ Same price on both venues ({(quote.v4Out - quote.aquaOut).toString()} units apart)
             </div>
           )}
 
@@ -264,7 +264,7 @@ export default function SwapPage() {
             <div style={{ padding: "6px 4px 2px" }}>
               <div className="kv"><span>Rate</span><b>1 {TOKEN_STYLE[tin].name} = {spotN.toLocaleString(undefined, { maximumSignificantDigits: 6 })} {TOKEN_STYLE[tout].name}</b></div>
               <div className="kv"><span>Price impact</span><b className={impact !== undefined && impact > 0.03 ? "bad" : ""}>{impact !== undefined ? `${(impact * 100).toFixed(2)}%` : "-"}</b></div>
-              <div className="kv"><span>Fee (to the index owner)</span><b>0.30%</b></div>
+              <div className="kv"><span>Fee</span><b>0.30%</b></div>
               <div className="kv"><span>Minimum received</span><b>{show(minOut, dec(tout), 8)} {TOKEN_STYLE[tout].name}</b></div>
               <div className="kv"><span>Settles from</span><b>the maker&apos;s wallet, via Aqua</b></div>
             </div>
@@ -277,7 +277,7 @@ export default function SwapPage() {
           {err && <div className="err" style={{ textAlign: "center" }}>{err}</div>}
         </div>
 
-        <Concept caption={<><b>You&apos;re buying from one wallet.</b> Both stalls sell from the same shelf at the same price, so pick either: the venue only decides whose selling limit you use. Testnet tokens, no value.</>} />
+        <Concept caption={<><b>Same price on both.</b> Pick either venue. Testnet tokens.</>} />
       </div>
     </div>
   );

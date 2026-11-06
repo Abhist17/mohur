@@ -90,9 +90,9 @@ export default function ArbitragePage() {
       <div className="page-head">
         <div className="eyebrow">Arbitrage me</div>
         <h2>Try to beat the price</h2>
-        <p>Build any route through the wallet, on either venue, leg by leg. The quote is exact (both venues share one formula over one inventory), and you can run it for real in one transaction. Every loop back to where you started loses.</p>
+        <p>Build a loop across both venues. Run it for real. It loses.</p>
       </div>
-      <Concept caption={<><b>Try to play one stall against the other.</b> There is only one shelf, so there is no gap between them to exploit: every round trip pays the fee back to the wallet.</>} />
+      <Concept caption={<><b>One shelf, no gap.</b> Every round trip pays the fee back to the wallet.</>} />
       <div className="grid g2">
         <div className="card stack">
           <h3>Route</h3>

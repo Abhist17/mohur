@@ -61,6 +61,17 @@ export function StacksScene({ state }: { state: SceneState }) {
       new THREE.CircleGeometry(9, 64),
       new THREE.MeshStandardMaterial({ color: 0x15120e, roughness: 0.95, metalness: 0 }),
     );
+    // floor and counters follow the page theme (light: warm paper, dark: near-black)
+    const floorMat = floor.material as THREE.MeshStandardMaterial;
+    const bodyMats: THREE.MeshStandardMaterial[] = [];
+    let themeSeen = "";
+    const applyTheme = () => {
+      const t = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+      if (t === themeSeen) return;
+      themeSeen = t;
+      floorMat.color.setHex(t === "dark" ? 0x15120e : 0xd9d1c3);
+      for (const m of bodyMats) m.color.setHex(t === "dark" ? 0x241e17 : 0xece5d8);
+    };
     floor.rotation.x = -Math.PI / 2;
     world.add(floor);
 
@@ -69,7 +80,9 @@ export function StacksScene({ state }: { state: SceneState }) {
     const stripGeo = new THREE.BoxGeometry(1.72, 0.12, 1.12);
     const mkCounter = (x: number, color: number) => {
       const g = new THREE.Group();
-      const body = new THREE.Mesh(counterGeo, new THREE.MeshStandardMaterial({ color: 0x241e17, roughness: 0.7 }));
+      const bodyMat = new THREE.MeshStandardMaterial({ color: 0x241e17, roughness: 0.7 });
+      bodyMats.push(bodyMat);
+      const body = new THREE.Mesh(counterGeo, bodyMat);
       body.position.y = 0.5;
       const strip = new THREE.Mesh(stripGeo, new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.6 }));
       strip.position.y = 1.0;
@@ -132,6 +145,7 @@ export function StacksScene({ state }: { state: SceneState }) {
     let raf = 0;
     const clock = new THREE.Clock();
     const tick = () => {
+      applyTheme();
       const time = clock.getElapsedTime();
       const st = stateRef.current;
       world.rotation.y = Math.sin(time * 0.25) * 0.12;

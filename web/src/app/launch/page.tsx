@@ -21,12 +21,12 @@ const keyTuple = [{ type: "tuple", components: [{ type: "address" }, { type: "ad
 
 type StepState = "todo" | "running" | "done";
 const STEPS = [
-  ["Deploy your own hook", "Mines a hook address in your browser, then deploys MohurHook with you as its maker."],
-  ["Get test tokens", "Faucet tWETH, tWBTC and tUSDC (labelled test tokens with no value)."],
-  ["Approve Aqua, and only Aqua", "Your one approval. Neither venue, router nor PoolManager ever gets one."],
-  ["Set target weights", "Writes your weights and the 0.30% fee to your hook."],
-  ["Open Uniswap v4 pools", "One pool per pair with your hook, plus the Uniswap venue's Aqua limit (50% of each balance)."],
-  ["Ship 1inch Aqua strategies", "One SwapVM order per pair: [PortfolioPrice 0xd0 → your hook], 25% of each token per pair."],
+  ["Deploy your hook", "Your own Uniswap v4 hook"],
+  ["Get test tokens", "tWETH, tWBTC, tUSDC (no value)"],
+  ["Approve Aqua only", "Your one and only approval"],
+  ["Set weights", "Your mix + 0.30% fee"],
+  ["Open on Uniswap", "One v4 pool per pair"],
+  ["Open on 1inch", "One Aqua order per pair"],
 ] as const;
 
 export default function LaunchPage() {
@@ -150,17 +150,13 @@ export default function LaunchPage() {
     <div className="wrap page">
       <div className="page-head">
         <div className="eyebrow">Step 2 · Launch</div>
-        <h2>Six steps from your wallet</h2>
+        <h2>Six clicks to go live</h2>
         <p>
-          Real transactions, signed by you. Each step checks the chain first, so you can reload and pick up where you left off.
-          Index: {tokens.map((t) => `${draft?.weights[t.s]}% ${TOKEN_STYLE[t.s].name}`).join(" / ")} (<Link href="/create" className="gold">edit</Link>).
+          {tokens.map((t) => `${draft?.weights[t.s]}% ${TOKEN_STYLE[t.s].name}`).join(" · ")} · <Link href="/create" className="gold">edit</Link>
         </p>
       </div>
-      <Concept caption={<><b>Open your stockroom.</b> Your wallet becomes the shelf, Uniswap and 1inch become your two stalls, and your weights set the price. The coins never leave your wallet until someone buys them.</>} />
-      <p className="faint" style={{ fontSize: 14, marginTop: -8 }}>
-        Use a <b className="muted">dedicated maker wallet</b>: Mohur prices from what this wallet holds, so spending these tokens for anything
-        else would move your quotes.
-      </p>
+      <Concept caption={<><b>Coins stay in your wallet</b> until someone buys them.</>} />
+      <p className="faint" style={{ fontSize: 14, marginTop: -8 }}>Tip: use a separate wallet just for this.</p>
       {!w.account && <div className="banner">Connect a wallet to launch{NETWORK === "local" ? " (on the local fork, use Dev #3 for a fresh maker)" : ""}.</div>}
       <div className="stack" style={{ marginTop: 16 }}>
         {STEPS.map(([title, body], i) => (
@@ -185,7 +181,7 @@ export default function LaunchPage() {
       {next === -1 && (
         <div className="card" style={{ marginTop: 16 }}>
           <h3>Your index is live on both venues.</h3>
-          <p className="muted">Uniswap and 1inch now quote the same price from your wallet.</p>
+          <p className="muted">Same price on Uniswap and 1inch.</p>
           <Link href="/book" className="btn primary">Open the live book →</Link>
         </div>
       )}

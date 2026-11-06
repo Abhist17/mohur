@@ -76,13 +76,13 @@ export default function MyIndex() {
   if (!w.account)
     return (
       <div className="wrap page">
-        <div className="page-head"><div className="eyebrow">My index</div><h2>Your stockroom</h2><p>Connect the wallet that runs your index to see how it&apos;s doing and to manage it.</p></div>
+        <div className="page-head"><div className="eyebrow">My index</div><h2>Your stockroom</h2><p>Connect the wallet that runs your index.</p></div>
       </div>
     );
   if (hook === null)
     return (
       <div className="wrap page">
-        <div className="page-head"><div className="eyebrow">My index</div><h2>You don&apos;t run an index yet</h2><p>Launch one in six transactions: your wallet becomes the stockroom, and Uniswap and 1inch become your two stalls.</p></div>
+        <div className="page-head"><div className="eyebrow">My index</div><h2>You don&apos;t run an index yet</h2><p>Launch one in six clicks.</p></div>
         <Link href="/create" className="btn primary">Launch an index</Link>
       </div>
     );
@@ -172,11 +172,11 @@ export default function MyIndex() {
         <div>
           <div className="eyebrow">My index</div>
           <h2>Your stockroom</h2>
-          <p>How your index is doing, and the controls to change it. Hook <span className="addr">{hook?.slice(0, 10)}…</span></p>
+          <p>hook <span className="addr">{hook?.slice(0, 10)}…</span></p>
         </div>
         <div className="row">{statusTag}<Link href="/book" className="btn small">Live book</Link></div>
       </div>
-      <Concept highlight="wallet" caption={<><b>You stay in control.</b> Pause both stalls in one click, top them up, or change your allocation and let the market walk the wallet there, gradually, so traders pay you fees instead of you paying to rebalance.</>} />
+      <Concept highlight="wallet" caption={<><b>You stay in control.</b> Pause, top up or re-weight anytime.</>} />
 
       {/* ---------- performance ---------- */}
       <div className="card">
@@ -198,13 +198,10 @@ export default function MyIndex() {
           <Stat label="Depth without splitting" value={`$${fmt(vNow)} × 2`} sub="one inventory quotes on two venues" />
         </div>
         <div className="row" style={{ marginTop: 14, gap: 24, fontSize: 14 }}>
-          <span><span style={{ color: "#ff5cae" }}>●</span> Uniswap volume <b className="mono">${fmt(vol["Uniswap v4"])}</b></span>
-          <span><span style={{ color: "#6fb0ff" }}>●</span> 1inch volume <b className="mono">${fmt(vol["1inch Aqua"])}</b></span>
+          <span><span style={{ color: "var(--uni)" }}>●</span> Uniswap volume <b className="mono">${fmt(vol["Uniswap v4"])}</b></span>
+          <span><span style={{ color: "var(--inch)" }}>●</span> 1inch volume <b className="mono">${fmt(vol["1inch Aqua"])}</b></span>
         </div>
-        <p className="faint" style={{ fontSize: 13, marginTop: 10, marginBottom: 0 }}>
-          &ldquo;Just holding&rdquo; is the coins you started with, valued at the same prices. The difference is fees earned minus what arbitrage took
-          while rebalancing you (LVR). Mohur doesn&apos;t remove LVR; it makes the market pay you fees to rebalance.
-        </p>
+        <p className="faint" style={{ fontSize: 13, marginTop: 10, marginBottom: 0 }}>vs just holding: fees earned minus LVR.</p>
       </div>
 
       <div className="grid g2" style={{ marginTop: 16 }}>
@@ -243,8 +240,8 @@ export default function MyIndex() {
           </div>
           <p className="faint" style={{ fontSize: 13, margin: 0 }}>
             {dur === 0
-              ? "Instant switches hand arbitrageurs the whole gap at once. In our tests, moving $100k from 40/30/30 to 50/25/25 instantly cost $1,991."
-              : "Gradual: weights glide on both venues together, so the market walks you there through small, fee-paying trades. Same move in our tests: $25 instead of $1,991."}
+              ? "Instant: arbitrageurs take the whole gap ($1,991 on $100k in tests)."
+              : "Gradual: traders walk you there and pay fees ($25 vs $1,991 in tests)."}
           </p>
         </div>
 
@@ -255,12 +252,12 @@ export default function MyIndex() {
             <thead><tr><th>Venue</th><th>Status</th><th className="num">ETH it may sell</th></tr></thead>
             <tbody>
               <tr>
-                <td><span style={{ color: "#ff5cae" }}>●</span> Uniswap v4</td>
+                <td><span style={{ color: "var(--uni)" }}>●</span> Uniswap v4</td>
                 <td>{st ? <VenueTag s={st.v4} /> : "…"}</td>
                 <td className="num">{fmt(units(tokens[0]?.v4Limit ?? 0n, tokens[0]?.decimals ?? 18))}</td>
               </tr>
               <tr>
-                <td><span style={{ color: "#6fb0ff" }}>●</span> 1inch Aqua</td>
+                <td><span style={{ color: "var(--inch)" }}>●</span> 1inch Aqua</td>
                 <td>{st ? <VenueTag s={st.aqua.includes("live") ? "live" : st.aqua.includes("paused") ? "paused" : "none"} /> : "…"}</td>
                 <td className="num">{fmt(units(tokens[0]?.aquaLimit ?? 0n, tokens[0]?.decimals ?? 18))}</td>
               </tr>
@@ -271,7 +268,7 @@ export default function MyIndex() {
             <input type="range" min={0} max={100} value={splitV4} onChange={(e) => setSplitV4(Number(e.target.value))} />
             <div className="spread" style={{ fontSize: 14 }}><span>1inch may sell, per pair</span><b className="mono">{splitAqua}% of each coin</b></div>
             <input type="range" min={0} max={50} value={splitAqua} onChange={(e) => setSplitAqua(Number(e.target.value))} />
-            <p className="faint" style={{ fontSize: 13, margin: "4px 0 0" }}>Limits are caps, not piles: the coins stay in your wallet and both venues still price from all of it.</p>
+            <p className="faint" style={{ fontSize: 13, margin: "4px 0 0" }}>Caps, not piles: coins stay in your wallet.</p>
           </div>
           <div className="row">
             <button className="btn primary small" disabled={!!busy || !st} onClick={resume}>{live ? "Top up / re-split" : "Resume trading"}</button>

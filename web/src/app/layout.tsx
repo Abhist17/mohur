@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Instrument_Serif, Inter, JetBrains_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Nav } from "@/components/Nav";
 
-const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", variable: "--font-serif" });
-const sans = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
+const sans = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
+
+// set the theme before first paint (saved choice, else the system setting) so there is no flash
+const THEME_SCRIPT = `try{var t=localStorage.getItem("mohur-theme");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="light"}`;
 
 export const metadata: Metadata = {
   title: "Mohur: one wallet, one price, every venue",
@@ -17,7 +19,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
+    <html lang="en" className={`${sans.variable} ${mono.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
         <Providers>
           <Nav />
@@ -26,9 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="wrap foot-grid">
               <div>
                 <div className="brand" style={{ fontSize: 24 }}><span className="coin-dot" /> Mohur</div>
-                <p style={{ marginTop: 10, maxWidth: 380 }}>
-                  Named for the Mughal gold coin that was good at every market. One wallet, one price, every venue, nobody watching.
-                </p>
+                <p style={{ marginTop: 10, maxWidth: 340 }}>One wallet, one price, every venue, nobody watching.</p>
               </div>
               <div className="foot-col">
                 <b>Product</b>

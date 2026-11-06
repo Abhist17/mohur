@@ -14,25 +14,25 @@ export function Concept({ caption, highlight }: { caption: React.ReactNode; high
           <linearGradient id="cs" x1="0" x2="1"><stop offset="0" stopColor="#e3e7ec" /><stop offset="1" stopColor="#8b939c" /></linearGradient>
         </defs>
         {/* links */}
-        <path d="M92 50 H148" stroke="#d9a441" strokeWidth="1.5" strokeDasharray="4 4" opacity={dim("uniswap")} />
-        <path d="M212 50 H268" stroke="#d9a441" strokeWidth="1.5" strokeDasharray="4 4" opacity={dim("1inch")} />
+        <path d="M92 50 H148" stroke="#d6a64c" strokeWidth="1.5" strokeDasharray="4 4" opacity={dim("uniswap")} />
+        <path d="M212 50 H268" stroke="#d6a64c" strokeWidth="1.5" strokeDasharray="4 4" opacity={dim("1inch")} />
         {/* stalls */}
         <g opacity={dim("uniswap")}>
-          <rect x="4" y="30" width="88" height="40" rx="9" fill="#1d1915" stroke="#ff007a" />
+          <rect x="4" y="30" width="88" height="40" rx="9" style={{ fill: "var(--panel)" }} stroke="#ff007a" />
           <text x="48" y="47" textAnchor="middle" fontSize="11" fill="#ff5cae" fontWeight="600">Uniswap v4</text>
-          <text x="48" y="62" textAnchor="middle" fontSize="10" fill="#b3a998">same price</text>
+          <text x="48" y="62" textAnchor="middle" fontSize="10" style={{ fill: "var(--muted)" }}>same price</text>
         </g>
         <g opacity={dim("1inch")}>
-          <rect x="268" y="30" width="88" height="40" rx="9" fill="#1d1915" stroke="#2f8af5" />
+          <rect x="268" y="30" width="88" height="40" rx="9" style={{ fill: "var(--panel)" }} stroke="#2f8af5" />
           <text x="312" y="47" textAnchor="middle" fontSize="11" fill="#6fb0ff" fontWeight="600">1inch Aqua</text>
-          <text x="312" y="62" textAnchor="middle" fontSize="10" fill="#b3a998">same price</text>
+          <text x="312" y="62" textAnchor="middle" fontSize="10" style={{ fill: "var(--muted)" }}>same price</text>
         </g>
         {/* wallet: three coin stacks */}
         <g opacity={dim("wallet")}>
           {[0, 1, 2, 3, 4, 5].map((i) => <rect key={"g" + i} x="156" y={66 - i * 7} width="14" height="6" rx="3" fill="url(#cg)" />)}
           {[0, 1, 2, 3].map((i) => <rect key={"c" + i} x="173" y={66 - i * 7} width="14" height="6" rx="3" fill="url(#cc)" />)}
           {[0, 1, 2, 3].map((i) => <rect key={"s" + i} x="190" y={66 - i * 7} width="14" height="6" rx="3" fill="url(#cs)" />)}
-          <text x="180" y="88" textAnchor="middle" fontSize="10.5" fill="#f1ebe0" fontWeight="600">your wallet</text>
+          <text x="180" y="88" textAnchor="middle" fontSize="10.5" style={{ fill: "var(--text)" }} fontWeight="600">your wallet</text>
         </g>
       </svg>
       <div className="concept-cap">{caption}</div>

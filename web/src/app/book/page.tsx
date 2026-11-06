@@ -102,18 +102,19 @@ export default function BookPage() {
         <div>
           <div className="eyebrow">Live book {isOwn ? "· your index" : "· demo index"}</div>
           <h2>One wallet, two venues</h2>
-          <p>
-            Everything below is read from chain{NETWORK === "base-sepolia" ? " through Anon-RPC" : ""}. Maker{" "}
-            <span className="addr">{maker?.slice(0, 10)}…</span> · hook <span className="addr">{hook.slice(0, 10)}…</span> · fee{" "}
-            {(feeRate * 100).toFixed(2)}%
+          <p className="row" style={{ gap: 10, fontSize: 14 }}>
+            <span>hook <span className="addr">{hook.slice(0, 10)}…</span></span>
+            <span>maker <span className="addr">{maker?.slice(0, 10)}…</span></span>
+            <span>fee {(feeRate * 100).toFixed(2)}%</span>
+            {NETWORK === "base-sepolia" && <span className="good">● via Anon-RPC</span>}
           </p>
         </div>
         <div className="row">
           <span className="tag live">live</span>
-          <Link href="/swap" className="btn small primary">Trade this index</Link>
+          <Link href="/swap" className="btn small primary">Trade</Link>
         </div>
       </div>
-      <Concept highlight="wallet" caption={<><b>This is the stockroom.</b> The one shelf both stalls sell from: what the wallet holds, how far it sits from its weights, what each stall may still sell, and every sale from either stall in one feed.</>} />
+      <Concept highlight="wallet" caption={<><b>The stockroom.</b> Both stalls sell from this shelf.</>} />
       {err && <div className="err" style={{ marginBottom: 16 }}>{err}</div>}
 
       <div className="grid g2">
@@ -189,7 +190,7 @@ export default function BookPage() {
               </tbody>
             </table>
           </div>
-          <p className="faint" style={{ fontSize: 12 }}>Δ is in the output token&apos;s smallest units.</p>
+          <p className="faint" style={{ fontSize: 12 }}>Δ in smallest units.</p>
         </div>
       </div>
 
@@ -199,8 +200,7 @@ export default function BookPage() {
             <div>
               <h3>Rebalancing, live</h3>
               <p className="muted" style={{ fontSize: 14, margin: "4px 0 0", maxWidth: 640 }}>
-                At the market prices you typed above, Mohur is quoting {rb.over.sym === "tUSDC" ? "" : TOKEN_STYLE[rb.over.sym]?.name} {rb.net > 0 ? "below market" : "in line with the market"}.
-                Whoever trades it back to target is paid for it. No oracle, no keeper: just traders.
+                {rb.net > 0 ? "Off target at these prices. Traders get paid to fix it." : "On target at these prices."}
               </p>
             </div>
             <span className={`tag ${rb.net > 0 ? "live" : ""}`}>{rb.net > 0 ? "opportunity open" : "on target"}</span>
@@ -242,7 +242,7 @@ export default function BookPage() {
       <div className="grid g2" style={{ marginTop: 16 }}>
         <div className="card">
           <h3>Venue limits</h3>
-          <p className="muted" style={{ marginTop: 0, fontSize: 14 }}>What each venue may still sell, tracked by Aqua. The wallet keeps the rest.</p>
+          <p className="muted" style={{ marginTop: 0, fontSize: 14 }}>What each venue may still sell.</p>
           <table>
             <thead><tr><th>Token</th><th className="num">Uniswap</th><th className="num">1inch</th><th className="num">Wallet</th></tr></thead>
             <tbody>
@@ -278,7 +278,7 @@ export default function BookPage() {
                 {fills.length === 0 && <tr><td colSpan={3} className="faint">No fills yet.</td></tr>}
                 {fills.slice(0, 50).map((f) => (
                   <tr key={f.tx + f.venue + f.amountIn}>
-                    <td><span className="tag" style={{ color: f.venue === "Uniswap v4" ? "#ff8ad8" : "#7fb3ff" }}>{f.venue}</span></td>
+                    <td><span className="tag" style={{ color: f.venue === "Uniswap v4" ? "var(--uni)" : "var(--inch)" }}>{f.venue}</span></td>
                     <td className="mono" style={{ fontSize: 13 }}>
                       {fmt(units(f.amountIn, dec(f.tokenIn)))} {sym(f.tokenIn)} → {fmt(units(f.amountOut, dec(f.tokenOut)))} {sym(f.tokenOut)}
                     </td>

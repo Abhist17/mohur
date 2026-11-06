@@ -68,31 +68,28 @@ export default function PrivacyPage() {
       <div className="page-head">
         <div className="eyebrow">Privacy</div>
         <h2>Nobody watching</h2>
-        <p>
-          A market-making dashboard polls the same wallet, pairs and quotes all day. Through a normal RPC that is a fingerprint tied to your IP.
-          Here every chain read goes through the Ethereum Foundation&apos;s Anon-RPC, with a separate isolation key per maker, per strategy and per trader.
-        </p>
+        <p>Every read goes through EF&apos;s Anon-RPC. One isolation key per maker, strategy and trader.</p>
       </div>
 
       {NETWORK === "local" && (
         <div className="banner" style={{ marginBottom: 16 }}>
-          Local fork: reads go straight to your local node, because no anonymity network can reach localhost. On Base Sepolia every read below goes through Anon-RPC.
+          Local fork: reads go direct. On Base Sepolia they go through Anon-RPC.
         </div>
       )}
 
       <div className="grid g3">
         <div className="card">
-          <div className="faint" style={{ fontSize: 12 }}>READS THROUGH ANON-RPC</div>
+          <div className="eyebrow faint">Private reads</div>
           <div className="serif" style={{ fontSize: 56 }}>{reads.length ? anonShare.toFixed(0) : "-"}%</div>
           <div className="muted" style={{ fontSize: 13 }}>{reads.length} reads this session</div>
         </div>
         <div className="card">
-          <div className="faint" style={{ fontSize: 12 }}>ISOLATION KEYS IN USE</div>
+          <div className="eyebrow faint">Isolation keys</div>
           <div className="serif" style={{ fontSize: 56 }}>{keys.size}</div>
-          <div className="muted" style={{ fontSize: 13 }}>reads under different keys can&apos;t be linked</div>
+          <div className="muted" style={{ fontSize: 13 }}>unlinkable to each other</div>
         </div>
         <div className="card">
-          <div className="faint" style={{ fontSize: 12 }}>WORKER</div>
+          <div className="eyebrow faint">Route</div>
           <div className="serif" style={{ fontSize: 30, marginTop: 6 }}>{WORKERS[status.worker].label}</div>
           <div className="muted" style={{ fontSize: 13 }}>
             {NETWORK === "local" ? "not used on the local fork" : status.state === "ready" ? `ready in ${(status.bootMs! / 1000).toFixed(1)} s` : status.state === "failed" ? `failed: ${status.error}` : "connecting…"}
@@ -112,8 +109,8 @@ export default function PrivacyPage() {
         </div>
       </div>
 
-      <div className="card" style={{ marginTop: 16 }}>
-        <h3>Who learns what</h3>
+      <details className="card more" style={{ marginTop: 16 }}>
+        <summary><h3>Who learns what</h3></summary>
         <div className="table-scroll">
           <table>
             <thead><tr><th>Party</th><th>Plain RPC</th><th>Mohur via Anon-RPC</th></tr></thead>
@@ -126,11 +123,11 @@ export default function PrivacyPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </details>
 
       <div className="card" style={{ marginTop: 16 }}>
         <div className="spread">
-          <h3>Every chain read, live</h3>
+          <h3>Every read, live</h3>
           <span className="faint mono" style={{ fontSize: 12 }}>newest first</span>
         </div>
         <div className="table-scroll" style={{ maxHeight: 460, overflowY: "auto" }}>
@@ -157,12 +154,11 @@ export default function PrivacyPage() {
         </div>
       </div>
 
-      <div className="card" style={{ marginTop: 16 }}>
-        <h3>What the RPC server sees</h3>
+      <details className="card more" style={{ marginTop: 16 }} open={!!PROXY}>
+        <summary><h3>What the RPC server sees</h3></summary>
         {!PROXY ? (
-          <p className="muted">
-            Set <span className="mono">NEXT_PUBLIC_MOHUR_PROXY_URL</span> to a running <span className="mono">proxy/server.mjs</span> to route reads through
-            a logging JSON-RPC proxy and see, from the server&apos;s side, that requests arrive from Tor exits.
+          <p className="muted" style={{ fontSize: 14 }}>
+            Run <span className="addr">proxy/server.mjs</span> and set <span className="addr">NEXT_PUBLIC_MOHUR_PROXY_URL</span> to see requests arrive from Tor exits.
           </p>
         ) : (
           <div className="table-scroll" style={{ maxHeight: 360, overflowY: "auto" }}>
@@ -181,7 +177,7 @@ export default function PrivacyPage() {
             </table>
           </div>
         )}
-      </div>
+      </details>
     </div>
   );
 }

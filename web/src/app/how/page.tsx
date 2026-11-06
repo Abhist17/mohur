@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Concept } from "@/components/Concept";
+import { TradeFlow } from "@/components/TradeFlow";
 
 export const metadata = { title: "How Mohur works" };
 
@@ -68,26 +69,7 @@ export default function How() {
       </Section>
 
       <Section n="3" title="What happens when someone trades" tldr="Both venues pay out of your wallet through Aqua, your only approval.">
-        <div className="grid g2" style={{ marginTop: 4 }}>
-          <div className="card">
-            <h3 style={{ color: "var(--uni)" }}>On Uniswap v4</h3>
-            <ol className="steps">
-              <li>A trader swaps through any Uniswap router.</li>
-              <li>Mohur&apos;s hook prices the trade from your wallet and switches the pool&apos;s own curve off.</li>
-              <li>The coins they buy are pulled from your wallet through Aqua.</li>
-              <li>What they pay is held for you as claims, then moved into your wallet.</li>
-            </ol>
-          </div>
-          <div className="card">
-            <h3 style={{ color: "var(--inch)" }}>On 1inch Aqua</h3>
-            <ol className="steps">
-              <li>A trader fills your 1inch order.</li>
-              <li>Instruction 0xd0 asks the same hook for the price.</li>
-              <li>What they pay is pushed straight into your wallet.</li>
-              <li>The coins they buy are pulled from your wallet through Aqua.</li>
-            </ol>
-          </div>
-        </div>
+        <TradeFlow />
         <p style={{ marginTop: 12 }}>Your wallet approves exactly one contract, Aqua, which gives each venue its own selling limit. Neither venue can touch your coins directly.</p>
       </Section>
 

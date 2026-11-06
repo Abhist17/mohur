@@ -261,3 +261,21 @@ body { font-variant-numeric: tabular-nums; }
 .skip { position: absolute; left: -9999px; top: 8px; z-index: 100; background: var(--panel); color: var(--text); padding: 8px 12px; border: 1px solid var(--line-2); border-radius: var(--radius-sm); }
 .skip:focus { left: 12px; }
 .scene-loading { position: absolute; inset: 0; border-radius: var(--radius); background: linear-gradient(180deg, transparent, var(--bg-2)); }
+
+/* How page: one trade on each venue, step by step */
+.flow { display: grid; gap: 14px; margin-top: 4px; }
+.flow-row { display: grid; grid-template-columns: 130px 1fr; gap: 12px; align-items: stretch; }
+.flow-venue { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.flow-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; counter-reset: none; }
+.flow-step { position: relative; display: grid; gap: 2px; align-content: start; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel); font-size: 13px; line-height: 1.4; }
+.flow-step > span:last-child { color: var(--muted); }
+.flow-step + .flow-step::before { content: "→"; position: absolute; left: -18px; top: 50%; transform: translateY(-50%); color: var(--faint); font-size: 14px; }
+.flow-step.shared { border-color: var(--tint-line); background: var(--tint); }
+.flow-n { font-size: 11px; font-weight: 600; color: var(--gold); }
+.flow-foot { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--muted); padding-left: 142px; }
+@media (max-width: 860px) {
+  .flow-row { grid-template-columns: 1fr; }
+  .flow-steps { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .flow-step + .flow-step::before { display: none; }
+  .flow-foot { padding-left: 0; }
+}

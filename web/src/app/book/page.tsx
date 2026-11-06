@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { parseUnits, type Address } from "viem";
 import { MohurHookAbi } from "@/generated/abis";
-import { EXPLORER, NETWORK } from "@/lib/config";
+import { deployment, EXPLORER, NETWORK } from "@/lib/config";
 import { fmt, quoteBoth, readBook, readFills, TOKEN_STYLE, units, type Book, type FillRow } from "@/lib/mohur";
 import { useWallet } from "@/lib/wallet";
 import { usePoll, useIndex } from "@/components/useIndex";
@@ -103,7 +103,7 @@ export default function BookPage() {
     <div className="wrap page">
       <div className="page-head spread">
         <div>
-          <div className="eyebrow">Live book {isOwn ? "· your index" : "· demo index"}</div>
+          <div className="eyebrow">Live book {isOwn ? "· your index" : hook.toLowerCase() === deployment()?.demoHook?.toLowerCase() ? "· demo index" : "· picked index"}</div>
           <h2>One wallet, two venues</h2>
           <p className="row" style={{ gap: 10, fontSize: 14 }}>
             <span>hook <span className="addr">{hook.slice(0, 10)}…</span></span>
@@ -114,7 +114,8 @@ export default function BookPage() {
         </div>
         <div className="row">
           <span className="tag live">live</span>
-          <Link href="/swap" className="btn small primary">Trade</Link>
+          <Link href={`/share?index=${hook}`} className="btn small" data-testid="book-share">Share</Link>
+          <Link href={`/swap?index=${hook}`} className="btn small primary" data-testid="book-trade">Trade</Link>
         </div>
       </div>
       <Concept highlight="wallet" caption={<><b>The stockroom.</b> Both stalls sell from this shelf.</>} />
@@ -233,7 +234,7 @@ export default function BookPage() {
             {rb.net > 0 && rb.under.delta > 0 && (
               <Link
                 className="btn small primary"
-                href={`/swap?in=${rb.under.sym}&out=${rb.over.sym}&amount=${Number(Math.min(rb.under.delta, rb.under.b * 0.29).toPrecision(4)).toString()}${isOwn ? "&index=own" : ""}`}
+                href={`/swap?in=${rb.under.sym}&out=${rb.over.sym}&amount=${Number(Math.min(rb.under.delta, rb.under.b * 0.29).toPrecision(4)).toString()}$&index=${hook}`}
               >
                 Be that trader: pay {TOKEN_STYLE[rb.under.sym]?.name}, get {TOKEN_STYLE[rb.over.sym]?.name} →
               </Link>

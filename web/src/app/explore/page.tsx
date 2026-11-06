@@ -93,6 +93,7 @@ export default function Explore() {
                   <div className="row">
                     <Link href={`/swap?index=${c.hook}`} className="btn small primary">Trade</Link>
                     <Link href={`/book?index=${c.hook}`} className="btn small">Live book</Link>
+                    <Link href={`/share?index=${c.hook}`} className="btn small">Share</Link>
                     {mine && <Link href="/my" className="btn small">Manage</Link>}
                   </div>
                 </>

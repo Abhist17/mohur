@@ -97,6 +97,19 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       saved = localStorage.getItem("mohur.wallet");
     } catch {}
     if (saved?.startsWith("local:") && NETWORK === "local") connectLocal(Number(saved.split(":")[1]));
+    // a browser wallet the user already connected: reconnect silently (eth_accounts never prompts)
+    if (saved === "injected") {
+      const eth = (globalThis as unknown as { ethereum?: EthProvider }).ethereum;
+      eth?.request({ method: "eth_accounts" })
+        .then((accts) => {
+          const [a] = (accts as Address[]) ?? [];
+          if (!a) return;
+          setClient(createWalletClient({ account: a, chain: CHAIN, transport: custom(eth) }));
+          setAccount(a);
+          setKind("injected");
+        })
+        .catch(() => {});
+    }
   }, [connectLocal]);
 
   const write = useCallback<Wallet["write"]>(

@@ -72,7 +72,7 @@ export default function PrivacyPage() {
       </div>
 
       {NETWORK === "local" && (
-        <div className="banner" style={{ marginBottom: 16 }}>
+        <div className="banner" style={{ marginBottom: 16 }} data-testid="local-banner">
           Local fork: reads go direct. On Base Sepolia they go through Anon-RPC.
         </div>
       )}
@@ -80,7 +80,7 @@ export default function PrivacyPage() {
       <div className="grid g3">
         <div className="card">
           <div className="eyebrow faint">Private reads</div>
-          <div className="serif" style={{ fontSize: 56 }}>{reads.length ? anonShare.toFixed(0) : "-"}%</div>
+          <div className="serif" style={{ fontSize: 56 }} data-testid="anon-share" data-reads={reads.length}>{reads.length ? anonShare.toFixed(0) : "-"}%</div>
           <div className="muted" style={{ fontSize: 13 }}>{reads.length} reads this session</div>
         </div>
         <div className="card">
@@ -103,8 +103,8 @@ export default function PrivacyPage() {
           </div>
           <p className="faint" style={{ fontSize: 12 }}>{WORKERS[status.worker].note}</p>
           <div className="row">
-            <button className="btn small" disabled={probe.state === "running"} onClick={runProbe}>Test the route</button>
-            {probe.text && <span className={`mono ${probe.state === "ok" ? "good" : probe.state === "fail" ? "bad" : "faint"}`} style={{ fontSize: 12 }}>{probe.text}</span>}
+            <button className="btn small" data-testid="probe" disabled={probe.state === "running"} onClick={runProbe}>Test the route</button>
+            {probe.text && <span data-testid="probe-result" data-state={probe.state} className={`mono ${probe.state === "ok" ? "good" : probe.state === "fail" ? "bad" : "faint"}`} style={{ fontSize: 12 }}>{probe.text}</span>}
           </div>
         </div>
       </div>
@@ -136,7 +136,7 @@ export default function PrivacyPage() {
             <tbody>
               {log.length === 0 && <tr><td colSpan={6} className="faint">No reads yet. Open the live book in another tab.</td></tr>}
               {log.slice(0, 200).map((e) => (
-                <tr key={e.id}>
+                <tr key={e.id} data-testid="read-row" data-route={e.route} data-key={e.isolationKey}>
                   <td className="mono faint">{new Date(e.at).toLocaleTimeString()}</td>
                   <td>
                     <span className={`tag ${e.route === "anon-rpc" ? "live" : "sim"}`}>

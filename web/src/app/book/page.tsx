@@ -11,6 +11,7 @@ import { usePoll, useIndex } from "@/components/useIndex";
 import { NotDeployed } from "@/components/NotDeployed";
 import { TokenIcon } from "@/components/TokenIcon";
 import { Concept } from "@/components/Concept";
+import { VenueMark, venueIndex } from "@/components/VenueMark";
 
 type PairQuote = { a: Address; b: Address; amt: string; v4Out: bigint; aquaOut: bigint; v4Ok: boolean; aquaOk: boolean };
 
@@ -173,14 +174,14 @@ export default function BookPage() {
           <div className="table-scroll">
             <table>
               <thead>
-                <tr><th>Sell</th><th className="num">Uniswap v4</th><th className="num">1inch Aqua</th><th className="num">Δ</th></tr>
+                <tr><th>Sell</th><th className="num"><VenueMark venue={0} size={14} short /></th><th className="num"><VenueMark venue={1} size={14} short /></th><th className="num">Δ</th></tr>
               </thead>
               <tbody>
                 {quotes.length === 0 && [0, 1, 2].map((i) => (
                   <tr key={i}><td colSpan={4}><span className="skel" /></td></tr>
                 ))}
                 {quotes.map((q) => (
-                  <tr key={q.a + q.b}>
+                  <tr key={q.a + q.b} data-testid="quote-row" data-pair={`${sym(q.a)}/${sym(q.b)}`} data-v4={String(q.v4Out)} data-aqua={String(q.aquaOut)} data-ok={String(q.v4Ok && q.aquaOk)}>
                     <td>{q.amt} {sym(q.a)} → {sym(q.b)}</td>
                     <td className="num">{q.v4Ok ? fmt(units(q.v4Out, dec(q.b)), 8) : <span className="faint">limit</span>}</td>
                     <td className="num">{q.aquaOk ? fmt(units(q.aquaOut, dec(q.b)), 8) : <span className="faint">limit</span>}</td>
@@ -247,7 +248,7 @@ export default function BookPage() {
             <thead><tr><th>Token</th><th className="num">Uniswap</th><th className="num">1inch</th><th className="num">Wallet</th></tr></thead>
             <tbody>
               {book?.tokens.map((t) => (
-                <tr key={t.token}>
+                <tr key={t.token} data-testid="limit-row" data-token={t.token} data-v4={String(t.v4Limit)} data-aqua={String(t.aquaLimit)} data-pending={String(t.pending)}>
                   <td><span className="row" style={{ gap: 8 }}><TokenIcon symbol={t.symbol} size={18} />{TOKEN_STYLE[t.symbol]?.name}</span></td>
                   <td className="num">{fmt(units(t.v4Limit, t.decimals))}</td>
                   <td className="num">{fmt(units(t.aquaLimit, t.decimals))}</td>
@@ -260,7 +261,7 @@ export default function BookPage() {
             <span className="muted" style={{ fontSize: 13 }}>
               {pendingAny ? "Uniswap input is waiting as claims (already priced in)." : "No claims waiting."}
             </span>
-            <button className="btn small" disabled={!pendingAny || !w.account || busy} onClick={flush}>
+            <button className="btn small" data-testid="flush" disabled={!pendingAny || !w.account || busy} onClick={flush}>
               {busy ? "Flushing…" : "Flush claims → wallet"}
             </button>
           </div>
@@ -278,7 +279,7 @@ export default function BookPage() {
                 {fills.length === 0 && <tr><td colSpan={3} className="faint">No fills yet.</td></tr>}
                 {fills.slice(0, 50).map((f) => (
                   <tr key={f.tx + f.venue + f.amountIn}>
-                    <td><span className="tag" style={{ color: f.venue === "Uniswap v4" ? "var(--uni)" : "var(--inch)" }}>{f.venue}</span></td>
+                    <td><VenueMark venue={venueIndex(f.venue)} size={16} short /></td>
                     <td className="mono" style={{ fontSize: 13 }}>
                       {fmt(units(f.amountIn, dec(f.tokenIn)))} {sym(f.tokenIn)} → {fmt(units(f.amountOut, dec(f.tokenOut)))} {sym(f.tokenOut)}
                     </td>

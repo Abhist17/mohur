@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { DEFAULT_DRAFT, loadDraft, saveDraft, setWeight, type Draft } from "@/lib/draft";
 import { fmt, sim, TOKEN_STYLE } from "@/lib/mohur";
+import { MohurLensAbi } from "@/generated/abis";
+import { deployment } from "@/lib/config";
+import { keys, readClient } from "@/lib/anon";
 import { TokenIcon } from "@/components/TokenIcon";
 import { Concept } from "@/components/Concept";
 
@@ -38,6 +41,32 @@ export default function CreatePage() {
   const pairs: [string, string][] = [];
   for (let i = 0; i < active.length; i++) for (let j = i + 1; j < active.length; j++) pairs.push([active[i], active[j]]);
 
+  // the preview runs the contracts' own MohurMath through MohurLens (pure functions), not a JS copy
+    const scaled = (s: string) => BigInt(Math.round(bal(s) * 1e6)) * 10n ** 12n; // 18-dec example balance
+  const wOf = (s: string) => BigInt(d.weights[s]) * 10n ** 16n;
+  const [onchain, setOnchain] = useState<Record<string, { spot: bigint; out: bigint; amt: bigint }>>({});
+  const lens = deployment()?.lens;
+  const key = JSON.stringify([d.weights, size]);
+  useEffect(() => {
+    if (!lens) return;
+    const c = readClient("create: preview (MohurMath)", keys.public);
+    let alive = true;
+    Promise.all(
+      pairs.map(async ([a, b]) => {
+        const amt = scaled(a) / 100n; // sell 1%
+        const [spot, out] = await Promise.all([
+          c.readContract({ address: lens, abi: MohurLensAbi, functionName: "previewSpot", args: [scaled(a), wOf(a), scaled(b), wOf(b)] }) as Promise<bigint>,
+          c.readContract({ address: lens, abi: MohurLensAbi, functionName: "previewOutGivenIn", args: [scaled(a), wOf(a), scaled(b), wOf(b), amt, 3n * 10n ** 15n] }) as Promise<bigint>,
+        ]);
+        return [a + b, { spot, out, amt }] as const;
+      }),
+    )
+      .then((rows) => alive && setOnchain(Object.fromEntries(rows)))
+      .catch(() => alive && setOnchain({}));
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, lens]);
+
   return (
     <div className="wrap page">
       <div className="page-head">
@@ -56,10 +85,10 @@ export default function CreatePage() {
                   <input type="checkbox" checked={d.weights[s] > 0} onChange={() => toggle(s)} />
                   <TokenIcon symbol={s} size={20} /> {TOKEN_STYLE[s].name} <span className="faint mono">{s}</span>
                 </label>
-                <span className="mono" style={{ fontSize: 20 }}>{d.weights[s]}%</span>
+                <span className="mono" style={{ fontSize: 20 }} data-testid={`weight-value-${s}`}>{d.weights[s]}%</span>
               </div>
               <input
-                type="range" min={0} max={100} value={d.weights[s]} disabled={!(d.weights[s] > 0)}
+                type="range" min={0} max={100} value={d.weights[s]} disabled={!(d.weights[s] > 0)} data-testid={`weight-${s}`} aria-label={`${TOKEN_STYLE[s].name} weight`}
                 onChange={(e) => update({ weights: setWeight(d.weights, s, Number(e.target.value)) })}
               />
             </div>
@@ -68,7 +97,7 @@ export default function CreatePage() {
             {SYMS.map((s) => <span key={s} style={{ width: `${d.weights[s]}%`, background: TOKEN_STYLE[s].color }} />)}
           </div>
           <div className="spread faint" style={{ fontSize: 13 }}>
-            <span>Total {SYMS.reduce((a, s) => a + d.weights[s], 0)}% · fee 0.30%</span>
+            <span>Total <span data-testid="weight-total">{SYMS.reduce((a, s) => a + d.weights[s], 0)}</span>% · fee 0.30%</span>
             <span>min 1% per asset</span>
           </div>
         </div>
@@ -76,7 +105,9 @@ export default function CreatePage() {
         <div className="card">
           <div className="spread">
             <h3>Preview</h3>
-            <span className="tag sim">simulated</span>
+            <span className="tag sim" title="Example balances; the numbers come from the contracts' own math via MohurLens">
+              {Object.keys(onchain).length ? "example book · contract math" : "example book · approx"}
+            </span>
           </div>
           <p className="muted" style={{ fontSize: 14, marginTop: 0 }}>
             Index size $
@@ -87,11 +118,20 @@ export default function CreatePage() {
             <tbody>
               {pairs.map(([a, b]) => {
                 const wa = d.weights[a] / 100, wb = d.weights[b] / 100;
-                const spot = sim.spot(bal(a), wa, bal(b), wb);
-                const amt = bal(a) * 0.01;
-                const out = sim.outGivenIn(bal(a), wa, bal(b), wb, amt);
+                const oc = onchain[a + b];
+                const spot = oc ? Number(oc.spot) / 1e18 : sim.spot(bal(a), wa, bal(b), wb);
+                const amt = oc ? Number(oc.amt) / 1e18 : bal(a) * 0.01;
+                const out = oc ? Number(oc.out) / 1e18 : sim.outGivenIn(bal(a), wa, bal(b), wb, amt);
                 return (
-                  <tr key={a + b}>
+                  <tr
+                    key={a + b}
+                    data-testid="preview-row"
+                    data-pair={`${a}/${b}`}
+                    data-source={oc ? "lens" : "js"}
+                    data-args={oc ? JSON.stringify([scaled(a), wOf(a), scaled(b), wOf(b), oc.amt].map(String)) : ""}
+                    data-spot={oc ? String(oc.spot) : ""}
+                    data-out={oc ? String(oc.out) : ""}
+                  >
                     <td>{TOKEN_STYLE[a].name}/{TOKEN_STYLE[b].name}</td>
                     <td className="num">{fmt(spot, 6)}</td>
                     <td className="num">{fmt(amt, 4)} → {fmt(out, 6)} <span className="faint">({(((spot * amt - out) / (spot * amt)) * 100).toFixed(2)}%)</span></td>

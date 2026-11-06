@@ -13,6 +13,7 @@ import { TokenIcon } from "@/components/TokenIcon";
 import { NotDeployed } from "@/components/NotDeployed";
 import { Concept } from "@/components/Concept";
 import { usePoll, useIndex } from "@/components/useIndex";
+import { VenueMark } from "@/components/VenueMark";
 
 const SYMS = ["tWETH", "tWBTC", "tUSDC"] as const;
 type Sym = (typeof SYMS)[number];
@@ -216,7 +217,7 @@ export default function SwapPage() {
               )}
             </div>
             <div className="spread" style={{ flexWrap: "nowrap", marginTop: 6 }}>
-              <input className="swap-amt" inputMode="decimal" placeholder="0" value={amount} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && setAmount(e.target.value)} />
+              <input className="swap-amt" data-testid="swap-amount" inputMode="decimal" placeholder="0" value={amount} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && setAmount(e.target.value)} />
               <TokenPicker value={tin} onPick={pickIn} />
             </div>
           </div>
@@ -239,10 +240,9 @@ export default function SwapPage() {
               const vOut = quote ? (v === 0 ? quote.v4Out : quote.aquaOut) : undefined;
               const vOk = quote ? (v === 0 ? quote.v4Ok : quote.aquaOk) : true;
               return (
-                <button key={v} className={`venue ${venue === v ? "on" : ""}`} disabled={!!quote && !vOk} onClick={() => setVenue(v)}>
-                  <div className="row" style={{ gap: 6, fontSize: 13 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 4, background: v === 0 ? "var(--uni)" : "var(--inch)" }} />
-                    {VENUES[v]}
+                <button key={v} className={`venue ${venue === v ? "on" : ""}`} disabled={!!quote && !vOk} data-testid={`venue-${v}`} onClick={() => setVenue(v)}>
+                  <div style={{ fontSize: 13 }}>
+                    <VenueMark venue={v} size={18} />
                   </div>
                   <div className="mono" style={{ fontSize: 15, marginTop: 4 }}>
                     {quote && vOk ? show(vOut, dec(tout), 8) : quote ? "over limit" : "-"}
@@ -271,7 +271,7 @@ export default function SwapPage() {
           )}
           {quote?.err && <div className="err" style={{ padding: "4px" }}>{quote.err}</div>}
 
-          <button className={`btn block ${cta.primary ? "primary" : ""}`} disabled={!cta.onClick || !!busy} onClick={cta.onClick} style={{ marginTop: 6 }}>
+          <button className={`btn block ${cta.primary ? "primary" : ""}`} data-testid="swap-cta" disabled={!cta.onClick || !!busy} onClick={cta.onClick} style={{ marginTop: 6 }}>
             {busy ?? cta.label}
           </button>
           {err && <div className="err" style={{ textAlign: "center" }}>{err}</div>}

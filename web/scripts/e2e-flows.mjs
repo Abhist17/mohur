@@ -6,7 +6,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   BaseError, ContractFunctionRevertedError, decodeErrorResult, createPublicClient, createWalletClient, encodeAbiParameters, getContractAddress,
-  http, keccak256, maxUint256, parseAbi, parseUnits,
+  http, keccak256, maxUint256, parseAbi, parseAbiItem, parseUnits,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import * as A from "../src/generated/abis.ts";
@@ -100,6 +100,16 @@ await shipVenues();
 ok((await Promise.all(pairs.map(poolLive))).every(Boolean) && nonce0 === 0n, "5 three v4 pools open, Uniswap venue shipped");
 const book = await read(D.lens, A.MohurLensAbi, "book", [hook, D.swapVM]);
 ok(book.tokens.every((t) => t.v4Limit > 0n && t.aquaLimit > 0n), "6 1inch strategies shipped; both venues have limits for every coin");
+
+// ------------------------------------------------------------------------------------------------
+section("Explore (every index launched through the factory is discoverable)");
+{
+  const logs = await pub.getLogs({ address: D.hookFactory, event: parseAbiItem("event HookDeployed(address indexed maker, address hook, bytes32 salt)"), fromBlock: BigInt(D.startBlock), toBlock: "latest" });
+  const hooks = logs.map((l) => l.args.hook.toLowerCase());
+  ok(hooks.includes(D.demoHook.toLowerCase()) && hooks.includes(hook.toLowerCase()), `found ${hooks.length} indexes incl. the demo and the one just launched`);
+  const books = await Promise.all(logs.map((l) => read(D.lens, A.MohurLensAbi, "book", [l.args.hook, D.swapVM])));
+  ok(books.every((b) => b.tokens.length === 3), "each one's book reads through Lens (weights, balances, limits)");
+}
 
 // ------------------------------------------------------------------------------------------------
 section("Swap (trader, both venues, 0.5% minimum received)");

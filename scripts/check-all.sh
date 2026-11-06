@@ -20,19 +20,7 @@ step "2/5 web type-check + lint"
 (cd "$ROOT/web" && npx eslint src --max-warnings 0 && echo "clean")
 
 step "3/5 fresh fork + deploy"
-pkill -x anvil || true; sleep 1
-(setsid nohup anvil --fork-url https://sepolia.base.org --chain-id 31337 --port 8545 --silent > /tmp/mohur-anvil.log 2>&1 &)
-for i in $(seq 1 40); do cast block-number --rpc-url $R >/dev/null 2>&1 && break; sleep 1; done
-K0=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80   # anvil's public dev keys
-K1=0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
-K2=0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a
-cd "$ROOT/contracts"
-for s in "DeployMohur:$K0" "LaunchIndex:$K1" "DemoTrades:$K2"; do
-  n=${s%%:*}; k=${s##*:}
-  LOG=$(forge script "script/$n.s.sol" --rpc-url $R --broadcast --private-key "$k" --slow 2>&1 || true)
-  echo "$LOG" | grep -q "COMPLETE & SUCCESSFUL" && echo "  $n ok" || { echo "  $n FAILED"; echo "$LOG" | tail -5; exit 1; }
-done
-(cd "$ROOT/web" && npm run sync >/dev/null)
+"$ROOT/scripts/fork-up.sh"
 
 step "4/5 on-chain smoke test"
 SMOKE=$("$ROOT/scripts/smoke.sh" local 2>&1) && RC=0 || RC=$?

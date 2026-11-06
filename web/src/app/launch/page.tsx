@@ -160,7 +160,7 @@ export default function LaunchPage() {
       {!w.account && <div className="banner">Connect a wallet to launch{NETWORK === "local" ? " (on the local fork, use Dev #3 for a fresh maker)" : ""}.</div>}
       <div className="stack" style={{ marginTop: 16 }}>
         {STEPS.map(([title, body], i) => (
-          <div key={title} className="card spread" style={{ opacity: state[i] === "done" ? 0.7 : 1, borderColor: i === next ? "var(--gold)" : undefined }}>
+          <div key={title} className="card spread" data-testid={`launch-step-${i}`} data-state={state[i]} style={{ opacity: state[i] === "done" ? 0.7 : 1, borderColor: i === next ? "var(--gold)" : undefined }}>
             <div style={{ flex: 1, minWidth: 240 }}>
               <div className="row">
                 <span className="mono faint">{i + 1}</span>
@@ -170,7 +170,7 @@ export default function LaunchPage() {
               <p className="muted" style={{ margin: "6px 0 0", fontSize: 14 }}>{body}</p>
               {i === 0 && hook && <p className="addr faint" style={{ fontSize: 12, margin: "6px 0 0" }}>hook {hook}</p>}
             </div>
-            <button className={`btn ${i === next ? "primary" : ""}`} disabled={!w.account || running || state[i] === "done" || i !== next} onClick={() => run(i)}>
+            <button className={`btn ${i === next ? "primary" : ""}`} data-testid={`launch-run-${i}`} disabled={!w.account || running || state[i] === "done" || i !== next} onClick={() => run(i)}>
               {state[i] === "running" ? "Working…" : state[i] === "done" ? "Done" : "Run"}
             </button>
           </div>
@@ -180,7 +180,7 @@ export default function LaunchPage() {
       {err && <p className="err">{err}</p>}
       {next === -1 && (
         <div className="card" style={{ marginTop: 16 }}>
-          <h3>Your index is live on both venues.</h3>
+          <h3 data-testid="launch-done">Your index is live on both venues.</h3>
           <p className="muted">Same price on Uniswap and 1inch.</p>
           <Link href="/book" className="btn primary">Open the live book →</Link>
         </div>

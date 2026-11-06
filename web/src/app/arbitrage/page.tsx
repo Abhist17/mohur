@@ -144,20 +144,20 @@ export default function ArbitragePage() {
           {lossBps !== undefined && (
             <div className="spread">
               <span className="muted">Loop result</span>
-              <span className={`mono ${lossBps > 0 ? "bad" : "good"}`} style={{ fontSize: 22 }}>
+              <span className={`mono ${lossBps > 0 ? "bad" : "good"}`} style={{ fontSize: 22 }} data-testid="arb-loss" data-bps={lossBps.toFixed(2)}>
                 {lossBps > 0 ? "−" : "+"}{Math.abs(lossBps).toFixed(1)} bps
               </span>
             </div>
           )}
           {quote && !quote.withinLimits && <div className="banner">A leg exceeds that venue&apos;s remaining Aqua limit; running it would revert.</div>}
           {result && ranQuote && (
-            <div className={result[result.length - 1] === ranQuote[ranQuote.length - 1] ? "good" : "bad"}>
+            <div className={result[result.length - 1] === ranQuote[ranQuote.length - 1] ? "good" : "bad"} data-testid="arb-result" data-match={String(result[result.length - 1] === ranQuote[ranQuote.length - 1])} data-in={String(ranQuote[0])} data-out={String(result[result.length - 1])}>
               {result[result.length - 1] === ranQuote[ranQuote.length - 1]
                 ? `Ran for real: returned exactly its quote (${formatUnits(result[result.length - 1], dec(end))} ${end}). Re-quoted on the new balances above.`
                 : "Executed amount differs from the quote (state changed in between)."}
             </div>
           )}
-          <button className="btn primary" disabled={!w.account || !quote || !!busy || !valid} onClick={runIt}>
+          <button className="btn primary" data-testid="arb-run" disabled={!w.account || !quote || !!busy || !valid} onClick={runIt}>
             {busy || (w.account ? "Run it for real" : "Connect to run")}
           </button>
           {err && <div className="err">{err}</div>}

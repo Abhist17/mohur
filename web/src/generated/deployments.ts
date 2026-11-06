@@ -8,7 +8,7 @@ export const deployments: Record<string, Deployment> = {
     "lens": "0x39746B6B1d1D03CdB1Ff36ABE3BFBdc70122c8CE",
     "loopRouter": "0x047a80a11c869EC01B90782CcBDEd12115e09A59",
     "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
-    "startBlock": 55329162,
+    "startBlock": 55346834,
     "swapVM": "0x0fcd4993D9C3b2e0779919327ad2039e837650f7",
     "tUSDC": "0x44776513F5C7239D22c7253De82BD973B451862b",
     "tWBTC": "0x53E77c3Af026fd6B5049a0Eb35f00C0601CD63dd",

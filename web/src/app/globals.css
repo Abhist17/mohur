@@ -448,3 +448,9 @@ body { font-variant-numeric: tabular-nums; }
 .chart-table { margin-top: 6px; font-size: 13px; }
 .chart-table summary { cursor: pointer; color: var(--accent); font-size: 12.5px; }
 .chart-axis-y { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+
+/* shown only when every anonymity network failed, or the user then chose to read directly */
+.privacy-banner { background: var(--bad-tint); border-bottom: 1px solid var(--bad-line); font-size: 14px; }
+.privacy-banner.warn { background: var(--tint); border-bottom-color: var(--tint-line); }
+.privacy-banner-in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding-top: 10px; padding-bottom: 10px; }
+.card td { overflow-wrap: anywhere; }

@@ -37,7 +37,8 @@ export default function DemoPage() {
   const w = useWallet();
   const idx = useIndex(true);
   const hook = d?.demoHook;
-  const storeKey = w.account && hook ? `mohur.demo:${NETWORK}:${hook}:${w.account}`.toLowerCase() : undefined;
+  // progress belongs to one deployment: a re-created local chain can reuse the same addresses, so the start block is in the key
+  const storeKey = w.account && hook ? `mohur.demo:${NETWORK}:${d?.startBlock}:${hook}:${w.account}`.toLowerCase() : undefined;
   const [res, setRes] = useState<Partial<Record<StepId, Result>>>({});
   const [running, setRunning] = useState<StepId>();
   const [err, setErr] = useState<string>();

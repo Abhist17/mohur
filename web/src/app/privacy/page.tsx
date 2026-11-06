@@ -100,8 +100,16 @@ export default function PrivacyPage() {
         <div className="card">
           <div className="eyebrow faint">Route</div>
           <div className="serif" style={{ fontSize: 30, marginTop: 6 }}>{WORKERS[status.worker].label}</div>
-          <div className="muted" style={{ fontSize: 13 }}>
-            {NETWORK === "local" ? "not used on the local fork" : status.state === "ready" ? `ready in ${(status.bootMs! / 1000).toFixed(1)} s` : status.state === "failed" ? `failed: ${status.error}` : "connecting…"}
+          <div className="muted" style={{ fontSize: 13, overflowWrap: "anywhere" }} title={status.error}>
+            {NETWORK === "local"
+              ? "not used on the local fork"
+              : status.direct
+                ? "not in use: you chose to read directly (not private)"
+                : status.state === "ready"
+                  ? `ready in ${(status.bootMs! / 1000).toFixed(1)} s`
+                  : status.state === "failed"
+                    ? `failed: ${(status.error ?? "").split(":")[0].slice(0, 90)}${(status.error ?? "").length > 90 ? "…" : ""}`
+                    : "connecting…"}
           </div>
           <div className="row" style={{ marginTop: 12 }}>
             {(Object.keys(WORKERS) as WorkerId[]).map((id) => (
@@ -151,7 +159,9 @@ export default function PrivacyPage() {
           <p className="muted" style={{ fontSize: 14, margin: "4px 0 12px" }}>
             {NETWORK === "local"
               ? "On the local fork reads go straight to the node, so they take milliseconds. Through a mixnet on Base Sepolia, each read takes seconds: that is the price of nobody seeing what you watch."
-              : "Each read travels through an anonymity network, so it takes seconds instead of milliseconds: that is the price of nobody seeing what you watch."}
+              : status.direct
+                ? "You chose to read directly while the anonymity networks are down, so reads take milliseconds again, but they are not private."
+                : "Each read travels through an anonymity network, so it takes seconds instead of milliseconds: that is the price of nobody seeing what you watch."}
           </p>
           <ColumnChart
             items={reads.slice(0, 30).reverse().map((e) => ({ label: e.label, value: e.ms, note: `${e.method} · ${e.route === "anon-rpc" ? "via Anon-RPC" : e.route === "local-direct" ? "local node" : e.route}` }))}
@@ -176,7 +186,7 @@ export default function PrivacyPage() {
                   <td className="mono faint">{new Date(e.at).toLocaleTimeString()}</td>
                   <td>
                     <span className={`tag ${e.route === "anon-rpc" ? "live" : "sim"}`}>
-                      {e.route === "anon-rpc" ? `anon-rpc · ${e.worker}` : e.route === "bootstrap" ? "bootstrap (not anon)" : "local direct"}
+                      {e.route === "anon-rpc" ? `anon-rpc · ${e.worker}` : e.route === "bootstrap" ? "bootstrap (not anon)" : e.route === "direct" ? "direct (not private)" : "local direct"}
                     </span>
                   </td>
                   <td className="mono">{e.method}</td>

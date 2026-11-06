@@ -24,3 +24,7 @@
 - Verified on the live site: `cd web && npm run e2e:testnet` opens the deployed Privacy page, starts on Tor,
   waits for the fallback, and checks that Base Sepolia (chain 84532) answered and that every chain read
   except the documented bootstrap went through Anon-RPC.
+- Both down: Tor gets 35 s and Nym 90 s to start. If both fail, a banner offers **Retry** or **Continue without
+  privacy**. Nothing is read until the user chooses; reads made that way go straight to a public Base Sepolia RPC and
+  are logged with route `direct (not private)`, so the Privacy page's share of private reads drops honestly.
+  `npm run e2e:testnet` includes a forced-outage test that blocks Tor and Nym to check exactly this.

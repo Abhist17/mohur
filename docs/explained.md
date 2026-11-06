@@ -237,6 +237,7 @@ flowchart LR
 - **The Privacy page** lists every read with its route, label, isolation key and latency, plus the share that went through Anon-RPC.
 - **Exceptions, stated in the app:** sending a transaction goes through your wallet; one bootstrap read finds the worker. On the local fork, reads go directly to the node, and the app says so.
 - **Today's caveat:** the EF Tor gateway was unreachable during the hackathon, so reads fall back to Nym, which works but is slow (~50 s per read).
+- **If both networks are down:** a banner says so and offers to continue without privacy. Nothing happens until you choose, and every read made that way is marked *not private*.
 
 ## 14. Every screen
 

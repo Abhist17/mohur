@@ -82,6 +82,52 @@ test.describe("@testnet deployed Base Sepolia build", () => {
     expect(problems, problems.join("\n")).toEqual([]);
   });
 
+  test("@testnet if every private route fails, the site says so and offers (never forces) a direct route", async ({ page }) => {
+    test.setTimeout(300_000);
+    await page.goto("privacy/");
+    await page.getByTestId("probe").click();
+    const result = page.getByTestId("probe-result");
+    const banner = page.getByTestId("privacy-banner");
+    // either a private route works, or (Tor + Nym down) the banner appears; wait for one of the two
+    await expect(page.locator('[data-testid="privacy-banner"], [data-testid="probe-result"][data-state="ok"]').first()).toBeVisible({ timeout: 240_000 });
+    test.skip(!(await banner.isVisible()), "a private route is up today, nothing to fall back from");
+    // nothing was read directly before the user chose it
+    const before = await page.locator('[data-testid="read-row"][data-route="direct"]').count();
+    expect(before).toBe(0);
+    await page.getByTestId("allow-direct").click();
+    await expect(page.getByTestId("route-pill")).toContainText("not private");
+    await page.getByTestId("probe").click();
+    await expect(result).toHaveAttribute("data-state", "ok", { timeout: 60_000 });
+    await expect(result).toContainText("chain 84532");
+    // every read after the choice is labelled direct, and the share of private reads drops accordingly
+    await expect(page.locator('[data-testid="read-row"][data-route="direct"]').first()).toBeVisible();
+    await shot(page, "93-testnet-direct");
+  });
+
+  test("@testnet forced outage: with Tor and Nym blocked, nothing is read until the user chooses the direct route", async ({ page, baseURL }) => {
+    test.setTimeout(300_000);
+    // allow only the site itself, the one bootstrap RPC and the Base Sepolia RPCs: the anonymity networks cannot start
+    const allowed = [new URL(baseURL ?? "http://127.0.0.1").host, "abhist17.github.io", "ethereum-rpc.publicnode.com", "base-sepolia-rpc.publicnode.com", "sepolia.base.org", "fonts.gstatic.com"];
+    await page.route("**/*", (route) => {
+      const host = new URL(route.request().url()).host;
+      return allowed.some((h) => host === h || host.endsWith(`.${h}`)) ? route.continue() : route.abort();
+    });
+    await page.goto("privacy/");
+    await page.getByTestId("probe").click();
+    await expect(page.getByTestId("privacy-banner")).toBeVisible({ timeout: 200_000 });
+    await expect(page.locator('[data-testid="read-row"][data-route="direct"]')).toHaveCount(0); // never automatic
+    await page.getByTestId("allow-direct").click();
+    await expect(page.getByTestId("route-pill")).toContainText("not private");
+    await page.getByTestId("probe").click();
+    await expect(page.getByTestId("probe-result")).toHaveAttribute("data-state", "ok", { timeout: 60_000 });
+    await expect(page.getByTestId("probe-result")).toContainText("chain 84532");
+    await expect(page.locator('[data-testid="read-row"][data-route="direct"]').first()).toBeVisible();
+    // long failure messages (lists of URLs) wrap instead of pushing the page sideways
+    const [sw, iw] = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
+    expect(sw).toBeLessThanOrEqual(iw + 1);
+    await shot(page, "93-testnet-direct");
+  });
+
   test("@testnet logging proxy saw requests from anonymity-network exits", async ({ request }) => {
     const proxy = process.env.E2E_PROXY_URL;
     test.skip(!proxy, "set E2E_PROXY_URL to a public proxy/server.mjs (the build must use it as NEXT_PUBLIC_MOHUR_PROXY_URL)");

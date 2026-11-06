@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
-import { Nav } from "@/components/Nav";
+import { Nav, PrivacyBanner } from "@/components/Nav";
 import { AnonMark, VenueMark } from "@/components/VenueMark";
 import { Logo } from "@/components/Logo";
 
@@ -40,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Providers>
           <Nav />
+          <PrivacyBanner />
           <main id="main" tabIndex={-1}>{children}</main>
           <footer className="foot">
             <div className="wrap foot-grid">

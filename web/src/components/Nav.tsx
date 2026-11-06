@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useWallet } from "@/lib/wallet";
 import { NETWORK, WORKERS } from "@/lib/config";
 import { useAnon } from "./Providers";
+import { allowDirect, retryPrivate } from "@/lib/anon";
 import { Logo } from "@/components/Logo";
 
 /** On the landing and docs pages the nav tells the story; inside the app it lists the screens. */
@@ -34,6 +35,12 @@ export function RoutePill() {
     return (
       <Link href="/privacy" className="pill" title="Local fork: reads go straight to the local node">
         <span className="dot warn" /> local node · direct
+      </Link>
+    );
+  if (status.direct)
+    return (
+      <Link href="/privacy" className="pill" title="You chose to read without privacy because no anonymity network could start" data-testid="route-pill">
+        <span className="dot warn" /> direct · not private
       </Link>
     );
   const cls = status.state === "ready" ? "ok" : status.state === "failed" ? "bad" : "warn";
@@ -74,6 +81,35 @@ export function ConnectButton() {
           {w.error && <div className="err">{w.error}</div>}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Shown only when every anonymity network failed (or the user then chose to read directly). Never decides for the user. */
+export function PrivacyBanner() {
+  const { status } = useAnon();
+  const [busy, setBusy] = useState(false);
+  if (NETWORK === "local" || !(status.state === "failed" || status.direct)) return null;
+  if (status.direct)
+    return (
+      <div className="privacy-banner warn" data-testid="privacy-banner">
+        <div className="wrap privacy-banner-in">
+          <span>Reading directly from a public RPC: <b>not private</b>. Every read is marked that way on the Privacy page.</span>
+          <button className="btn small" onClick={() => retryPrivate().catch(() => {})}>Try private again</button>
+        </div>
+      </div>
+    );
+  return (
+    <div className="privacy-banner" data-testid="privacy-banner">
+      <div className="wrap privacy-banner-in">
+        <span>
+          <b>The private routes are unreachable right now</b> (Tor and Nym gateways did not answer). Unison never reads without them unless you say so.
+        </span>
+        <span className="row" style={{ gap: 8 }}>
+          <button className="btn small" disabled={busy} onClick={() => { setBusy(true); retryPrivate().catch(() => {}).finally(() => setBusy(false)); }}>{busy ? "Retrying…" : "Retry"}</button>
+          <button className="btn small primary" onClick={allowDirect} data-testid="allow-direct">Continue without privacy</button>
+        </span>
+      </div>
     </div>
   );
 }

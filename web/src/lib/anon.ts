@@ -11,7 +11,7 @@ import { BOOTSTRAP_RPC, CHAIN, DEFAULT_WORKER, NETWORK, RPC_URLS, WORKERS, type 
  * Each call is recorded in the read log that the Privacy screen renders.
  */
 
-export type ReadRoute = "anon-rpc" | "local-direct" | "bootstrap";
+export type ReadRoute = "anon-rpc" | "local-direct" | "bootstrap" | "direct";
 
 export type ReadLogEntry = {
   id: number;
@@ -27,7 +27,8 @@ export type ReadLogEntry = {
   note?: string;
 };
 
-export type AnonStatus = { worker: WorkerId; state: "idle" | "booting" | "ready" | "failed"; bootMs?: number; error?: string };
+/** `direct`: the user chose to read without privacy because no anonymity network could start (never automatic). */
+export type AnonStatus = { worker: WorkerId; state: "idle" | "booting" | "ready" | "failed"; bootMs?: number; error?: string; direct?: boolean };
 
 type Listener = () => void;
 const listeners = new Set<Listener>();
@@ -98,8 +99,9 @@ const bootstrapProvider = {
   },
 };
 
-/** A worker that hasn't bootstrapped by then is treated as failed (e.g. its gateway is down). */
-const BOOT_DEADLINE_MS = 35_000; // Tor normally bootstraps in 5-20 s
+/** A worker that hasn't bootstrapped by then is treated as failed (e.g. its gateway is down).
+ *  Tor normally bootstraps in 5-20 s; Nym is the last resort and downloads an ~18 MB bundle, so it gets longer. */
+const BOOT_DEADLINE_MS: Record<WorkerId, number> = { "tor-js": 35_000, nym: 90_000, passthrough: 35_000 };
 /** If Tor can't bootstrap, fall back to another network that also anonymises - never to passthrough. */
 const ANON_FALLBACK: Partial<Record<WorkerId, WorkerId>> = { "tor-js": "nym" };
 let instance: AnonWorker | undefined; // the most recently constructed worker (ready or not)
@@ -124,7 +126,7 @@ export function startWorker(id: WorkerId = storedWorker(), isFallback = false): 
     try {
       await Promise.race([
         w.ready,
-        new Promise((_, rej) => setTimeout(() => rej(new Error(`${WORKERS[id].label} did not bootstrap within ${BOOT_DEADLINE_MS / 1000} s (gateway unreachable?)`)), BOOT_DEADLINE_MS)),
+        new Promise((_, rej) => setTimeout(() => rej(new Error(`${WORKERS[id].label} did not bootstrap within ${BOOT_DEADLINE_MS[id] / 1000} s (gateway unreachable?)`)), BOOT_DEADLINE_MS[id])),
       ]);
     } catch (e) {
       if (gen !== generation) throw e; // superseded by a newer worker
@@ -145,6 +147,29 @@ export function startWorker(id: WorkerId = storedWorker(), isFallback = false): 
     return w;
   })();
   return workerPromise;
+}
+
+/**
+ * The user's explicit choice, offered only after every anonymity network failed: read directly from a public RPC,
+ * NOT privately, for this browser session. Every such read is logged with route "direct" (the Privacy page counts it
+ * as not private). retryPrivate() goes back to the anonymity networks.
+ */
+export function allowDirect() {
+  try { sessionStorage.setItem("mohur.direct", "1"); } catch {}
+  status = { ...status, direct: true };
+  emit();
+}
+export function retryPrivate() {
+  try { sessionStorage.removeItem("mohur.direct"); } catch {}
+  status = { ...status, direct: false };
+  workerPromise = undefined;
+  generation++;
+  return startWorker(storedWorker());
+}
+function directAllowed() {
+  if (status.direct) return true;
+  try { if (sessionStorage.getItem("mohur.direct") === "1") { status = { ...status, direct: true }; return true; } } catch {}
+  return false;
 }
 
 export function switchWorker(id: WorkerId) {
@@ -201,6 +226,23 @@ export async function rpc(method: string, params: unknown[], scope: { label: str
       if (!(e as { code?: number }).code) record({ method, label: scope.label, isolationKey: scope.key, route: "local-direct", ms: Math.round(performance.now() - t0), ok: false, endpoint: url });
       throw e;
     }
+  }
+
+  if (directAllowed()) {
+    // the user chose this after every anonymity network failed; logged as not private
+    let lastDirect: unknown;
+    for (const url of RPC_URLS) {
+      try {
+        const json = await postJson((u, i) => fetch(u, i), url, body, scope.key);
+        record({ method, label: scope.label, isolationKey: scope.key, route: "direct", ms: Math.round(performance.now() - t0), ok: !json.error, endpoint: new URL(url).host, note: "not private (your choice)" });
+        if (json.error) throw Object.assign(new Error(json.error.message), { code: json.error.code, data: json.error.data, rpc: true });
+        return json.result;
+      } catch (e) {
+        if ((e as { rpc?: boolean }).rpc) throw e;
+        lastDirect = e;
+      }
+    }
+    throw lastDirect;
   }
 
   const w = await (workerPromise ?? startWorker());

@@ -13,6 +13,8 @@ same price, with no oracle. Every chain read the dashboard makes goes through th
 
 The name is the Mohur, a Mughal gold coin. Built at ETHGlobal (hack day 5–6 Nov 2026).
 
+**New here?** [docs/explained.md](docs/explained.md) explains every part in plain words, with diagrams: the trade on each venue, why prices match, why loops lose, rebalancing, limits, the fill lock, privacy, every screen and contract.
+
 ## What to remember
 
 | Claim | Evidence (this repo's tests) |
@@ -224,7 +226,7 @@ venues, and the PoC is kept as a regression test. `scripts/smoke.sh` checks any 
 | `contracts/` | Foundry project: `src`, `test` (52 + 2 fork), `script` (DeployMohur, LaunchIndex, DemoTrades), `reference` (Python math) |
 | `web/` | Next.js dashboard; `src/lib/anon.ts` is the Anon-RPC transport |
 | `proxy/` | Logging JSON-RPC proxy |
-| `docs/` | PortfolioPrice write-up, Anon-RPC notes, demo (`demo.md`), open decisions (`decisions.md`) |
+| `docs/` | **`explained.md` (start here)**, PortfolioPrice write-up, Anon-RPC notes, demo (`demo.md`), open decisions (`decisions.md`) |
 | `scripts/` | `deploy-base-sepolia.sh` |
 
 ## License

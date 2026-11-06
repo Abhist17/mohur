@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { Address, Hex } from "viem";
-import { AquaAbi, MohurHookAbi, MohurLensAbi, MohurTestTokenAbi } from "@/generated/abis";
+import { AquaAbi, UnisonHookAbi, UnisonLensAbi, UnisonTestTokenAbi } from "@/generated/abis";
 import { deployment, NETWORK } from "@/lib/config";
 import { keys, readClient } from "@/lib/anon";
-import { fmt, hookOf, readBook, readFills, TOKEN_STYLE, units, type Book, type FillRow } from "@/lib/mohur";
+import { fmt, hookOf, readBook, readFills, TOKEN_STYLE, units, type Book, type FillRow } from "@/lib/unison";
 import { useWallet } from "@/lib/wallet";
 import { Concept } from "@/components/Concept";
 import { NotDeployed } from "@/components/NotDeployed";
@@ -43,11 +43,11 @@ export default function MyIndex() {
     const b = await readBook(h, w.account);
     setBook(b);
     const [nonce, sh, rwStart, rwEnd, target] = await Promise.all([
-      c.readContract({ address: h, abi: MohurHookAbi, functionName: "venueNonce" }) as Promise<bigint>,
-      c.readContract({ address: h, abi: MohurHookAbi, functionName: "strategyHash" }) as Promise<Hex>,
-      c.readContract({ address: h, abi: MohurHookAbi, functionName: "reweightStart" }) as Promise<bigint>,
-      c.readContract({ address: h, abi: MohurHookAbi, functionName: "reweightEnd" }) as Promise<bigint>,
-      c.readContract({ address: h, abi: MohurHookAbi, functionName: "targetWeights" }) as Promise<readonly bigint[]>,
+      c.readContract({ address: h, abi: UnisonHookAbi, functionName: "venueNonce" }) as Promise<bigint>,
+      c.readContract({ address: h, abi: UnisonHookAbi, functionName: "strategyHash" }) as Promise<Hex>,
+      c.readContract({ address: h, abi: UnisonHookAbi, functionName: "reweightStart" }) as Promise<bigint>,
+      c.readContract({ address: h, abi: UnisonHookAbi, functionName: "reweightEnd" }) as Promise<bigint>,
+      c.readContract({ address: h, abi: UnisonHookAbi, functionName: "targetWeights" }) as Promise<readonly bigint[]>,
     ]);
     const count = async (app: Address, hash: Hex, t: Address) => ((await c.readContract({ address: d.aqua, abi: AquaAbi, functionName: "rawBalances", args: [w.account!, app, hash, t] })) as [bigint, number])[1];
     const state = (n: number) => (n === 0 ? "none" : n === DOCKED ? "paused" : "live") as "live" | "paused" | "none";
@@ -139,7 +139,7 @@ export default function MyIndex() {
 
   const pause = () => run("Pausing…", async () => {
     if (!st || !hook || !book) return;
-    const sh = (await c().readContract({ address: hook, abi: MohurHookAbi, functionName: "strategyHash" })) as Hex;
+    const sh = (await c().readContract({ address: hook, abi: UnisonHookAbi, functionName: "strategyHash" })) as Hex;
     if (st.v4 === "live") await w.write({ address: d.aqua, abi: AquaAbi, functionName: "dock", args: [hook, sh, tokens.map((t) => t.token)], label: "Pause Uniswap venue" });
     for (let k = 0; k < book.pairs.length; k++) {
       if (st.aqua[k] !== "live") continue;
@@ -153,16 +153,16 @@ export default function MyIndex() {
     if (st.v4 === "live" || st.aqua.includes("live")) await pause();
     setBusy("Opening venues…");
     const n = st.nonce + 1n;
-    await w.write({ address: hook, abi: MohurHookAbi, functionName: "setVenueNonce", args: [n], label: "Start a new venue epoch" });
-    const bal = async (t: Address) => (await c().readContract({ address: t, abi: MohurTestTokenAbi, functionName: "balanceOf", args: [w.account!] })) as bigint;
+    await w.write({ address: hook, abi: UnisonHookAbi, functionName: "setVenueNonce", args: [n], label: "Start a new venue epoch" });
+    const bal = async (t: Address) => (await c().readContract({ address: t, abi: UnisonTestTokenAbi, functionName: "balanceOf", args: [w.account!] })) as bigint;
     if (splitV4 > 0) {
-      const strat = (await c().readContract({ address: hook, abi: MohurHookAbi, functionName: "strategy", args: [n] })) as Hex;
+      const strat = (await c().readContract({ address: hook, abi: UnisonHookAbi, functionName: "strategy", args: [n] })) as Hex;
       const amts = await Promise.all(tokens.map(async (t) => ((await bal(t.token)) * BigInt(splitV4)) / 100n));
       await w.write({ address: d.aqua, abi: AquaAbi, functionName: "ship", args: [hook, strat, tokens.map((t) => t.token), amts], label: `Open Uniswap (${splitV4}% limit)` });
     }
     if (splitAqua > 0)
       for (const [a, b] of st.pairs) {
-        const [, strat] = (await c().readContract({ address: d.lens, abi: MohurLensAbi, functionName: "activeAquaOrder", args: [hook, a, b] })) as [unknown, Hex, Hex];
+        const [, strat] = (await c().readContract({ address: d.lens, abi: UnisonLensAbi, functionName: "activeAquaOrder", args: [hook, a, b] })) as [unknown, Hex, Hex];
         const amts = [((await bal(a)) * BigInt(splitAqua)) / 100n, ((await bal(b)) * BigInt(splitAqua)) / 100n];
         await w.write({ address: d.aqua, abi: AquaAbi, functionName: "ship", args: [d.swapVM, strat, [a, b], amts], label: `Open 1inch ${sym(a)}/${sym(b)} (${splitAqua}%)` });
       }
@@ -171,8 +171,8 @@ export default function MyIndex() {
   const reweight = () => run("Re-weighting…", async () => {
     if (!hook || !newW || !book) return;
     const ws = tokens.map((t) => BigInt(newW[t.symbol]) * 10n ** 16n);
-    if (dur === 0) await w.write({ address: hook, abi: MohurHookAbi, functionName: "setIndex", args: [tokens.map((t) => t.token), ws, book.fee], label: "Switch allocation now" });
-    else await w.write({ address: hook, abi: MohurHookAbi, functionName: "scheduleWeights", args: [ws, BigInt(dur)], label: "Start gradual re-weight" });
+    if (dur === 0) await w.write({ address: hook, abi: UnisonHookAbi, functionName: "setIndex", args: [tokens.map((t) => t.token), ws, book.fee], label: "Switch allocation now" });
+    else await w.write({ address: hook, abi: UnisonHookAbi, functionName: "scheduleWeights", args: [ws, BigInt(dur)], label: "Start gradual re-weight" });
   });
 
   const live = st && (st.v4 === "live" || st.aqua.includes("live"));

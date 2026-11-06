@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatUnits, maxUint256, parseUnits, type Address } from "viem";
-import { MohurHookAbi, MohurLoopRouterAbi, MohurTestTokenAbi } from "@/generated/abis";
+import { UnisonHookAbi, UnisonLoopRouterAbi, UnisonTestTokenAbi } from "@/generated/abis";
 import { deployment, NETWORK } from "@/lib/config";
 import { keys, readClient } from "@/lib/anon";
 import { prettyError } from "@/lib/errors";
-import { quoteBoth, readBook, TOKEN_STYLE, type Book } from "@/lib/mohur";
+import { quoteBoth, readBook, TOKEN_STYLE, type Book } from "@/lib/unison";
 import { useWallet } from "@/lib/wallet";
 import { TokenIcon } from "@/components/TokenIcon";
 import { NotDeployed } from "@/components/NotDeployed";
@@ -96,9 +96,9 @@ export default function SwapPage() {
     if (!d || !w.account) return;
     const c = readClient("swap: balances", keys.trader(w.account));
     const b: Record<string, bigint> = {};
-    for (const s of SYMS) b[s] = (await c.readContract({ address: addr(s), abi: MohurTestTokenAbi, functionName: "balanceOf", args: [w.account] })) as bigint;
+    for (const s of SYMS) b[s] = (await c.readContract({ address: addr(s), abi: UnisonTestTokenAbi, functionName: "balanceOf", args: [w.account] })) as bigint;
     setBal(b);
-    setAllow((await c.readContract({ address: addr(tin), abi: MohurTestTokenAbi, functionName: "allowance", args: [w.account, d.loopRouter] })) as bigint);
+    setAllow((await c.readContract({ address: addr(tin), abi: UnisonTestTokenAbi, functionName: "allowance", args: [w.account, d.loopRouter] })) as bigint);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, w.account, tin]);
   useEffect(() => { refreshWallet().catch(() => {}); }, [refreshWallet]);
@@ -113,7 +113,7 @@ export default function SwapPage() {
       const [q, spot] = await Promise.all([
         quoteBoth(hook, addr(tin), addr(tout), amountIn),
         readClient("swap: spot price", keys.strategy(hook, addr(tin), addr(tout))).readContract({
-          address: hook, abi: MohurHookAbi, functionName: "price", args: [addr(tin), addr(tout)],
+          address: hook, abi: UnisonHookAbi, functionName: "price", args: [addr(tin), addr(tout)],
         }) as Promise<bigint>,
       ]);
       setQuote({ ...q, spot, err: !q.v4Ok && !q.aquaOk ? "Trade too large for either venue: one trade can move at most 30% of a balance, and each venue sells only up to its limit." : undefined });
@@ -175,7 +175,7 @@ export default function SwapPage() {
       : { label: "Connect wallet", onClick: () => w.connectInjected(), primary: true };
   } else if (amountIn === 0n) cta = { label: "Enter an amount" };
   else if (balIn < amountIn)
-    cta = { label: `Get test ${TOKEN_STYLE[tin].name}`, primary: true, onClick: () => act(() => w.write({ address: addr(tin), abi: MohurTestTokenAbi, functionName: "faucet", label: `Get test ${tin}` }), "Getting test tokens…") };
+    cta = { label: `Get test ${TOKEN_STYLE[tin].name}`, primary: true, onClick: () => act(() => w.write({ address: addr(tin), abi: UnisonTestTokenAbi, functionName: "faucet", label: `Get test ${tin}` }), "Getting test tokens…") };
   else if (!quote) cta = { label: quoting ? "Fetching quote…" : "Getting a quote…" }; // also before the first request fires: never show a limit message without a quote
   else if (quote?.err) cta = { label: "Amount too large" };
   else if (!ok) {
@@ -187,12 +187,12 @@ export default function SwapPage() {
       : { label: "Over both venues' limits · try a smaller amount" };
   }
   else if (allow < amountIn)
-    cta = { label: `Approve ${TOKEN_STYLE[tin].name}`, primary: true, onClick: () => act(() => w.write({ address: addr(tin), abi: MohurTestTokenAbi, functionName: "approve", args: [d.loopRouter, maxUint256], label: `Approve ${tin}` }), "Approving…") };
+    cta = { label: `Approve ${TOKEN_STYLE[tin].name}`, primary: true, onClick: () => act(() => w.write({ address: addr(tin), abi: UnisonTestTokenAbi, functionName: "approve", args: [d.loopRouter, maxUint256], label: `Approve ${tin}` }), "Approving…") };
   else
     cta = {
       label: `Swap on ${VENUES[venue]}`,
       primary: true,
-      onClick: () => act(() => w.write({ address: d.loopRouter, abi: MohurLoopRouterAbi, functionName: "execute", args: [hook, [addr(tin), addr(tout)], [venue], amountIn, minOut, w.account], label: `Swap ${amount} ${TOKEN_STYLE[tin].name} → ${TOKEN_STYLE[tout].name}` }), "Swapping…"),
+      onClick: () => act(() => w.write({ address: d.loopRouter, abi: UnisonLoopRouterAbi, functionName: "execute", args: [hook, [addr(tin), addr(tout)], [venue], amountIn, minOut, w.account], label: `Swap ${amount} ${TOKEN_STYLE[tin].name} → ${TOKEN_STYLE[tout].name}` }), "Swapping…"),
     };
 
   return (

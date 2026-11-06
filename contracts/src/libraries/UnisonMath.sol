@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import { LogExpMath } from "./LogExpMath.sol";
 
-/// @title MohurMath
+/// @title UnisonMath
 /// @notice The one pricing formula both venues use: a weighted-pool (constant value) curve over the
 ///         maker wallet's *real* balances. Every rounding step favours the maker.
 /// @dev All amounts handed to the public functions are 18-decimal "scaled" amounts; callers scale
@@ -12,7 +12,7 @@ import { LogExpMath } from "./LogExpMath.sol";
 ///      spot(i->j)  = (w_i / w_j) * (B_j / B_i)
 ///      outGivenIn  = B_o * (1 - (B_i / (B_i + a*(1-f)))^(w_i/w_o))
 ///      inGivenOut  = B_i * ((B_o / (B_o - a))^(w_o/w_i) - 1) / (1-f)
-library MohurMath {
+library UnisonMath {
     uint256 internal constant ONE = 1e18;
     /// @dev A single trade may move at most 30% of a balance (keeps pow() accurate).
     uint256 internal constant MAX_RATIO = 0.3e18;

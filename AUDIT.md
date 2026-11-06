@@ -6,11 +6,11 @@
 
 | Contract | Lines of interest |
 | --- | --- |
-| `contracts/src/MohurHook.sol` | pricing, v4 `beforeSwap` settlement, claims and flush, gradual weights, fill lock, maker hooks |
+| `contracts/src/UnisonHook.sol` | pricing, v4 `beforeSwap` settlement, claims and flush, gradual weights, fill lock, maker hooks |
 | `contracts/src/aqua/PortfolioPrice.sol` | SwapVM opcode `0xd0` |
-| `contracts/src/aqua/MohurSwapVMRouter.sol`, `MohurStrategy.sol` | router extension, order construction |
-| `contracts/src/libraries/MohurMath.sol` | weighted-pool math, rounding, bounds |
-| `contracts/src/MohurHookFactory.sol`, `MohurLens.sol`, `MohurLoopRouter.sol` | deployment, reads, multi-leg routing |
+| `contracts/src/aqua/UnisonSwapVMRouter.sol`, `UnisonStrategy.sol` | router extension, order construction |
+| `contracts/src/libraries/UnisonMath.sol` | weighted-pool math, rounding, bounds |
+| `contracts/src/UnisonHookFactory.sol`, `UnisonLens.sol`, `UnisonLoopRouter.sol` | deployment, reads, multi-leg routing |
 
 Out of scope: Uniswap v4, 1inch Aqua / SwapVM and Balancer's LogExpMath (used as upstream; Aqua and SwapVM were audited by OpenZeppelin), the web app, and the Anon-RPC workers.
 
@@ -39,8 +39,8 @@ Out of scope: Uniswap v4, 1inch Aqua / SwapVM and Balancer's LogExpMath (used as
 **Impact.** Value extraction from the maker, repeatable. PoC (`test/audit/CrossVenueReentrancy.t.sol`): two 4,000 USDC → ETH buys followed by a full sell-back. Done honestly this loses **$39.54** (fees). With the second buy nested in the callback it gained **$752.92**, taken from the maker.
 
 **Fix.**
-- `PortfolioPrice` calls `MohurHook.quoteAndLock` on real fills (not on `SwapVM.quote`). It is callable only by the trusted Unison router (`swapVM` immutable, set by the factory), and it sets a transient fill lock.
-- `MohurHook.quote` reverts with `FillInProgress` while the lock is set. Both venues price through `quote`, so both are blocked during the window.
+- `PortfolioPrice` calls `UnisonHook.quoteAndLock` on real fills (not on `SwapVM.quote`). It is callable only by the trusted Unison router (`swapVM` immutable, set by the factory), and it sets a transient fill lock.
+- `UnisonHook.quote` reverts with `FillInProgress` while the lock is set. Both venues price through `quote`, so both are blocked during the window.
 - Unison orders carry `postTransferIn` and `postTransferOut` maker hooks targeting the hook (router-only, maker-checked). The lock clears after **both** transfers.
 - Fails closed: an order without the hooks leaves the lock set for the rest of that transaction, which blocks further pricing but cannot leak value.
 
@@ -74,7 +74,7 @@ Documented in the README's honest limits and in the app (Launch, How it works).
 ## Residual risks (not fixable in code)
 
 - **LVR:** arbitrageurs who rebalance the wallet capture the move; Unison earns the fee and does not remove LVR.
-- **Sandwiching:** as with any AMM, traders must set a minimum output. The Swap screen uses 0.5% slippage; `MohurLoopRouter.execute` takes `minOut`.
+- **Sandwiching:** as with any AMM, traders must set a minimum output. The Swap screen uses 0.5% slippage; `UnisonLoopRouter.execute` takes `minOut`.
 - **Anon-RPC trust:** the chosen worker sees every request and could censor or lie (see the anon-rpc trust model). The bootstrap read and wallet-broadcast transactions are not anonymised.
 - **Not independently audited.** Testnet only, with test tokens.
 

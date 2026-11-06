@@ -20,9 +20,9 @@ Copy-paste text for the ETHGlobal form, the five lines to say to judges, and wha
 
 **How it's made:**
 > Contracts (Solidity 0.8.30, Foundry, via-IR):
-> - MohurHook, a custom-curve Uniswap v4 hook. `beforeSwap` returns a delta that cancels the AMM, pays the trader out of the wallet via `Aqua.pull` into the PoolManager, and holds the trader's input as ERC-6909 claims that are flushed to the wallet via `Aqua.push`.
+> - UnisonHook, a custom-curve Uniswap v4 hook. `beforeSwap` returns a delta that cancels the AMM, pays the trader out of the wallet via `Aqua.pull` into the PoolManager, and holds the trader's input as ERC-6909 claims that are flushed to the wallet via `Aqua.push`.
 > - PortfolioPrice, a custom SwapVM opcode added to the official AquaSwapVMRouter. It prices 1inch fills through the same hook and uses Aqua's virtual balances as per-venue caps.
-> - MohurMath: weighted-pool math with Balancer's LogExpMath, rounding toward the maker, checked against an 80-digit Python reference.
+> - UnisonMath: weighted-pool math with Balancer's LogExpMath, rounding toward the maker, checked against an 80-digit Python reference.
 >
 > Our own security review found a critical cross-venue reentrancy: SwapVM taker callbacks could price a nested trade on stale balances, and the proof of concept took $752 from the maker. We fixed it with a fail-closed transient fill lock that 1inch maker hooks clear.
 >
@@ -34,9 +34,9 @@ Copy-paste text for the ETHGlobal form, the five lines to say to judges, and wha
 > Web: Next.js 15, viem and three.js, with @anon-rpc/browser-harness as the only read path. It deploys to GitHub Pages as a static export. `./scripts/demo.sh` runs the whole story in one command.
 
 **Links:**
-- GitHub: https://github.com/Abhist17/mohur
-- Live app: https://abhist17.github.io/mohur/ (contracts live on Base Sepolia)
-- Explainer: https://github.com/Abhist17/mohur/blob/main/docs/explained.md
+- GitHub: https://github.com/Abhist17/unison
+- Live app: https://abhist17.github.io/unison/ (contracts live on Base Sepolia)
+- Explainer: https://github.com/Abhist17/unison/blob/main/docs/explained.md
 - Video: *(add after recording)*
 
 **Tracks:**
@@ -60,4 +60,4 @@ Copy-paste text for the ETHGlobal form, the five lines to say to judges, and wha
 | 2 | **Record the video** | Judges watch it first | Follow [demo-script.md](demo-script.md) |
 | 3 | **Uniswap feedback form** | Needed for the Uniswap prize | Paste from [FEEDBACK.md](../FEEDBACK.md) |
 | 4 | **Submit on ETHGlobal** | | Fields above, plus the video link |
-| 5 | *(optional)* **Public proxy URL** | Shows reads arriving from Tor exits, which needs Tor to be up | Run `node proxy/server.mjs` behind a tunnel, build with `NEXT_PUBLIC_MOHUR_PROXY_URL` |
+| 5 | *(optional)* **Public proxy URL** | Shows reads arriving from Tor exits, which needs Tor to be up | Run `node proxy/server.mjs` behind a tunnel, build with `NEXT_PUBLIC_UNISON_PROXY_URL` |

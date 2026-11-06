@@ -47,7 +47,7 @@ export function ProblemSolution({ price, live }: { price: string; live: boolean 
         </div>
       </div>
       <div className="ps-arrow" aria-hidden="true">↓</div>
-      <div className="ps-col ps-mohur">
+      <div className="ps-col ps-unison">
         <div className="ps-label accent">With Unison</div>
         <div className="ps-body">
         <div className="ps-pic ps-one">

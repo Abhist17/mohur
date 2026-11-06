@@ -2,18 +2,18 @@
 export type Deployment = { chainId: number; startBlock: number; poolManager: `0x${string}`; aqua: `0x${string}`; swapVM: `0x${string}`; hookFactory: `0x${string}`; lens: `0x${string}`; loopRouter: `0x${string}`; tWETH: `0x${string}`; tWBTC: `0x${string}`; tUSDC: `0x${string}`; demoHook?: `0x${string}`; demoMaker?: `0x${string}` };
 export const deployments: Record<string, Deployment> = {
   "local": {
-    "aqua": "0x38EB449D1291D4DbEb819111188c443B541e9ea3",
+    "aqua": "0x39746B6B1d1D03CdB1Ff36ABE3BFBdc70122c8CE",
     "chainId": 31337,
-    "hookFactory": "0xca0A385bA58A9BfeB1E2fDC84ED405006eA326E9",
-    "lens": "0x39746B6B1d1D03CdB1Ff36ABE3BFBdc70122c8CE",
-    "loopRouter": "0x047a80a11c869EC01B90782CcBDEd12115e09A59",
+    "hookFactory": "0x5d73932C165d114416731FC7af60782b187217ec",
+    "lens": "0x53E77c3Af026fd6B5049a0Eb35f00C0601CD63dd",
+    "loopRouter": "0x44776513F5C7239D22c7253De82BD973B451862b",
     "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
-    "startBlock": 55346834,
-    "swapVM": "0x0fcd4993D9C3b2e0779919327ad2039e837650f7",
-    "tUSDC": "0x44776513F5C7239D22c7253De82BD973B451862b",
-    "tWBTC": "0x53E77c3Af026fd6B5049a0Eb35f00C0601CD63dd",
-    "tWETH": "0x5d73932C165d114416731FC7af60782b187217ec",
-    "demoHook": "0xe62348793DDbB2B8AB98aC8AE9697b24588cE888",
+    "startBlock": 55430613,
+    "swapVM": "0x047a80a11c869EC01B90782CcBDEd12115e09A59",
+    "tUSDC": "0xeC0418464E2930D1116D49BC0722B3C390bEC59A",
+    "tWBTC": "0x3570c891e11aafd61c14a8cd0Bd122Ed5D43ccD8",
+    "tWETH": "0xB6b023992808b43469A244544C8580fdAb6d433c",
+    "demoHook": "0x6A65702240D16Df5644139B64B66dB3D43BE6888",
     "demoMaker": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
   },
   "base-sepolia": {

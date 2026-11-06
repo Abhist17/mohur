@@ -2,19 +2,19 @@
 pragma solidity 0.8.30;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { MohurLens } from "../src/MohurLens.sol";
-import { MohurLoopRouter } from "../src/MohurLoopRouter.sol";
+import { UnisonLens } from "../src/UnisonLens.sol";
+import { UnisonLoopRouter } from "../src/UnisonLoopRouter.sol";
 import { ISwapVM } from "@1inch/swap-vm/contracts/interfaces/ISwapVM.sol";
-import { MohurFixture } from "./utils/MohurFixture.sol";
+import { UnisonFixture } from "./utils/UnisonFixture.sol";
 
-contract LensLoopTest is MohurFixture {
-    MohurLens lens;
-    MohurLoopRouter loop;
+contract LensLoopTest is UnisonFixture {
+    UnisonLens lens;
+    UnisonLoopRouter loop;
 
     function setUp() public {
-        setUpMohur();
-        lens = new MohurLens();
-        loop = new MohurLoopRouter(manager, ISwapVM(address(swapVM)));
+        setUpUnison();
+        lens = new UnisonLens();
+        loop = new UnisonLoopRouter(manager, ISwapVM(address(swapVM)));
         vm.prank(trader);
         weth.approve(address(loop), type(uint256).max);
     }
@@ -54,7 +54,7 @@ contract LensLoopTest is MohurFixture {
     }
 
     function test_book() public view {
-        MohurLens.Book memory b = lens.book(hook, address(swapVM));
+        UnisonLens.Book memory b = lens.book(hook, address(swapVM));
         assertEq(b.maker, maker);
         assertEq(b.tokens.length, 3);
         assertEq(b.pairs.length, 3);
@@ -64,7 +64,7 @@ contract LensLoopTest is MohurFixture {
         assertEq(b.tokens[2].effectiveBalance, USDC0);
     }
 
-    /// The Create screen's preview runs the same MohurMath as a live hook: identical on identical balances.
+    /// The Create screen's preview runs the same UnisonMath as a live hook: identical on identical balances.
     function test_preview_matchesLiveQuote() public view {
         uint256 bi = hook.effectiveBalance(address(weth)); // 18 dec
         uint256 bo = hook.effectiveBalance(address(usdc)) * 1e12; // scaled to 18 dec

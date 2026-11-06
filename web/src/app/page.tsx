@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { parseUnits } from "viem";
 import { deployment, NETWORK } from "@/lib/config";
-import { fmt, quoteBoth, quoteRoute, readBook, TOKEN_STYLE, units, type Book } from "@/lib/mohur";
+import { fmt, quoteBoth, quoteRoute, readBook, TOKEN_STYLE, units, type Book } from "@/lib/unison";
 import { usePoll } from "@/components/useIndex";
 import { VenueLogo } from "@/components/VenueMark";
 import { TokenIcon } from "@/components/TokenIcon";
@@ -12,7 +12,7 @@ import { ProblemSolution } from "@/components/ProblemSolution";
 import { Concept } from "@/components/Concept";
 import { TradeFlow } from "@/components/TradeFlow";
 
-const REPO = "https://github.com/Abhist17/mohur";
+const REPO = "https://github.com/Abhist17/unison";
 const T = (f: string, line?: number) => `${REPO}/blob/main/contracts/test/${f}${line ? `#L${line}` : ""}`;
 
 // Shown until an index is live on this network: measured by ./scripts/demo.sh on a Base Sepolia fork
@@ -20,7 +20,7 @@ const MEASURED = { eth: 10, btc: 0.3, usdc: 30000, out: 413.769069, loopPct: -0.
 
 /** The real output of ./scripts/demo.sh on a Base Sepolia fork (6 Nov 2026), shortened. */
 const RECEIPT = `$ ./scripts/demo.sh
-  DeployMohur ok · LaunchIndex ok · DemoTrades ok
+  DeployUnison ok · LaunchIndex ok · DemoTrades ok
 
 Same trade, both venues
   sell 0.1 ETH    Uniswap 413.769069 USDC   1inch 413.769069 USDC   difference 0 wei
@@ -245,7 +245,7 @@ export default function Landing() {
             </div>
           </div>
           <pre className="u-receipt"><code>{`git clone --recursive ${REPO}
-cd mohur
+cd unison
 (cd contracts && npm ci) && (cd web && npm ci)
 ./scripts/demo.sh`}</code></pre>
         </div>

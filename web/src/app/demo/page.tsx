@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { formatUnits, maxUint256, parseEventLogs, type Address, type Hash } from "viem";
-import { MohurLoopRouterAbi, MohurTestTokenAbi } from "@/generated/abis";
+import { UnisonLoopRouterAbi, UnisonTestTokenAbi } from "@/generated/abis";
 import { deployment, EXPLORER, NETWORK } from "@/lib/config";
 import { keys, readClient } from "@/lib/anon";
-import { amt, fillEvt, quoteBoth, quoteRoute, swappedEvt } from "@/lib/mohur";
+import { amt, fillEvt, quoteBoth, quoteRoute, swappedEvt } from "@/lib/unison";
 import { useWallet } from "@/lib/wallet";
 import { useIndex } from "@/components/useIndex";
 import { NotDeployed } from "@/components/NotDeployed";
@@ -38,7 +38,7 @@ export default function DemoPage() {
   const idx = useIndex(true);
   const hook = d?.demoHook;
   // progress belongs to one deployment: a re-created local chain can reuse the same addresses, so the start block is in the key
-  const storeKey = w.account && hook ? `mohur.demo:${NETWORK}:${d?.startBlock}:${hook}:${w.account}`.toLowerCase() : undefined;
+  const storeKey = w.account && hook ? `unison.demo:${NETWORK}:${d?.startBlock}:${hook}:${w.account}`.toLowerCase() : undefined;
   const [res, setRes] = useState<Partial<Record<StepId, Result>>>({});
   const [running, setRunning] = useState<StepId>();
   const [err, setErr] = useState<string>();
@@ -72,8 +72,8 @@ export default function DemoPage() {
     if (!w.account) return false;
     const me = w.account;
     const rc = readClient(`demo: ${id}`, keys.trader(me));
-    const bal = (t: Address) => rc.readContract({ address: t, abi: MohurTestTokenAbi, functionName: "balanceOf", args: [me] }) as Promise<bigint>;
-    const allowance = (t: Address) => rc.readContract({ address: t, abi: MohurTestTokenAbi, functionName: "allowance", args: [me, d.loopRouter] }) as Promise<bigint>;
+    const bal = (t: Address) => rc.readContract({ address: t, abi: UnisonTestTokenAbi, functionName: "balanceOf", args: [me] }) as Promise<bigint>;
+    const allowance = (t: Address) => rc.readContract({ address: t, abi: UnisonTestTokenAbi, functionName: "allowance", args: [me, d.loopRouter] }) as Promise<bigint>;
     setRunning(id);
     setErr(undefined);
     try {
@@ -81,7 +81,7 @@ export default function DemoPage() {
         let minted = 0;
         for (const t of [tok.usdc, tok.weth, tok.wbtc]) {
           if ((await bal(t)) > 0n) continue; // idempotent: already holding
-          await w.write({ address: t, abi: MohurTestTokenAbi, functionName: "faucet", label: "Get test tokens" });
+          await w.write({ address: t, abi: UnisonTestTokenAbi, functionName: "faucet", label: "Get test tokens" });
           minted++;
         }
         const u = await bal(tok.usdc);
@@ -90,7 +90,7 @@ export default function DemoPage() {
         let sent = 0;
         for (const t of [tok.usdc, tok.weth]) {
           if ((await allowance(t)) > 10n ** 30n) continue;
-          await w.write({ address: t, abi: MohurTestTokenAbi, functionName: "approve", args: [d.loopRouter, maxUint256], label: "Approve router" });
+          await w.write({ address: t, abi: UnisonTestTokenAbi, functionName: "approve", args: [d.loopRouter, maxUint256], label: "Approve router" });
           sent++;
         }
         save(id, { done: true, skipped: sent === 0, text: sent ? `${sent} approval(s) sent` : "already approved" });
@@ -104,7 +104,7 @@ export default function DemoPage() {
         const out = venue === 0 ? q.v4Out : q.aquaOut;
         const tx = await w.write({
           address: d.loopRouter,
-          abi: MohurLoopRouterAbi,
+          abi: UnisonLoopRouterAbi,
           functionName: "execute",
           args: [hook, [tok.usdc, tok.weth], [venue], TRADE, (out * 995n) / 1000n, me],
           label: id === "v4" ? "Demo trade on Uniswap v4" : "Demo trade on 1inch Aqua",

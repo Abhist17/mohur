@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/// @notice The single pricing surface both venues call. Implemented by MohurHook.
-interface IMohurPricer {
+/// @notice The single pricing surface both venues call. Implemented by UnisonHook.
+interface IUnisonPricer {
     /// @notice The wallet whose real balances back every quote.
     function maker() external view returns (address);
 
@@ -14,7 +14,7 @@ interface IMohurPricer {
         returns (uint256 amountIn, uint256 amountOut);
 
     /// @notice Like quote(), for a real 1inch fill: also locks quoting until the fill's coins have moved.
-    ///         Only callable by the Mohur SwapVM router.
+    ///         Only callable by the Unison SwapVM router.
     function quoteAndLock(address tokenIn, address tokenOut, uint256 amount, bool isExactIn)
         external
         returns (uint256 amountIn, uint256 amountOut);

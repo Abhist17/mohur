@@ -6,7 +6,7 @@ wallet's **real** balances, through the same function Unison's Uniswap v4 hook u
 ## Encoding
 
 ```
-[0xd0][0x14][pricer: 20 bytes]          # pricer = the maker's MohurHook (IMohurPricer)
+[0xd0][0x14][pricer: 20 bytes]          # pricer = the maker's UnisonHook (IUnisonPricer)
 ```
 
 A Unison strategy program is `[Salt (0x02, optional)] ++ [PortfolioPrice(hook)]`. The order uses
@@ -19,7 +19,7 @@ SwapVM pre-loads this strategy's Aqua virtual balances into `ctx.swap.balanceIn 
 instruction:
 
 1. checks `pricer.maker() == ctx.query.maker`: an order cannot point at someone else's wallet;
-2. prices the trade with MohurMath over the wallet's ERC-20 balances plus Uniswap input still held as claims:
+2. prices the trade with UnisonMath over the wallet's ERC-20 balances plus Uniswap input still held as claims:
    `pricer.quote(...)` for a quote (static call), and `pricer.quoteAndLock(...)` for a real fill, which also
    sets a transient **fill lock** (see below);
 3. requires `amountOut <= ctx.swap.balanceOut`, so **Aqua's virtual balance is this venue's selling limit**;
@@ -35,7 +35,7 @@ trade on the Uniswap venue (or another 1inch pair) inside that window priced off
 balances: the PoC took $752.92 from the maker. Now:
 
 - `quoteAndLock` is callable only by the trusted router (immutable on the hook) and sets a transient lock;
-- `MohurHook.quote` reverts with `FillInProgress` while the lock is set, so both venues stop pricing;
+- `UnisonHook.quote` reverts with `FillInProgress` while the lock is set, so both venues stop pricing;
 - Unison orders carry `postTransferIn` / `postTransferOut` maker hooks targeting the hook (router-only,
   maker-checked); the lock clears after **both** transfers;
 - it fails closed: an order without the hooks keeps the lock for the rest of the transaction.
@@ -44,10 +44,10 @@ Details and tests: [AUDIT.md](../AUDIT.md), `test/audit/CrossVenueReentrancy.t.s
 
 ## Why a shared `quote()` on the hook
 
-Putting MohurMath inside the router pushes it over the 24 KB limit. Calling the hook keeps the router at
+Putting UnisonMath inside the router pushes it over the 24 KB limit. Calling the hook keeps the router at
 22.8 KB (of 24 KB) and makes "same price on both venues" true by construction: there is literally one function.
 
 ## Router
 
-`MohurSwapVMRouter` is the official `AquaSwapVMRouter` with `_runOpcode` overridden for one opcode in the
+`UnisonSwapVMRouter` is the official `AquaSwapVMRouter` with `_runOpcode` overridden for one opcode in the
 unallocated `0xd0–0xef` bank; every stock opcode dispatches exactly as upstream.

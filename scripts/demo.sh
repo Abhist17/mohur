@@ -76,7 +76,7 @@ say "  ${D}Local fork only: reads here go straight to the node. On Base Sepolia 
 step "Starting the app (local fork mode) on http://localhost:3000"
 cd "$ROOT/web"
 if ! curl -s -o /dev/null http://localhost:3000; then
-  (NEXT_PUBLIC_MOHUR_NETWORK=local setsid nohup npx next dev -p 3000 > /tmp/mohur-web.log 2>&1 &)
+  (NEXT_PUBLIC_UNISON_NETWORK=local setsid nohup npx next dev -p 3000 > /tmp/unison-web.log 2>&1 &)
   for i in $(seq 1 60); do curl -s -o /dev/null http://localhost:3000 && break; sleep 1; done
 fi
 URL="http://localhost:3000/book?index=$HOOK"

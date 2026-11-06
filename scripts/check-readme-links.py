@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PIN = ROOT / "scripts" / "readme-links.json"
-LINK = re.compile(r"\[([^\]]+)\]\(https://github\.com/Abhist17/mohur/blob/main/([^)#]+)#L(\d+)\)")
+LINK = re.compile(r"\[([^\]]+)\]\(https://github\.com/Abhist17/unison/blob/main/([^)#]+)#L(\d+)\)")
 
 def target(path: str, line: int) -> str:
     lines = (ROOT / path).read_text().split("\n")

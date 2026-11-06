@@ -6,7 +6,7 @@ import { NETWORK } from "@/lib/config";
 import { asset } from "./VenueMark";
 
 const SCREENS = ["swap", "explore", "book", "my", "arbitrage", "demo", "share", "launch"];
-const DOC = "https://github.com/Abhist17/mohur/blob/main/docs/explained.md";
+const DOC = "https://github.com/Abhist17/unison/blob/main/docs/explained.md";
 
 /** Shown on chain screens when this build has no contract addresses for its network. Says so plainly, shows how to
  *  run everything locally, and previews the screen with a screenshot from the automated test run (labelled as such). */
@@ -24,8 +24,8 @@ export function NotDeployed() {
         <div className="card stack">
           <h3>Run it yourself</h3>
           <pre className="mono" style={{ margin: 0, padding: 12, background: "var(--bg-2)", borderRadius: "var(--radius-sm)", overflowX: "auto", fontSize: 13 }}>
-{`git clone https://github.com/Abhist17/mohur
-cd mohur && ./scripts/demo.sh`}
+{`git clone https://github.com/Abhist17/unison
+cd unison && ./scripts/demo.sh`}
           </pre>
           <p className="muted" style={{ margin: 0, fontSize: 14 }}>
             Forks Base Sepolia, deploys, launches a 40/30/30 index, trades on both venues, prints the numbers and opens this app.

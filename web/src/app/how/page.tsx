@@ -24,7 +24,7 @@ export default function How() {
         <div className="eyebrow">How Unison works</div>
         <h1 style={{ fontSize: "clamp(40px, 6vw, 72px)", marginTop: 10 }}>One wallet. One price. Every venue.</h1>
         <p className="lead" style={{ marginTop: 16 }}>The whole idea in 11 lines. Tap any one for more.</p>
-        <p style={{ marginTop: 8, fontSize: 14 }}><a className="accent" href="https://github.com/Abhist17/mohur/blob/main/docs/explained.md" target="_blank" rel="noreferrer">The long version, with diagrams ↗</a></p>
+        <p style={{ marginTop: 8, fontSize: 14 }}><a className="accent" href="https://github.com/Abhist17/unison/blob/main/docs/explained.md" target="_blank" rel="noreferrer">The long version, with diagrams ↗</a></p>
       </div>
 
       <Concept caption={<><b>One stockroom, two stalls.</b> One shelf, so one price.</>} />
@@ -134,7 +134,7 @@ export default function How() {
 
       <Section n="10" title="Why “Unison”" tldr="Both venues move in unison: one price, at the same moment.">
         In music, unison means every voice on the same note at the same time. Unison makes Uniswap and 1inch quote the same price at the
-        same moment, from the same wallet. (The contracts keep the project&apos;s first name, Mohur, a Mughal gold coin.)
+        same moment, from the same wallet.
       </Section>
 
       <div className="row" style={{ marginTop: 32 }}>

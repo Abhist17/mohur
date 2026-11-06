@@ -1,6 +1,6 @@
 # Uniswap v4 developer feedback (from building Unison)
 
-Unison's `MohurHook` is a custom-curve hook that prices from, and settles to, an external wallet
+Unison's `UnisonHook` is a custom-curve hook that prices from, and settles to, an external wallet
 (through 1inch Aqua) instead of pool liquidity. Notes from building it on 5–6 Nov 2026:
 
 ## What worked well

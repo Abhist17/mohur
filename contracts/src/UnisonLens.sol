@@ -5,14 +5,14 @@ import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/I
 import { IAqua } from "@1inch/aqua/contracts/interfaces/IAqua.sol";
 import { ISwapVM } from "@1inch/swap-vm/contracts/interfaces/ISwapVM.sol";
 
-import { MohurHook } from "./MohurHook.sol";
-import { MohurMath } from "./libraries/MohurMath.sol";
-import { MohurStrategy } from "./aqua/MohurStrategy.sol";
+import { UnisonHook } from "./UnisonHook.sol";
+import { UnisonMath } from "./libraries/UnisonMath.sol";
+import { UnisonStrategy } from "./aqua/UnisonStrategy.sol";
 
-/// @title MohurLens
+/// @title UnisonLens
 /// @notice Read helper for the dashboard: the exact strategy bytes to ship, the whole book in one call,
 ///         quotes from both venues, and exact multi-leg route quotes. Stateless; one deployment serves all makers.
-contract MohurLens {
+contract UnisonLens {
     struct TokenView {
         address token;
         string symbol;
@@ -47,23 +47,23 @@ contract MohurLens {
     // Strategy bytes (what the Launch screen ships)
     // ------------------------------------------------------------------------------------------
 
-    function v4Strategy(MohurHook hook, uint256 nonce) external view returns (bytes memory) {
+    function v4Strategy(UnisonHook hook, uint256 nonce) external view returns (bytes memory) {
         return hook.strategy(nonce);
     }
 
-    function aquaOrder(MohurHook hook, address tokenA, address tokenB, uint64 salt)
+    function aquaOrder(UnisonHook hook, address tokenA, address tokenB, uint64 salt)
         public
         view
         returns (ISwapVM.Order memory order, bytes memory strategy, bytes32 strategyHash)
     {
-        order = MohurStrategy.order(hook.maker(), address(hook), tokenA, tokenB, salt);
-        strategy = MohurStrategy.strategyBytes(order);
+        order = UnisonStrategy.order(hook.maker(), address(hook), tokenA, tokenB, salt);
+        strategy = UnisonStrategy.strategyBytes(order);
         strategyHash = keccak256(strategy);
     }
 
     /// @notice The pair's order for the hook's current epoch (venueNonce doubles as the Aqua order salt, so
     ///         re-shipping after a pause or top-up only needs setVenueNonce(n + 1)).
-    function activeAquaOrder(MohurHook hook, address tokenA, address tokenB)
+    function activeAquaOrder(UnisonHook hook, address tokenA, address tokenB)
         public
         view
         returns (ISwapVM.Order memory order, bytes memory strategy, bytes32 strategyHash)
@@ -75,7 +75,7 @@ contract MohurLens {
     // The book
     // ------------------------------------------------------------------------------------------
 
-    function book(MohurHook hook, address swapVM) external view returns (Book memory b) {
+    function book(UnisonHook hook, address swapVM) external view returns (Book memory b) {
         IAqua aqua = hook.aqua();
         address maker = hook.maker();
         address[] memory ts = hook.tokens();
@@ -117,7 +117,7 @@ contract MohurLens {
         }
     }
 
-    function _try(MohurHook hook, address a, address b) internal view returns (uint256 p) {
+    function _try(UnisonHook hook, address a, address b) internal view returns (uint256 p) {
         try hook.price(a, b) returns (uint256 v) {
             p = v;
         } catch { }
@@ -132,7 +132,7 @@ contract MohurLens {
         pure
         returns (uint256)
     {
-        return MohurMath.spotPrice(balanceI, weightI, balanceJ, weightJ);
+        return UnisonMath.spotPrice(balanceI, weightI, balanceJ, weightJ);
     }
 
     function previewOutGivenIn(
@@ -143,7 +143,7 @@ contract MohurLens {
         uint256 amountIn,
         uint256 fee
     ) external pure returns (uint256) {
-        return MohurMath.outGivenIn(balanceIn, weightIn, balanceOut, weightOut, amountIn, fee);
+        return UnisonMath.outGivenIn(balanceIn, weightIn, balanceOut, weightOut, amountIn, fee);
     }
 
     // ------------------------------------------------------------------------------------------
@@ -152,7 +152,7 @@ contract MohurLens {
 
     /// @notice Quote the same trade on both venues in one eth_call. ok=false if that venue would refuse
     ///         (e.g. venue limit or 30% trade bound). Not `view` because SwapVM.quote is not.
-    function quoteBoth(MohurHook hook, ISwapVM swapVM, address tokenIn, address tokenOut, uint256 amount, bool exactIn)
+    function quoteBoth(UnisonHook hook, ISwapVM swapVM, address tokenIn, address tokenOut, uint256 amount, bool exactIn)
         external
         returns (uint256 v4In, uint256 v4Out, bool v4Ok, uint256 aquaIn, uint256 aquaOut, bool aquaOk)
     {
@@ -170,13 +170,13 @@ contract MohurLens {
     ///         from the same balances with the same formula, the venue choice only matters for the venue
     ///         limit, which is checked per leg. venues[k]: 0 = Uniswap v4, 1 = 1inch Aqua.
     struct RouteCtx {
-        MohurHook hook;
+        UnisonHook hook;
         address swapVM;
         uint256 fee;
         uint256[] bal; // running balances per path position (shared by repeated tokens)
     }
 
-    function quoteRoute(MohurHook hook, address swapVM, address[] calldata path, uint8[] calldata venues, uint256 amountIn)
+    function quoteRoute(UnisonHook hook, address swapVM, address[] calldata path, uint8[] calldata venues, uint256 amountIn)
         external
         view
         returns (uint256[] memory amounts, bool withinLimits)
@@ -211,18 +211,18 @@ contract MohurLens {
         ok = _withinLimit(r.hook, r.swapVM, venue, tIn, tOut, out);
     }
 
-    function _out(MohurHook hook, address tIn, address tOut, uint256 bIn, uint256 bOut, uint256 a, uint256 fee)
+    function _out(UnisonHook hook, address tIn, address tOut, uint256 bIn, uint256 bOut, uint256 a, uint256 fee)
         internal
         view
         returns (uint256)
     {
         (,,, uint256 sIn) = hook.tokenInfo(tIn);
         (,,, uint256 sOut) = hook.tokenInfo(tOut);
-        uint256 o = MohurMath.outGivenIn(bIn * sIn, hook.weightOf(tIn), bOut * sOut, hook.weightOf(tOut), a * sIn, fee);
-        return MohurMath.fromScaledDown(o, sOut);
+        uint256 o = UnisonMath.outGivenIn(bIn * sIn, hook.weightOf(tIn), bOut * sOut, hook.weightOf(tOut), a * sIn, fee);
+        return UnisonMath.fromScaledDown(o, sOut);
     }
 
-    function _withinLimit(MohurHook hook, address swapVM, uint8 venue, address tIn, address tOut, uint256 out)
+    function _withinLimit(UnisonHook hook, address swapVM, uint8 venue, address tIn, address tOut, uint256 out)
         internal
         view
         returns (bool)
@@ -247,6 +247,6 @@ contract MohurLens {
     }
 
     function _takerData(address tokenIn, address tokenOut, bool exactIn) internal view returns (bytes memory) {
-        return MohurStrategy.takerData(address(this), tokenIn, tokenOut, exactIn);
+        return UnisonStrategy.takerData(address(this), tokenIn, tokenOut, exactIn);
     }
 }

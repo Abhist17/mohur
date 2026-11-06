@@ -7,18 +7,18 @@ import { PoolKey } from "v4-core/types/PoolKey.sol";
 import { Currency } from "v4-core/types/Currency.sol";
 import { ModifyLiquidityParams } from "v4-core/types/PoolOperation.sol";
 
-import { MohurHook } from "../src/MohurHook.sol";
-import { MohurTestToken } from "../src/MohurTestToken.sol";
+import { UnisonHook } from "../src/UnisonHook.sol";
+import { UnisonTestToken } from "../src/UnisonTestToken.sol";
 import { HookMiner } from "../src/libraries/HookMiner.sol";
-import { MohurFixture } from "./utils/MohurFixture.sol";
+import { UnisonFixture } from "./utils/UnisonFixture.sol";
 
-contract MohurHookTest is MohurFixture {
+contract UnisonHookTest is UnisonFixture {
     function setUp() public {
-        setUpMohur();
+        setUpUnison();
     }
 
-    function test_hookAddressHasExactlyMohurFlags() public view {
-        assertEq(uint160(address(hook)) & HookMiner.FLAG_MASK, HookMiner.MOHUR_FLAGS);
+    function test_hookAddressHasExactlyUnisonFlags() public view {
+        assertEq(uint160(address(hook)) & HookMiner.FLAG_MASK, HookMiner.UNISON_FLAGS);
         assertEq(hook.maker(), maker);
         assertEq(factory.hookOf(maker), address(hook));
     }
@@ -91,12 +91,12 @@ contract MohurHookTest is MohurFixture {
     function test_revert_addLiquidity() public {
         PoolKey memory key = poolKey(address(weth), address(usdc));
         vm.prank(address(manager));
-        vm.expectRevert(MohurHook.LiquidityNotAccepted.selector);
+        vm.expectRevert(UnisonHook.LiquidityNotAccepted.selector);
         hook.beforeAddLiquidity(address(this), key, ModifyLiquidityParams(-60, 60, 1e18, 0), "");
     }
 
     function test_revert_onlyMakerCreatesPools_onlyIndexTokens() public {
-        MohurTestToken other = new MohurTestToken("x", "X", 18, 0);
+        UnisonTestToken other = new UnisonTestToken("x", "X", 18, 0);
         (address t0, address t1) = _sort(address(other), address(usdc));
         PoolKey memory key = PoolKey(Currency.wrap(t0), Currency.wrap(t1), 0, 10, IHooks(address(hook)));
         vm.prank(maker);
@@ -111,7 +111,7 @@ contract MohurHookTest is MohurFixture {
     }
 
     function test_revert_onlyMakerConfigures() public {
-        vm.expectRevert(MohurHook.NotMaker.selector);
+        vm.expectRevert(UnisonHook.NotMaker.selector);
         hook.setIndex(tokens, weights, FEE);
     }
 
@@ -137,7 +137,7 @@ contract MohurHookTest is MohurFixture {
         w2[0] = 0.5e18;
         w2[1] = 0.5e18;
         vm.prank(maker);
-        vm.expectRevert(abi.encodeWithSelector(MohurHook.PendingClaims.selector, address(usdc)));
+        vm.expectRevert(abi.encodeWithSelector(UnisonHook.PendingClaims.selector, address(usdc)));
         hook.setIndex(t2, w2, FEE);
         hook.flush();
         vm.prank(maker);

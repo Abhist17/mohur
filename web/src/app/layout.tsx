@@ -12,7 +12,7 @@ const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 const display = Fraunces({ subsets: ["latin"], variable: "--font-display", weight: ["500", "600", "700"] });
 
 // set the theme before first paint (saved choice, else the system setting) so there is no flash
-const THEME_SCRIPT = `try{var t=localStorage.getItem("mohur-theme");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="light"}`;
+const THEME_SCRIPT = `try{var t=localStorage.getItem("unison-theme");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="light"}`;
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const DESCRIPTION =
@@ -61,7 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Link href="/how">How it works</Link>
                 <Link href="/privacy">Privacy</Link>
                 <Link href="/docs">Docs</Link>
-                <a href="https://github.com/Abhist17/mohur" target="_blank" rel="noreferrer">Source code ↗</a>
+                <a href="https://github.com/Abhist17/unison" target="_blank" rel="noreferrer">Source code ↗</a>
               </div>
               <div className="foot-col">
                 <b>Built on</b>

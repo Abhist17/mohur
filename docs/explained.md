@@ -19,7 +19,7 @@ Every part of Unison in plain words, with a picture for each. If you only have a
 14. [Every screen](#14-every-screen)
 15. [Every contract](#15-every-contract)
 16. [How we know it works](#16-how-we-know-it-works)
-17. [What Unison does not do](#17-what-mohur-does-not-do)
+17. [What Unison does not do](#17-what-unison-does-not-do)
 18. [Glossary](#18-glossary)
 
 ---
@@ -39,9 +39,9 @@ On top of that, watching your own positions through a normal RPC provider tells 
 
 ```mermaid
 flowchart LR
-    T1([Trader on Uniswap]) --> U[Uniswap v4 stall<br/>MohurHook]
+    T1([Trader on Uniswap]) --> U[Uniswap v4 stall<br/>UnisonHook]
     T2([Trader on 1inch]) --> A[1inch Aqua stall<br/>SwapVM opcode 0xd0]
-    U -- "asks the price" --> P{{One price rule<br/>MohurMath over the<br/>wallet's real balances}}
+    U -- "asks the price" --> P{{One price rule<br/>UnisonMath over the<br/>wallet's real balances}}
     A -- "asks the price" --> P
     P -. reads .-> W[(Maker's wallet<br/>40% ETH · 30% BTC · 30% USDC)]
     U -- "coins move via Aqua" --> W
@@ -74,7 +74,7 @@ sequenceDiagram
     autonumber
     participant T as Trader (any v4 router)
     participant PM as Uniswap PoolManager
-    participant H as MohurHook
+    participant H as UnisonHook
     participant AQ as 1inch Aqua
     participant W as Maker wallet
     T->>PM: swap 1,000 USDC for ETH
@@ -101,9 +101,9 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant T as Taker (1inch)
-    participant VM as MohurSwapVMRouter
+    participant VM as UnisonSwapVMRouter
     participant PP as PortfolioPrice (0xd0)
-    participant H as MohurHook
+    participant H as UnisonHook
     participant AQ as 1inch Aqua
     participant W as Maker wallet
     T->>VM: swap(order, 1,000 USDC)
@@ -194,7 +194,7 @@ The Create and Launch pages turn any wallet into an index in six transactions, a
 5. **Open the Uniswap pools and ship the Uniswap venue to Aqua.**
 6. **Ship the 1inch strategy for each pair.**
 
-The Create page's preview comes from the contracts' own math (`MohurLens.previewSpot` / `previewOutGivenIn`), not a JavaScript copy.
+The Create page's preview comes from the contracts' own math (`UnisonLens.previewSpot` / `previewOutGivenIn`), not a JavaScript copy.
 
 ## 12. Safety: the fill lock
 
@@ -203,7 +203,7 @@ Our own review found one critical bug (C-1 in [AUDIT.md](../AUDIT.md)), and it i
 ```mermaid
 sequenceDiagram
     participant VM as 1inch fill
-    participant H as MohurHook
+    participant H as UnisonHook
     participant U as Uniswap trade (nested)
     VM->>H: quoteAndLock() → lock ON
     VM->>U: taker callback tries a second trade
@@ -259,20 +259,20 @@ flowchart LR
 
 | Contract | One line |
 |---|---|
-| `MohurMath` | The price rule, rounding toward the maker; trades capped at 30% of a balance |
-| `MohurHook` | Uniswap v4 hook: prices from the wallet, pays out via Aqua, holds input as claims, fill lock, gradual weights |
-| `MohurHookFactory` | One hook per maker at a CREATE2 address with the right permission bits |
+| `UnisonMath` | The price rule, rounding toward the maker; trades capped at 30% of a balance |
+| `UnisonHook` | Uniswap v4 hook: prices from the wallet, pays out via Aqua, holds input as claims, fill lock, gradual weights |
+| `UnisonHookFactory` | One hook per maker at a CREATE2 address with the right permission bits |
 | `PortfolioPrice` | SwapVM opcode `0xd0`: 1inch fills priced by the hook, venue limit enforced |
-| `MohurSwapVMRouter` | Official AquaSwapVMRouter plus that one opcode |
-| `MohurStrategy` | Builds the 1inch order (with the unlock hooks) that the wallet ships to Aqua |
-| `MohurLens` | Read helper: whole book in one call, quotes on both venues, route quotes, previews |
-| `MohurLoopRouter` | Multi-leg trades across both venues in one transaction (used by Swap, Arbitrage and Demo) |
+| `UnisonSwapVMRouter` | Official AquaSwapVMRouter plus that one opcode |
+| `UnisonStrategy` | Builds the 1inch order (with the unlock hooks) that the wallet ships to Aqua |
+| `UnisonLens` | Read helper: whole book in one call, quotes on both venues, route quotes, previews |
+| `UnisonLoopRouter` | Multi-leg trades across both venues in one transaction (used by Swap, Arbitrage and Demo) |
 
 **What it costs** (`Gas.t.sol`, measured inside a Foundry test, before refunds, excluding the 21,000 base cost of a transaction):
 
 | Action | Gas |
 |---|---|
-| Swap on Uniswap v4 through MohurHook (including the test router) | ~290k |
+| Swap on Uniswap v4 through UnisonHook (including the test router) | ~290k |
 | Fill on 1inch Aqua through opcode `0xd0` | ~216k |
 | `flush()`: move Uniswap claims into the wallet | ~143k |
 | `quote()`: the price both venues use | ~52k |

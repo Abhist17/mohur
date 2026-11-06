@@ -13,18 +13,18 @@ import { TickMath } from "v4-core/libraries/TickMath.sol";
 
 import { ISwapVM } from "@1inch/swap-vm/contracts/interfaces/ISwapVM.sol";
 
-import { IMohurPricer } from "./interfaces/IMohurPricer.sol";
-import { MohurPools } from "./libraries/MohurPools.sol";
-import { MohurStrategy } from "./aqua/MohurStrategy.sol";
+import { IUnisonPricer } from "./interfaces/IUnisonPricer.sol";
+import { UnisonPools } from "./libraries/UnisonPools.sol";
+import { UnisonStrategy } from "./aqua/UnisonStrategy.sol";
 
-interface IMohurEpoch {
+interface IUnisonEpoch {
     function venueNonce() external view returns (uint256);
 }
 
-/// @title MohurLoopRouter
-/// @notice Runs a multi-leg exact-in route across both venues of one Mohur wallet in a single transaction
+/// @title UnisonLoopRouter
+/// @notice Runs a multi-leg exact-in route across both venues of one Unison wallet in a single transaction
 ///         (the "Arbitrage me" demo). venues[k]: 0 = Uniswap v4 (through the real PoolManager), 1 = 1inch Aqua.
-contract MohurLoopRouter is IUnlockCallback {
+contract UnisonLoopRouter is IUnlockCallback {
     using SafeERC20 for IERC20;
 
     IPoolManager public immutable poolManager;
@@ -90,7 +90,7 @@ contract MohurLoopRouter is IUnlockCallback {
     function _v4(address hook, address tokenIn, address tokenOut, uint256 amount) internal returns (uint256 out) {
         bool zeroForOne = tokenIn < tokenOut;
         BalanceDelta d = poolManager.swap(
-            MohurPools.key(hook, tokenIn, tokenOut),
+            UnisonPools.key(hook, tokenIn, tokenOut),
             SwapParams({
                 zeroForOne: zeroForOne,
                 amountSpecified: -int256(amount),
@@ -109,8 +109,8 @@ contract MohurLoopRouter is IUnlockCallback {
 
     function _aqua(address hook, address tokenIn, address tokenOut, uint256 amount) internal returns (uint256 out) {
         ISwapVM.Order memory o =
-            MohurStrategy.order(IMohurPricer(hook).maker(), hook, tokenIn, tokenOut, uint64(IMohurEpoch(hook).venueNonce()));
+            UnisonStrategy.order(IUnisonPricer(hook).maker(), hook, tokenIn, tokenOut, uint64(IUnisonEpoch(hook).venueNonce()));
         IERC20(tokenIn).forceApprove(address(swapVM), amount);
-        (, out,) = swapVM.swap(o, amount, MohurStrategy.takerData(address(this), tokenIn, tokenOut, true));
+        (, out,) = swapVM.swap(o, amount, UnisonStrategy.takerData(address(this), tokenIn, tokenOut, true));
     }
 }

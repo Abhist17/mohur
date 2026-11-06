@@ -7,7 +7,7 @@ export const DEFAULT_DRAFT: Draft = { weights: { tWETH: 40, tWBTC: 30, tUSDC: 30
 
 export function loadDraft(): Draft {
   try {
-    const s = localStorage.getItem("mohur.draft");
+    const s = localStorage.getItem("unison.draft");
     if (s) return JSON.parse(s);
   } catch {}
   return DEFAULT_DRAFT;
@@ -15,7 +15,7 @@ export function loadDraft(): Draft {
 
 export function saveDraft(d: Draft) {
   try {
-    localStorage.setItem("mohur.draft", JSON.stringify(d));
+    localStorage.setItem("unison.draft", JSON.stringify(d));
   } catch {}
 }
 

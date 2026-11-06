@@ -64,7 +64,7 @@ test("live book: identical quotes per pair, a fill on one venue moves the other,
   await expect.poll(async () => (await quotes(page))[ETHUSDC]?.v4).not.toBe(q1[ETHUSDC].v4);
   for (const [pair, q] of Object.entries(await quotes(page))) expect(q.v4, pair).toBe(q.aqua);
 
-  // venue limits on screen equal what MohurLens reports on-chain
+  // venue limits on screen equal what UnisonLens reports on-chain
   const d = deployments();
   const hookAbi = parseAbi(["function venueLimit(address) view returns (uint256)"]);
   for (const r of await page.getByTestId("limit-row").all()) {

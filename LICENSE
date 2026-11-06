@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Abhist (Mohur)
+Copyright (c) 2026 Abhist (Unison)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,5 +22,5 @@ SOFTWARE.
 
 ---
 Third-party code keeps its own license: Balancer's LogExpMath (MIT, contracts/src/libraries/LogExpMath.sol);
-1inch swap-vm and aqua (their own licenses, in contracts/lib); Uniswap v4 (in contracts/lib). MohurSwapVMRouter
+1inch swap-vm and aqua (their own licenses, in contracts/lib); Uniswap v4 (in contracts/lib). UnisonSwapVMRouter
 extends 1inch's AquaSwapVMRouter and is subject to the SwapVM license for that part.

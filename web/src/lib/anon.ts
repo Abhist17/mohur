@@ -68,7 +68,7 @@ let workerPromise: Promise<AnonWorker> | undefined;
 
 function storedWorker(): WorkerId {
   try {
-    const w = localStorage.getItem("mohur.worker") as WorkerId | null;
+    const w = localStorage.getItem("unison.worker") as WorkerId | null;
     if (w && w in WORKERS) return w;
   } catch {}
   return DEFAULT_WORKER;
@@ -155,12 +155,12 @@ export function startWorker(id: WorkerId = storedWorker(), isFallback = false): 
  * as not private). retryPrivate() goes back to the anonymity networks.
  */
 export function allowDirect() {
-  try { sessionStorage.setItem("mohur.direct", "1"); } catch {}
+  try { sessionStorage.setItem("unison.direct", "1"); } catch {}
   status = { ...status, direct: true };
   emit();
 }
 export function retryPrivate() {
-  try { sessionStorage.removeItem("mohur.direct"); } catch {}
+  try { sessionStorage.removeItem("unison.direct"); } catch {}
   status = { ...status, direct: false };
   workerPromise = undefined;
   generation++;
@@ -168,13 +168,13 @@ export function retryPrivate() {
 }
 function directAllowed() {
   if (status.direct) return true;
-  try { if (sessionStorage.getItem("mohur.direct") === "1") { status = { ...status, direct: true }; return true; } } catch {}
+  try { if (sessionStorage.getItem("unison.direct") === "1") { status = { ...status, direct: true }; return true; } } catch {}
   return false;
 }
 
 export function switchWorker(id: WorkerId) {
   try {
-    localStorage.setItem("mohur.worker", id);
+    localStorage.setItem("unison.worker", id);
   } catch {}
   workerPromise = undefined;
   return startWorker(id, true);

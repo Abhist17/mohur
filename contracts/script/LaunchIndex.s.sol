@@ -7,20 +7,20 @@ import { IPoolManager } from "v4-core/interfaces/IPoolManager.sol";
 import { Aqua } from "@1inch/aqua/contracts/Aqua.sol";
 import { ISwapVM } from "@1inch/swap-vm/contracts/interfaces/ISwapVM.sol";
 
-import { MohurHook } from "../src/MohurHook.sol";
-import { MohurHookFactory } from "../src/MohurHookFactory.sol";
-import { MohurTestToken } from "../src/MohurTestToken.sol";
-import { MohurStrategy } from "../src/aqua/MohurStrategy.sol";
+import { UnisonHook } from "../src/UnisonHook.sol";
+import { UnisonHookFactory } from "../src/UnisonHookFactory.sol";
+import { UnisonTestToken } from "../src/UnisonTestToken.sol";
+import { UnisonStrategy } from "../src/aqua/UnisonStrategy.sol";
 import { HookMiner } from "../src/libraries/HookMiner.sol";
-import { MohurPools } from "../src/libraries/MohurPools.sol";
-import { MohurScriptBase } from "./MohurScriptBase.sol";
+import { UnisonPools } from "../src/libraries/UnisonPools.sol";
+import { UnisonScriptBase } from "./UnisonScriptBase.sol";
 
 /// @notice Launches a 40/30/30 tWETH/tWBTC/tUSDC index from the broadcaster's wallet (the maker):
 ///         deploy own hook (mined address), faucet tokens, approve Aqua only, set weights, ship the Uniswap venue
 ///         (50% of each balance) and three 1inch Aqua strategies (25% per pair), open three v4 pools.
-contract LaunchIndex is MohurScriptBase {
+contract LaunchIndex is UnisonScriptBase {
     function run() external {
-        MohurHookFactory factory = MohurHookFactory(readDeployment("hookFactory"));
+        UnisonHookFactory factory = UnisonHookFactory(readDeployment("hookFactory"));
         Aqua aqua = Aqua(readDeployment("aqua"));
         address swapVM = readDeployment("swapVM");
         IPoolManager pm = IPoolManager(readDeployment("poolManager"));
@@ -35,11 +35,11 @@ contract LaunchIndex is MohurScriptBase {
 
         vm.startBroadcast();
         address maker = broadcaster();
-        (, bytes32 salt) = HookMiner.find(address(factory), factory.initCodeHash(maker), HookMiner.MOHUR_FLAGS, 0);
-        MohurHook hook = MohurHook(factory.deploy(salt));
+        (, bytes32 salt) = HookMiner.find(address(factory), factory.initCodeHash(maker), HookMiner.UNISON_FLAGS, 0);
+        UnisonHook hook = UnisonHook(factory.deploy(salt));
 
         for (uint256 i; i < 3; ++i) {
-            MohurTestToken(ts[i]).faucet();
+            UnisonTestToken(ts[i]).faucet();
             IERC20(ts[i]).approve(address(aqua), type(uint256).max);
         }
         hook.setIndex(ts, w, 0.003e18);
@@ -52,7 +52,7 @@ contract LaunchIndex is MohurScriptBase {
 
         for (uint256 i; i < 3; ++i) {
             for (uint256 j = i + 1; j < 3; ++j) {
-                ISwapVM.Order memory o = MohurStrategy.order(maker, address(hook), ts[i], ts[j], 0);
+                ISwapVM.Order memory o = UnisonStrategy.order(maker, address(hook), ts[i], ts[j], 0);
                 (address t0, address t1) = ts[i] < ts[j] ? (ts[i], ts[j]) : (ts[j], ts[i]);
                 address[] memory pair = new address[](2);
                 pair[0] = t0;
@@ -60,8 +60,8 @@ contract LaunchIndex is MohurScriptBase {
                 uint256[] memory pa = new uint256[](2);
                 pa[0] = IERC20(t0).balanceOf(maker) / 4;
                 pa[1] = IERC20(t1).balanceOf(maker) / 4;
-                aqua.ship(swapVM, MohurStrategy.strategyBytes(o), pair, pa);
-                pm.initialize(MohurPools.key(address(hook), ts[i], ts[j]), MohurPools.SQRT_PRICE_1_1);
+                aqua.ship(swapVM, UnisonStrategy.strategyBytes(o), pair, pa);
+                pm.initialize(UnisonPools.key(address(hook), ts[i], ts[j]), UnisonPools.SQRT_PRICE_1_1);
             }
         }
         vm.stopBroadcast();

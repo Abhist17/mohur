@@ -1,22 +1,22 @@
 import { BaseError, ContractFunctionRevertedError, decodeErrorResult, parseAbi, type Abi, type Hex } from "viem";
 import {
   AquaAbi,
-  MohurHookAbi,
-  MohurHookFactoryAbi,
-  MohurLensAbi,
-  MohurLoopRouterAbi,
-  MohurSwapVMRouterAbi,
-  MohurTestTokenAbi,
+  UnisonHookAbi,
+  UnisonHookFactoryAbi,
+  UnisonLensAbi,
+  UnisonLoopRouterAbi,
+  UnisonSwapVMRouterAbi,
+  UnisonTestTokenAbi,
 } from "@/generated/abis";
 
 /** Every custom error from every Unison contract, so a revert anywhere in a call decodes by name. */
 export const ALL_ERRORS: Abi = [
-  ...MohurHookAbi,
-  ...MohurHookFactoryAbi,
-  ...MohurLensAbi,
-  ...MohurLoopRouterAbi,
-  ...MohurSwapVMRouterAbi,
-  ...MohurTestTokenAbi,
+  ...UnisonHookAbi,
+  ...UnisonHookFactoryAbi,
+  ...UnisonLensAbi,
+  ...UnisonLoopRouterAbi,
+  ...UnisonSwapVMRouterAbi,
+  ...UnisonTestTokenAbi,
   ...AquaAbi,
   // Uniswap v4's PoolManager wraps a hook's revert in WrappedError(target, selector, reason, details)
   ...parseAbi(["error WrappedError(address target, bytes4 selector, bytes reason, bytes details)"]),

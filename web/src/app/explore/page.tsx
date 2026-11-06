@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { NETWORK } from "@/lib/config";
-import { fmt, readIndexes, TOKEN_STYLE, units, type IndexCard } from "@/lib/mohur";
+import { fmt, readIndexes, TOKEN_STYLE, units, type IndexCard } from "@/lib/unison";
 import { useWallet } from "@/lib/wallet";
 import { NotDeployed } from "@/components/NotDeployed";
 import { TokenIcon } from "@/components/TokenIcon";

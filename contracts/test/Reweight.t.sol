@@ -2,16 +2,16 @@
 pragma solidity 0.8.30;
 
 import { console2 } from "forge-std/console2.sol";
-import { MohurHook } from "../src/MohurHook.sol";
-import { MohurFixture } from "./utils/MohurFixture.sol";
+import { UnisonHook } from "../src/UnisonHook.sol";
+import { UnisonFixture } from "./utils/UnisonFixture.sol";
 
 /// @notice Changing the allocation: gradual re-weighting (both venues glide together) vs an instant switch.
-contract ReweightTest is MohurFixture {
+contract ReweightTest is UnisonFixture {
     uint256 constant ETH_USD = 4_000e18;
     uint256 constant BTC_USD = 100_000e18;
 
     function setUp() public {
-        setUpMohur();
+        setUpUnison();
     }
 
     function _w(uint256 a, uint256 b, uint256 c) internal pure returns (uint256[] memory w) {
@@ -41,7 +41,7 @@ contract ReweightTest is MohurFixture {
     }
 
     function test_revert_onlyMakerSchedules() public {
-        vm.expectRevert(MohurHook.NotMaker.selector);
+        vm.expectRevert(UnisonHook.NotMaker.selector);
         hook.scheduleWeights(_w(0.5e18, 0.25e18, 0.25e18), 1000);
     }
 
@@ -90,7 +90,7 @@ contract ReweightTest is MohurFixture {
     }
 
     // --------------------------------------------------------------------------------------------
-    // A simple arbitrageur: while Mohur's price for a pair is off the market by more than the fee,
+    // A simple arbitrageur: while Unison's price for a pair is off the market by more than the fee,
     // trade a small clip in the profitable direction (alternating venues). Market prices are fixed.
     // --------------------------------------------------------------------------------------------
 
@@ -115,11 +115,11 @@ contract ReweightTest is MohurFixture {
                     uint256 p = hook.price(a, b); // b per a, 18 dec, decimal-normalised
                     uint256 mkt = _mkt(a) * 1e18 / _mkt(b);
                     if (p * 1004 / 1000 < mkt) {
-                        // a is cheap at Mohur: pay b, receive a
+                        // a is cheap at Unison: pay b, receive a
                         _trade(b, a, it);
                         traded = true;
                     } else if (p > mkt * 1004 / 1000) {
-                        // a is dear at Mohur: pay a, receive b
+                        // a is dear at Unison: pay a, receive b
                         _trade(a, b, it);
                         traded = true;
                     }

@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { encodeAbiParameters, keccak256, maxUint256, parseAbi, type Address, type Hex } from "viem";
-import { AquaAbi, MohurHookAbi, MohurHookFactoryAbi, MohurLensAbi, MohurTestTokenAbi } from "@/generated/abis";
+import { AquaAbi, UnisonHookAbi, UnisonHookFactoryAbi, UnisonLensAbi, UnisonTestTokenAbi } from "@/generated/abis";
 import { deployment, NETWORK } from "@/lib/config";
 import { keys, readClient } from "@/lib/anon";
-import { hookOf, mineHookSalt, TOKEN_STYLE } from "@/lib/mohur";
+import { hookOf, mineHookSalt, TOKEN_STYLE } from "@/lib/unison";
 import { loadDraft, type Draft } from "@/lib/draft";
 import { useWallet } from "@/lib/wallet";
 import { NotDeployed } from "@/components/NotDeployed";
@@ -60,14 +60,14 @@ export default function LaunchPage() {
     const h = await hookOf(w.account);
     setHook(h);
     if (h) st[0] = "done";
-    const bals = await Promise.all(tokens.map((t) => c.readContract({ address: t.a, abi: MohurTestTokenAbi, functionName: "balanceOf", args: [w.account!] }) as Promise<bigint>));
+    const bals = await Promise.all(tokens.map((t) => c.readContract({ address: t.a, abi: UnisonTestTokenAbi, functionName: "balanceOf", args: [w.account!] }) as Promise<bigint>));
     if (bals.every((b) => b > 0n)) st[1] = "done";
-    const allow = await Promise.all(tokens.map((t) => c.readContract({ address: t.a, abi: MohurTestTokenAbi, functionName: "allowance", args: [w.account!, d.aqua] }) as Promise<bigint>));
+    const allow = await Promise.all(tokens.map((t) => c.readContract({ address: t.a, abi: UnisonTestTokenAbi, functionName: "allowance", args: [w.account!, d.aqua] }) as Promise<bigint>));
     if (allow.every((a) => a > 0n)) st[2] = "done";
     if (h) {
-      const ts = (await c.readContract({ address: h, abi: MohurHookAbi, functionName: "tokens" })) as Address[];
+      const ts = (await c.readContract({ address: h, abi: UnisonHookAbi, functionName: "tokens" })) as Address[];
       if (ts.length === tokens.length) st[3] = "done";
-      const sh = (await c.readContract({ address: h, abi: MohurHookAbi, functionName: "strategyHash" })) as Hex;
+      const sh = (await c.readContract({ address: h, abi: UnisonHookAbi, functionName: "strategyHash" })) as Hex;
       const [, cnt] = (await c.readContract({ address: d.aqua, abi: AquaAbi, functionName: "rawBalances", args: [w.account, h, sh, tokens[0].a] })) as [bigint, number];
       let poolsOk = true;
       for (const p of pairs) {
@@ -79,7 +79,7 @@ export default function LaunchPage() {
       if (poolsOk && cnt > 0) st[4] = "done";
       let shipped = true;
       for (const p of pairs) {
-        const [, , hash] = (await c.readContract({ address: d.lens, abi: MohurLensAbi, functionName: "activeAquaOrder", args: [h, p[0], p[1]] })) as [unknown, Hex, Hex];
+        const [, , hash] = (await c.readContract({ address: d.lens, abi: UnisonLensAbi, functionName: "activeAquaOrder", args: [h, p[0], p[1]] })) as [unknown, Hex, Hex];
         const [, n] = (await c.readContract({ address: d.aqua, abi: AquaAbi, functionName: "rawBalances", args: [w.account, d.swapVM, hash, p[0]] })) as [bigint, number];
         if (n === 0) shipped = false;
       }
@@ -104,14 +104,14 @@ export default function LaunchPage() {
         setMsg("Mining a hook address with the right permission bits…");
         const { salt, address, tries } = await mineHookSalt(w.account, (n) => setMsg(`Mining hook address… ${n.toLocaleString()} salts tried`));
         setMsg(`Found ${address} after ${tries.toLocaleString()} tries. Deploying…`);
-        await w.write({ address: d.hookFactory, abi: MohurHookFactoryAbi, functionName: "deploy", args: [salt], label: "deploy hook" });
+        await w.write({ address: d.hookFactory, abi: UnisonHookFactoryAbi, functionName: "deploy", args: [salt], label: "deploy hook" });
       }
-      if (i === 1) for (const t of tokens) { setMsg(`Faucet ${t.s}…`); await w.write({ address: t.a, abi: MohurTestTokenAbi, functionName: "faucet", label: `faucet ${t.s}` }); }
-      if (i === 2) for (const t of tokens) { setMsg(`Approve Aqua for ${t.s}…`); await w.write({ address: t.a, abi: MohurTestTokenAbi, functionName: "approve", args: [d.aqua, maxUint256], label: `approve ${t.s}` }); }
+      if (i === 1) for (const t of tokens) { setMsg(`Faucet ${t.s}…`); await w.write({ address: t.a, abi: UnisonTestTokenAbi, functionName: "faucet", label: `faucet ${t.s}` }); }
+      if (i === 2) for (const t of tokens) { setMsg(`Approve Aqua for ${t.s}…`); await w.write({ address: t.a, abi: UnisonTestTokenAbi, functionName: "approve", args: [d.aqua, maxUint256], label: `approve ${t.s}` }); }
       if (i === 3) {
         setMsg("Setting weights…");
         const weights = tokens.map((t) => BigInt(draft.weights[t.s]) * 10n ** 16n);
-        await w.write({ address: hook!, abi: MohurHookAbi, functionName: "setIndex", args: [tokens.map((t) => t.a), weights, 3n * 10n ** 15n], label: "set weights" });
+        await w.write({ address: hook!, abi: UnisonHookAbi, functionName: "setIndex", args: [tokens.map((t) => t.a), weights, 3n * 10n ** 15n], label: "set weights" });
       }
       if (i === 4) {
         const h = hook!;
@@ -124,15 +124,15 @@ export default function LaunchPage() {
           await w.write({ address: d.poolManager, abi: pmAbi, functionName: "initialize", args: [poolKey(h, p), SQRT_PRICE_1_1], label: "open v4 pool" });
         }
         setMsg("Shipping the Uniswap venue's Aqua strategy…");
-        const nonce = (await c.readContract({ address: h, abi: MohurHookAbi, functionName: "venueNonce" })) as bigint;
-        const strat = (await c.readContract({ address: h, abi: MohurHookAbi, functionName: "strategy", args: [nonce] })) as Hex;
-        const amts = await Promise.all(tokens.map(async (t) => ((await c.readContract({ address: t.a, abi: MohurTestTokenAbi, functionName: "balanceOf", args: [w.account!] })) as bigint) / 2n));
+        const nonce = (await c.readContract({ address: h, abi: UnisonHookAbi, functionName: "venueNonce" })) as bigint;
+        const strat = (await c.readContract({ address: h, abi: UnisonHookAbi, functionName: "strategy", args: [nonce] })) as Hex;
+        const amts = await Promise.all(tokens.map(async (t) => ((await c.readContract({ address: t.a, abi: UnisonTestTokenAbi, functionName: "balanceOf", args: [w.account!] })) as bigint) / 2n));
         await w.write({ address: d.aqua, abi: AquaAbi, functionName: "ship", args: [h, strat, tokens.map((t) => t.a), amts], label: "ship Uniswap venue" });
       }
       if (i === 5) {
         for (const p of pairs) {
-          const [, strat] = (await c.readContract({ address: d.lens, abi: MohurLensAbi, functionName: "activeAquaOrder", args: [hook!, p[0], p[1]] })) as [unknown, Hex, Hex];
-          const amts = await Promise.all(p.map(async (a) => ((await c.readContract({ address: a, abi: MohurTestTokenAbi, functionName: "balanceOf", args: [w.account!] })) as bigint) / 4n));
+          const [, strat] = (await c.readContract({ address: d.lens, abi: UnisonLensAbi, functionName: "activeAquaOrder", args: [hook!, p[0], p[1]] })) as [unknown, Hex, Hex];
+          const amts = await Promise.all(p.map(async (a) => ((await c.readContract({ address: a, abi: UnisonTestTokenAbi, functionName: "balanceOf", args: [w.account!] })) as bigint) / 4n));
           setMsg("Shipping 1inch Aqua strategy…");
           await w.write({ address: d.aqua, abi: AquaAbi, functionName: "ship", args: [d.swapVM, strat, [p[0], p[1]], amts], label: "ship Aqua strategy" });
         }

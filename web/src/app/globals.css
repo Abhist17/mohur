@@ -223,7 +223,7 @@ hr.sep { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
 .menu button { display: flex; width: 100%; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-sm); background: none; border: 0; color: var(--text); cursor: pointer; font-size: 14px; }
 .menu button:hover { background: var(--bg-2); }
 
-/* concept strip: the Mohur idea on every screen */
+/* concept strip: the Unison idea on every screen */
 .concept { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 20px; align-items: center; padding: 14px 18px; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(90deg, var(--tint), var(--bg)); margin-bottom: 24px; }
 .concept-cap { color: var(--muted); font-size: 15px; line-height: 1.55; }
 .concept-cap b { color: var(--text); font-weight: 600; }
@@ -294,7 +294,7 @@ body { font-variant-numeric: tabular-nums; }
 .ps-col { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); padding: 14px 16px; display: grid; gap: 10px; }
 .ps-body { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: center; }
 .ps-today { background: var(--bg-2); }
-.ps-mohur { border-color: var(--tint-line); background: linear-gradient(180deg, var(--tint), var(--panel)); box-shadow: var(--shadow); }
+.ps-unison { border-color: var(--tint-line); background: linear-gradient(180deg, var(--tint), var(--panel)); box-shadow: var(--shadow); }
 .ps-label { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
 .ps-label.accent { color: var(--accent); }
 .ps-pic { display: flex; align-items: flex-end; justify-content: space-around; gap: 8px; min-height: 92px; }

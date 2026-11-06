@@ -16,7 +16,7 @@ const SITE_LINKS = [
   ["/docs", "Docs"],
   ["/#faq", "FAQ"],
 ] as const;
-const REPO = "https://github.com/Abhist17/mohur";
+const REPO = "https://github.com/Abhist17/unison";
 
 const LINKS = [
   ["/swap", "Swap"],
@@ -120,7 +120,7 @@ export function ThemeToggle() {
   const flip = () => {
     const next = theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
-    try { localStorage.setItem("mohur-theme", next); } catch {}
+    try { localStorage.setItem("unison-theme", next); } catch {}
     setTheme(next);
   };
   return (

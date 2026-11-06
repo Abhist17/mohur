@@ -2,7 +2,7 @@
 pragma solidity 0.8.30;
 
 import { Test, stdJson } from "forge-std/Test.sol";
-import { MohurMath } from "../src/libraries/MohurMath.sol";
+import { UnisonMath } from "../src/libraries/UnisonMath.sol";
 
 /// @dev External wrapper so library reverts can be caught and fuzzed.
 contract MathHarness {
@@ -11,7 +11,7 @@ contract MathHarness {
         pure
         returns (uint256)
     {
-        return MohurMath.outGivenIn(bi, wi, bo, wo, a, f);
+        return UnisonMath.outGivenIn(bi, wi, bo, wo, a, f);
     }
 
     function inGivenOut(uint256 bi, uint256 wi, uint256 bo, uint256 wo, uint256 a, uint256 f)
@@ -19,19 +19,19 @@ contract MathHarness {
         pure
         returns (uint256)
     {
-        return MohurMath.inGivenOut(bi, wi, bo, wo, a, f);
+        return UnisonMath.inGivenOut(bi, wi, bo, wo, a, f);
     }
 
     function spot(uint256 bi, uint256 wi, uint256 bj, uint256 wj) external pure returns (uint256) {
-        return MohurMath.spotPrice(bi, wi, bj, wj);
+        return UnisonMath.spotPrice(bi, wi, bj, wj);
     }
 
     function validateWeights(uint256[] memory w) external pure {
-        MohurMath.validateWeights(w);
+        UnisonMath.validateWeights(w);
     }
 }
 
-contract MohurMathTest is Test {
+contract UnisonMathTest is Test {
     using stdJson for string;
 
     MathHarness internal m;
@@ -166,12 +166,12 @@ contract MohurMathTest is Test {
     // ------------------------------------------------------------------
 
     function test_revert_overMaxIn() public {
-        vm.expectRevert(MohurMath.MaxInRatio.selector);
+        vm.expectRevert(UnisonMath.MaxInRatio.selector);
         m.outGivenIn(100e18, 0.5e18, 100e18, 0.5e18, 31e18, FEE);
     }
 
     function test_revert_overMaxOut() public {
-        vm.expectRevert(MohurMath.MaxOutRatio.selector);
+        vm.expectRevert(UnisonMath.MaxOutRatio.selector);
         m.inGivenOut(100e18, 0.5e18, 100e18, 0.5e18, 31e18, FEE);
     }
 
@@ -180,7 +180,7 @@ contract MohurMathTest is Test {
         w[0] = 0.4e18;
         w[1] = 0.3e18;
         w[2] = 0.29e18;
-        vm.expectRevert(MohurMath.BadWeights.selector);
+        vm.expectRevert(UnisonMath.BadWeights.selector);
         m.validateWeights(w);
         w[2] = 0.3e18;
         m.validateWeights(w);
@@ -196,7 +196,7 @@ contract MohurMathTest is Test {
     // ------------------------------------------------------------------
 
     function _inv(uint256 x, uint256 y) internal pure returns (uint256) {
-        return MohurMath.mulDown(MohurMath.powDown(x, 0.4e18), MohurMath.powDown(y, 0.3e18));
+        return UnisonMath.mulDown(UnisonMath.powDown(x, 0.4e18), UnisonMath.powDown(y, 0.3e18));
     }
 
     function _arr(string memory json, string memory key) internal pure returns (uint256[] memory out) {

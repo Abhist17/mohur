@@ -1,5 +1,5 @@
 {
-  "name": "mohur-contracts",
+  "name": "unison-contracts",
   "private": true,
   "description": "Solidity dependencies resolved via npm (matches 1inch swap-vm / aqua)",
   "dependencies": {

@@ -3,12 +3,12 @@ pragma solidity 0.8.30;
 
 import { console2 } from "forge-std/console2.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { MohurFixture } from "./utils/MohurFixture.sol";
+import { UnisonFixture } from "./utils/UnisonFixture.sol";
 
 /// @notice The headline claims: one inventory, two venues, one price; loops lose; arbitrage rebalances.
-contract CrossVenueTest is MohurFixture {
+contract CrossVenueTest is UnisonFixture {
     function setUp() public {
-        setUpMohur();
+        setUpUnison();
     }
 
     /// Same price on both venues: 0 units of difference, all 6 directions, exact-in and exact-out.
@@ -91,7 +91,7 @@ contract CrossVenueTest is MohurFixture {
     function test_selfRebalancing_afterEthJump() public {
         uint256 ethUsd = 5_000e18;
         uint256 btcUsd = 100_000e18;
-        // Arbitrageur: while Mohur sells ETH below $5,000, buy ETH with USDC on one venue and with BTC
+        // Arbitrageur: while Unison sells ETH below $5,000, buy ETH with USDC on one venue and with BTC
         // on the other, in small steps (each venue only fills while its price is off-market).
         for (uint256 k; k < 200; ++k) {
             bool traded;

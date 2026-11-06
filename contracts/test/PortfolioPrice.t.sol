@@ -2,22 +2,22 @@
 pragma solidity 0.8.30;
 
 import { ISwapVM } from "@1inch/swap-vm/contracts/interfaces/ISwapVM.sol";
-import { MohurStrategy } from "../src/aqua/MohurStrategy.sol";
+import { UnisonStrategy } from "../src/aqua/UnisonStrategy.sol";
 import { PortfolioPrice } from "../src/aqua/PortfolioPrice.sol";
-import { MohurFixture } from "./utils/MohurFixture.sol";
+import { UnisonFixture } from "./utils/UnisonFixture.sol";
 
-contract PortfolioPriceTest is MohurFixture {
+contract PortfolioPriceTest is UnisonFixture {
     function setUp() public {
-        setUpMohur();
+        setUpUnison();
     }
 
     function test_program_isSaltThenPortfolioPrice() public view {
-        bytes memory p = MohurStrategy.program(address(hook), 7);
+        bytes memory p = UnisonStrategy.program(address(hook), 7);
         assertEq(p.length, 10 + 22);
         assertEq(uint8(p[0]), 0x02); // stock Salt
         assertEq(uint8(p[10]), 0xd0); // PortfolioPrice
         assertEq(uint8(p[11]), 20);
-        assertEq(MohurStrategy.program(address(hook), 0), PortfolioPrice.build(address(hook)));
+        assertEq(UnisonStrategy.program(address(hook), 0), PortfolioPrice.build(address(hook)));
     }
 
     function test_quote_equalsHookQuote() public {
@@ -57,7 +57,7 @@ contract PortfolioPriceTest is MohurFixture {
     function test_revert_pricerOfAnotherMaker() public {
         address mallory = makeAddr("mallory");
         // mallory ships an order that points at *our* maker's hook - the instruction refuses it
-        ISwapVM.Order memory o = MohurStrategy.order(mallory, address(hook), address(weth), address(usdc), 0);
+        ISwapVM.Order memory o = UnisonStrategy.order(mallory, address(hook), address(weth), address(usdc), 0);
         (address t0, address t1) = _sort(address(weth), address(usdc));
         address[] memory ts = new address[](2);
         ts[0] = t0;
@@ -66,7 +66,7 @@ contract PortfolioPriceTest is MohurFixture {
         amts[0] = 1;
         amts[1] = 1;
         vm.prank(mallory);
-        aqua.ship(address(swapVM), MohurStrategy.strategyBytes(o), ts, amts);
+        aqua.ship(address(swapVM), UnisonStrategy.strategyBytes(o), ts, amts);
         vm.expectRevert(abi.encodeWithSelector(PortfolioPrice.PortfolioPriceWrongMaker.selector, maker, mallory));
         swapVM.quote(o, 1e18, takerData(address(this), address(weth), address(usdc), true));
     }

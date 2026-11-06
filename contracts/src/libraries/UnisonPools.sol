@@ -5,9 +5,9 @@ import { IHooks } from "v4-core/interfaces/IHooks.sol";
 import { PoolKey } from "v4-core/types/PoolKey.sol";
 import { Currency } from "v4-core/types/Currency.sol";
 
-/// @notice Canonical v4 pool keys for a Mohur index pair. The AMM is never used (the hook cancels it),
+/// @notice Canonical v4 pool keys for a Unison index pair. The AMM is never used (the hook cancels it),
 ///         so fee and tick spacing are fixed conventions.
-library MohurPools {
+library UnisonPools {
     uint24 internal constant POOL_FEE = 0;
     int24 internal constant TICK_SPACING = 60;
     uint160 internal constant SQRT_PRICE_1_1 = 79228162514264337593543950336;

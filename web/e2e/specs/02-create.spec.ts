@@ -7,7 +7,7 @@ const lensAbi = parseAbi([
 ]);
 const total = (page: import("@playwright/test").Page) => page.getByTestId("weight-total").innerText().then(Number);
 
-test("create: weights always sum to 100%, preview equals the contracts' math (MohurLens)", async ({ page }) => {
+test("create: weights always sum to 100%, preview equals the contracts' math (UnisonLens)", async ({ page }) => {
   await page.goto("/create");
   await expect(page.getByTestId("weight-total")).toHaveText("100");
   for (const [sym, v] of [["tWETH", "55"], ["tWBTC", "10"], ["tUSDC", "70"], ["tWETH", "1"], ["tWBTC", "97"]] as const) {
@@ -20,7 +20,7 @@ test("create: weights always sum to 100%, preview equals the contracts' math (Mo
   await page.getByRole("checkbox").nth(1).check();
   expect(await total(page)).toBe(100);
 
-  // preview rows come from MohurLens; recompute each on-chain and demand exact equality
+  // preview rows come from UnisonLens; recompute each on-chain and demand exact equality
   const rows = page.getByTestId("preview-row");
   await expect(rows.first()).toHaveAttribute("data-source", "lens");
   const lens = deployments().lens;

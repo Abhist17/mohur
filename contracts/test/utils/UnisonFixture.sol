@@ -17,11 +17,11 @@ import { IAqua } from "@1inch/aqua/contracts/interfaces/IAqua.sol";
 import { ISwapVM } from "@1inch/swap-vm/contracts/interfaces/ISwapVM.sol";
 import { TakerTraitsLib } from "@1inch/swap-vm/contracts/libs/TakerTraits.sol";
 
-import { MohurHook } from "../../src/MohurHook.sol";
-import { MohurHookFactory } from "../../src/MohurHookFactory.sol";
-import { MohurTestToken } from "../../src/MohurTestToken.sol";
-import { MohurSwapVMRouter } from "../../src/aqua/MohurSwapVMRouter.sol";
-import { MohurStrategy } from "../../src/aqua/MohurStrategy.sol";
+import { UnisonHook } from "../../src/UnisonHook.sol";
+import { UnisonHookFactory } from "../../src/UnisonHookFactory.sol";
+import { UnisonTestToken } from "../../src/UnisonTestToken.sol";
+import { UnisonSwapVMRouter } from "../../src/aqua/UnisonSwapVMRouter.sol";
+import { UnisonStrategy } from "../../src/aqua/UnisonStrategy.sol";
 import { HookMiner } from "../../src/libraries/HookMiner.sol";
 
 /// @dev Minimal view of v4-core's PoolSwapTest (deployed from its own 0.8.26 artifact).
@@ -37,10 +37,10 @@ interface IPoolSwapTest {
         returns (BalanceDelta);
 }
 
-/// @notice Deploys the whole Mohur system on a fresh chain: Aqua, MohurSwapVMRouter, the real v4 PoolManager,
-///         three test tokens, a mined MohurHook, three v4 pools and three Aqua SwapVM strategies.
+/// @notice Deploys the whole Unison system on a fresh chain: Aqua, UnisonSwapVMRouter, the real v4 PoolManager,
+///         three test tokens, a mined UnisonHook, three v4 pools and three Aqua SwapVM strategies.
 ///         Index: 40% tWETH / 30% tWBTC / 30% tUSDC worth $100k at ETH $4,000, BTC $100,000.
-abstract contract MohurFixture is Test {
+abstract contract UnisonFixture is Test {
     string internal constant V4_OUT = "lib/v4-periphery/lib/v4-core/out/";
 
     uint256 internal constant FEE = 0.003e18;
@@ -51,13 +51,13 @@ abstract contract MohurFixture is Test {
     IPoolManager internal manager;
     IPoolSwapTest internal v4Router;
     Aqua internal aqua;
-    MohurSwapVMRouter internal swapVM;
-    MohurHookFactory internal factory;
-    MohurHook internal hook;
+    UnisonSwapVMRouter internal swapVM;
+    UnisonHookFactory internal factory;
+    UnisonHook internal hook;
 
-    MohurTestToken internal weth;
-    MohurTestToken internal wbtc;
-    MohurTestToken internal usdc;
+    UnisonTestToken internal weth;
+    UnisonTestToken internal wbtc;
+    UnisonTestToken internal usdc;
     address[] internal tokens;
     uint256[] internal weights;
 
@@ -69,24 +69,24 @@ abstract contract MohurFixture is Test {
     uint256 internal constant BTC0 = 0.3e8;
     uint256 internal constant USDC0 = 30_000e6;
 
-    function setUpMohur() internal {
+    function setUpUnison() internal {
         manager = _poolManager();
         v4Router = IPoolSwapTest(deployCode(string.concat(V4_OUT, "PoolSwapTest.sol/PoolSwapTest.json"), abi.encode(address(manager))));
         aqua = new Aqua();
 
-        weth = new MohurTestToken("Mohur Test WETH", "tWETH", 18, 10e18);
-        wbtc = new MohurTestToken("Mohur Test WBTC", "tWBTC", 8, 0.3e8);
-        usdc = new MohurTestToken("Mohur Test USDC", "tUSDC", 6, 30_000e6);
-        swapVM = new MohurSwapVMRouter(address(aqua), address(weth), address(this));
-        factory = new MohurHookFactory(manager, IAqua(address(aqua)), address(swapVM));
+        weth = new UnisonTestToken("Unison Test WETH", "tWETH", 18, 10e18);
+        wbtc = new UnisonTestToken("Unison Test WBTC", "tWBTC", 8, 0.3e8);
+        usdc = new UnisonTestToken("Unison Test USDC", "tUSDC", 6, 30_000e6);
+        swapVM = new UnisonSwapVMRouter(address(aqua), address(weth), address(this));
+        factory = new UnisonHookFactory(manager, IAqua(address(aqua)), address(swapVM));
 
         tokens = [address(weth), address(wbtc), address(usdc)];
         weights = [uint256(0.4e18), 0.3e18, 0.3e18];
 
         // mine + deploy the maker's hook through the factory
-        (, bytes32 salt) = HookMiner.find(address(factory), factory.initCodeHash(maker), HookMiner.MOHUR_FLAGS, 0);
+        (, bytes32 salt) = HookMiner.find(address(factory), factory.initCodeHash(maker), HookMiner.UNISON_FLAGS, 0);
         vm.prank(maker);
-        hook = MohurHook(factory.deploy(salt));
+        hook = UnisonHook(factory.deploy(salt));
 
         weth.mint(maker, ETH0);
         wbtc.mint(maker, BTC0);
@@ -142,7 +142,7 @@ abstract contract MohurFixture is Test {
                 uint256[] memory amts = new uint256[](2);
                 amts[0] = IERC20(t0).balanceOf(maker) * bps / 10_000;
                 amts[1] = IERC20(t1).balanceOf(maker) * bps / 10_000;
-                aqua.ship(address(swapVM), MohurStrategy.strategyBytes(o), ts, amts);
+                aqua.ship(address(swapVM), UnisonStrategy.strategyBytes(o), ts, amts);
             }
         }
     }
@@ -167,7 +167,7 @@ abstract contract MohurFixture is Test {
     }
 
     function aquaOrder(address a, address b) internal view returns (ISwapVM.Order memory) {
-        return MohurStrategy.order(maker, address(hook), a, b, 0);
+        return UnisonStrategy.order(maker, address(hook), a, b, 0);
     }
 
     function takerData(address taker, address tokenIn, address tokenOut, bool exactIn)
@@ -220,7 +220,7 @@ abstract contract MohurFixture is Test {
         v4Router.swap(key, params, settings, "");
     }
 
-    /// @dev Swap on 1inch Aqua through MohurSwapVMRouter. Returns (amountIn, amountOut).
+    /// @dev Swap on 1inch Aqua through UnisonSwapVMRouter. Returns (amountIn, amountOut).
     function swapAqua(address who, address tokenIn, address tokenOut, uint256 amount, bool exactIn)
         internal
         returns (uint256 amountIn, uint256 amountOut)

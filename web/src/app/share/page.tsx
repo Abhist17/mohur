@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { NETWORK } from "@/lib/config";
-import { fmt, readBook, readFills, TOKEN_STYLE, units, type Book } from "@/lib/mohur";
+import { fmt, readBook, readFills, TOKEN_STYLE, units, type Book } from "@/lib/unison";
 import { NotDeployed } from "@/components/NotDeployed";
 import { TokenIcon } from "@/components/TokenIcon";
 import { AnonMark, VenueMark } from "@/components/VenueMark";
@@ -37,7 +37,7 @@ export default function Share() {
   if (!idx.deployed) return <NotDeployed />;
   const hook = idx.hook;
   const sym = (a: string) => book?.tokens.find((t) => t.token.toLowerCase() === a.toLowerCase())?.symbol ?? "?";
-  // spot prices straight from the hook's own math (MohurLens.book → priceAinB, 18 decimals, fee excluded)
+  // spot prices straight from the hook's own math (UnisonLens.book → priceAinB, 18 decimals, fee excluded)
   const prices = (book?.pairs ?? []).map((p) => {
     const a = sym(p.tokenA), b = sym(p.tokenB);
     const ab = units(p.priceAinB, 18);

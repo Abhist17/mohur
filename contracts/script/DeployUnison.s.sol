@@ -7,17 +7,17 @@ import { Aqua } from "@1inch/aqua/contracts/Aqua.sol";
 import { IAqua } from "@1inch/aqua/contracts/interfaces/IAqua.sol";
 import { ISwapVM } from "@1inch/swap-vm/contracts/interfaces/ISwapVM.sol";
 
-import { MohurSwapVMRouter } from "../src/aqua/MohurSwapVMRouter.sol";
-import { MohurHookFactory } from "../src/MohurHookFactory.sol";
-import { MohurLens } from "../src/MohurLens.sol";
-import { MohurLoopRouter } from "../src/MohurLoopRouter.sol";
-import { MohurTestToken } from "../src/MohurTestToken.sol";
-import { MohurScriptBase } from "./MohurScriptBase.sol";
+import { UnisonSwapVMRouter } from "../src/aqua/UnisonSwapVMRouter.sol";
+import { UnisonHookFactory } from "../src/UnisonHookFactory.sol";
+import { UnisonLens } from "../src/UnisonLens.sol";
+import { UnisonLoopRouter } from "../src/UnisonLoopRouter.sol";
+import { UnisonTestToken } from "../src/UnisonTestToken.sol";
+import { UnisonScriptBase } from "./UnisonScriptBase.sol";
 
-/// @notice Deploys the shared Mohur infrastructure. Uses the live Uniswap v4 PoolManager when it exists
+/// @notice Deploys the shared Unison infrastructure. Uses the live Uniswap v4 PoolManager when it exists
 ///         (Base Sepolia or a fork of it); deploys the official Aqua source (Aqua is not on any testnet).
-/// forge script script/DeployMohur.s.sol --rpc-url <rpc> --broadcast (--private-key | --account)
-contract DeployMohur is MohurScriptBase {
+/// forge script script/DeployUnison.s.sol --rpc-url <rpc> --broadcast (--private-key | --account)
+contract DeployUnison is UnisonScriptBase {
     function run() external {
         uint256 startBlock = block.number;
         vm.startBroadcast();
@@ -27,13 +27,13 @@ contract DeployMohur is MohurScriptBase {
         require(address(pm).code.length > 0, "no v4 PoolManager: run on Base Sepolia or a fork of it");
 
         Aqua aqua = new Aqua();
-        MohurSwapVMRouter swapVM = new MohurSwapVMRouter(address(aqua), BASE_SEPOLIA_WETH, deployer);
-        MohurHookFactory factory = new MohurHookFactory(pm, IAqua(address(aqua)), address(swapVM));
-        MohurLens lens = new MohurLens();
-        MohurLoopRouter loop = new MohurLoopRouter(pm, ISwapVM(address(swapVM)));
-        MohurTestToken tWETH = new MohurTestToken("Mohur Test WETH (testnet, no value)", "tWETH", 18, 10e18);
-        MohurTestToken tWBTC = new MohurTestToken("Mohur Test WBTC (testnet, no value)", "tWBTC", 8, 0.3e8);
-        MohurTestToken tUSDC = new MohurTestToken("Mohur Test USDC (testnet, no value)", "tUSDC", 6, 30_000e6);
+        UnisonSwapVMRouter swapVM = new UnisonSwapVMRouter(address(aqua), BASE_SEPOLIA_WETH, deployer);
+        UnisonHookFactory factory = new UnisonHookFactory(pm, IAqua(address(aqua)), address(swapVM));
+        UnisonLens lens = new UnisonLens();
+        UnisonLoopRouter loop = new UnisonLoopRouter(pm, ISwapVM(address(swapVM)));
+        UnisonTestToken tWETH = new UnisonTestToken("Unison Test WETH (testnet, no value)", "tWETH", 18, 10e18);
+        UnisonTestToken tWBTC = new UnisonTestToken("Unison Test WBTC (testnet, no value)", "tWBTC", 8, 0.3e8);
+        UnisonTestToken tUSDC = new UnisonTestToken("Unison Test USDC (testnet, no value)", "tUSDC", 6, 30_000e6);
         vm.stopBroadcast();
 
         string memory o = "deploy";

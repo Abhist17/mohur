@@ -1,4 +1,4 @@
-import { TOKEN_STYLE } from "@/lib/mohur";
+import { TOKEN_STYLE } from "@/lib/unison";
 
 const GLYPH: Record<string, string> = { ETH: "Ξ", BTC: "₿", USDC: "$" };
 

@@ -9,16 +9,16 @@ import { SwapParams } from "v4-core/types/PoolOperation.sol";
 import { TickMath } from "v4-core/libraries/TickMath.sol";
 import { ISwapVM } from "@1inch/swap-vm/contracts/interfaces/ISwapVM.sol";
 
-import { MohurHook } from "../../src/MohurHook.sol";
-import { MohurTestToken } from "../../src/MohurTestToken.sol";
-import { MohurMath } from "../../src/libraries/MohurMath.sol";
-import { MohurPools } from "../../src/libraries/MohurPools.sol";
-import { MohurStrategy } from "../../src/aqua/MohurStrategy.sol";
-import { MohurFixture, IPoolSwapTest } from "../utils/MohurFixture.sol";
+import { UnisonHook } from "../../src/UnisonHook.sol";
+import { UnisonTestToken } from "../../src/UnisonTestToken.sol";
+import { UnisonMath } from "../../src/libraries/UnisonMath.sol";
+import { UnisonPools } from "../../src/libraries/UnisonPools.sol";
+import { UnisonStrategy } from "../../src/aqua/UnisonStrategy.sol";
+import { UnisonFixture, IPoolSwapTest } from "../utils/UnisonFixture.sol";
 
 /// @notice Random actor for the invariant run: trades on both venues, flushes, donates. Keeps ghost books.
 contract Handler is Test {
-    MohurHook public hook;
+    UnisonHook public hook;
     IPoolSwapTest public v4;
     ISwapVM public svm;
     address public maker;
@@ -31,11 +31,11 @@ contract Handler is Test {
     bool public invDropped;
     uint256 public fills;
 
-    constructor(MohurHook _hook, IPoolSwapTest _v4, ISwapVM _svm, address[3] memory _tok, uint256[3] memory _unit) {
+    constructor(UnisonHook _hook, IPoolSwapTest _v4, ISwapVM _svm, address[3] memory _tok, uint256[3] memory _unit) {
         (hook, v4, svm, tok, unit) = (_hook, _v4, _svm, _tok, _unit);
         maker = hook.maker();
         for (uint256 i; i < 3; ++i) {
-            MohurTestToken(tok[i]).mint(address(this), _unit[i] * 1e6);
+            UnisonTestToken(tok[i]).mint(address(this), _unit[i] * 1e6);
             IERC20(tok[i]).approve(address(v4), type(uint256).max);
             IERC20(tok[i]).approve(address(svm), type(uint256).max);
             expected[i] = int256(hook.effectiveBalance(tok[i]));
@@ -48,7 +48,7 @@ contract Handler is Test {
         v = 1e18;
         for (uint256 i; i < 3; ++i) {
             (,,, uint256 scale) = hook.tokenInfo(tok[i]);
-            v = MohurMath.mulDown(v, MohurMath.powDown(hook.effectiveBalance(tok[i]) * scale, hook.weightOf(tok[i])));
+            v = UnisonMath.mulDown(v, UnisonMath.powDown(hook.effectiveBalance(tok[i]) * scale, hook.weightOf(tok[i])));
         }
     }
 
@@ -71,7 +71,7 @@ contract Handler is Test {
         (uint256 i, uint256 j) = _pick(a, b);
         uint256 amt = bound(size, 1, 40) * unit[exactIn ? i : j];
         bool zeroForOne = tok[i] < tok[j];
-        PoolKey memory key = MohurPools.key(address(hook), tok[i], tok[j]);
+        PoolKey memory key = UnisonPools.key(address(hook), tok[i], tok[j]);
         SwapParams memory p = SwapParams({
             zeroForOne: zeroForOne,
             amountSpecified: exactIn ? -int256(amt) : int256(amt),
@@ -87,8 +87,8 @@ contract Handler is Test {
     function swap1inch(uint256 a, uint256 b, uint256 size, bool exactIn) external {
         (uint256 i, uint256 j) = _pick(a, b);
         uint256 amt = bound(size, 1, 40) * unit[exactIn ? i : j];
-        ISwapVM.Order memory o = MohurStrategy.order(maker, address(hook), tok[i], tok[j], uint64(hook.venueNonce()));
-        try svm.swap(o, amt, MohurStrategy.takerData(address(this), tok[i], tok[j], exactIn)) returns (uint256 ain, uint256 aout, bytes32) {
+        ISwapVM.Order memory o = UnisonStrategy.order(maker, address(hook), tok[i], tok[j], uint64(hook.venueNonce()));
+        try svm.swap(o, amt, UnisonStrategy.takerData(address(this), tok[i], tok[j], exactIn)) returns (uint256 ain, uint256 aout, bytes32) {
             _book(i, j, ain, aout);
         } catch { }
     }
@@ -106,11 +106,11 @@ contract Handler is Test {
     }
 }
 
-contract MohurInvariantTest is MohurFixture {
+contract UnisonInvariantTest is UnisonFixture {
     Handler handler;
 
     function setUp() public {
-        setUpMohur();
+        setUpUnison();
         handler = new Handler(
             hook,
             v4Router,
@@ -170,6 +170,6 @@ contract MohurInvariantTest is MohurFixture {
     }
 
     function aquaOrderAt(address a, address b) internal view returns (ISwapVM.Order memory) {
-        return MohurStrategy.order(maker, address(hook), a, b, uint64(hook.venueNonce()));
+        return UnisonStrategy.order(maker, address(hook), a, b, uint64(hook.venueNonce()));
     }
 }

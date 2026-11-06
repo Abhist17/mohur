@@ -133,6 +133,7 @@ export default function Landing() {
           <p>Your wallet becomes a 40/30/30 index. Uniswap and 1inch both trade it, at one price, with no oracle.</p>
           <div className="row" style={{ marginTop: 20 }}>
             <Link href="/swap" className="btn primary">Start trading</Link>
+            <Link href="/demo" className="btn" data-testid="landing-demo">Run the demo</Link>
             <Link href="/create" className="btn">Launch an index</Link>
             <a href="#story" className="btn">How it works ↓</a>
           </div>

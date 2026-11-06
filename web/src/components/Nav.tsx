@@ -15,6 +15,7 @@ const LINKS = [
   ["/arbitrage", "Arbitrage me"],
   ["/privacy", "Privacy"],
   ["/how", "How it works"],
+  ["/demo", "Demo"],
 ] as const;
 
 export function RoutePill() {

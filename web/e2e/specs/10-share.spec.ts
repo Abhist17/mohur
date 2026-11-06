@@ -24,4 +24,7 @@ test("share card: on-chain weights, price and fills; links keep the picked index
   await page.goto(`/book?index=${launcherHook}`);
   await expect(page.getByText("· picked index")).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId("book-trade")).toHaveAttribute("href", new RegExp(`index=${launcherHook}`, "i"));
+  // and Swap says which index it trades against
+  await page.getByTestId("book-trade").click();
+  await expect(page.getByText("Against a picked index")).toBeVisible({ timeout: 60_000 });
 });

@@ -195,7 +195,7 @@ hr.sep { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
 /* swap widget */
 .swap { max-width: 480px; margin: 0 auto; }
 .swap-box { background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
-.swap-box:focus-within { border-color: var(--line-2); }
+.swap-box:focus-within { border-color: var(--gold-2); }
 .swap-amt { background: none; border: 0; padding: 0; font-family: var(--sans); font-weight: 500; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; font-size: 34px; width: 100%; color: var(--text); outline: none; }
 .swap-amt::placeholder { color: var(--faint); }
 .tok-btn { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line-2); color: var(--text); cursor: pointer; font-size: 16px; white-space: nowrap; }
@@ -253,3 +253,10 @@ details.how-more[open] .how-tldr::after { content: " Less"; }
 
 /* every figure lines up in columns */
 body { font-variant-numeric: tabular-nums; }
+
+/* keyboard users always see where they are (mouse clicks don't trigger :focus-visible) */
+:where(a, button, input, select, summary, [tabindex]):focus-visible { outline: 2px solid var(--gold-2); outline-offset: 2px; border-radius: var(--radius-xs); }
+.swap-amt:focus-visible { outline: none; }
+/* skip link: first tab stop on every page */
+.skip { position: absolute; left: -9999px; top: 8px; z-index: 100; background: var(--panel); color: var(--text); padding: 8px 12px; border: 1px solid var(--line-2); border-radius: var(--radius-sm); }
+.skip:focus { left: 12px; }

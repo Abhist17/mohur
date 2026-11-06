@@ -93,13 +93,14 @@ export function Nav() {
   const [menu, setMenu] = useState(false);
   return (
     <header className="nav">
+      <a href="#main" className="skip">Skip to content</a>
       <div className="wrap nav-in">
         <Link href="/" className="brand">
           <span className="coin-dot" /> Mohur
         </Link>
-        <nav className="nav-links">
+        <nav className="nav-links" aria-label="Main">
           {LINKS.map(([href, label]) => (
-            <Link key={href} href={href} className={path === href ? "on" : ""}>
+            <Link key={href} href={href} className={path === href ? "on" : ""} aria-current={path === href ? "page" : undefined}>
               {label}
             </Link>
           ))}
@@ -114,7 +115,7 @@ export function Nav() {
       {menu && (
         <nav className="nav-mobile wrap">
           {LINKS.map(([href, label]) => (
-            <Link key={href} href={href} className={path === href ? "on" : ""} onClick={() => setMenu(false)}>
+            <Link key={href} href={href} className={path === href ? "on" : ""} aria-current={path === href ? "page" : undefined} onClick={() => setMenu(false)}>
               {label}
             </Link>
           ))}

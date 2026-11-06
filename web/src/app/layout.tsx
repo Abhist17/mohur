@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Providers>
           <Nav />
-          <main>{children}</main>
+          <main id="main" tabIndex={-1}>{children}</main>
           <footer className="foot">
             <div className="wrap foot-grid">
               <div>

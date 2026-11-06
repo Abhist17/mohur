@@ -8,6 +8,16 @@ import { NETWORK, WORKERS } from "@/lib/config";
 import { useAnon } from "./Providers";
 import { Logo } from "@/components/Logo";
 
+/** On the landing and docs pages the nav tells the story; inside the app it lists the screens. */
+const SITE_LINKS = [
+  ["/#how", "How it works"],
+  ["/#proof", "Proof"],
+  ["/#security", "Security"],
+  ["/docs", "Docs"],
+  ["/#faq", "FAQ"],
+] as const;
+const REPO = "https://github.com/Abhist17/mohur";
+
 const LINKS = [
   ["/swap", "Swap"],
   ["/explore", "Explore"],
@@ -92,6 +102,40 @@ export function ThemeToggle() {
 export function Nav() {
   const path = usePathname();
   const [menu, setMenu] = useState(false);
+  const site = path === "/" || path.startsWith("/docs");
+  if (site)
+    return (
+      <header className="nav">
+        <a href="#main" className="skip">Skip to content</a>
+        <div className="wrap nav-in">
+          <Link href="/" className="brand">
+            <Logo size={24} /> Unison
+          </Link>
+          <nav className="nav-links nav-site" aria-label="Main">
+            {SITE_LINKS.map(([href, label]) => (
+              <Link key={href} href={href} className={path === href ? "on" : ""} aria-current={path === href ? "page" : undefined}>
+                {label}
+              </Link>
+            ))}
+            <a href={REPO} target="_blank" rel="noreferrer">GitHub ↗</a>
+          </nav>
+          <ThemeToggle />
+          <Link href="/swap" className="btn small nav-launch" data-testid="nav-launch">Launch app</Link>
+          <button className="btn small nav-burger" aria-label="Menu" aria-expanded={menu} onClick={() => setMenu(!menu)}>
+            {menu ? "✕" : "☰"}
+          </button>
+        </div>
+        {menu && (
+          <nav className="nav-mobile wrap">
+            {SITE_LINKS.map(([href, label]) => (
+              <Link key={href} href={href} onClick={() => setMenu(false)}>{label}</Link>
+            ))}
+            <a href={REPO} target="_blank" rel="noreferrer">GitHub ↗</a>
+            <Link href="/swap" onClick={() => setMenu(false)}>Launch app →</Link>
+          </nav>
+        )}
+      </header>
+    );
   return (
     <header className="nav">
       <a href="#main" className="skip">Skip to content</a>

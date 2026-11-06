@@ -13,9 +13,9 @@ export const ZERO: Address = "0x0000000000000000000000000000000000000000";
 
 export type TokenMeta = { symbol: string; name: string; decimals: number; color: string; metal: string; usdGuess: number };
 export const TOKEN_STYLE: Record<string, TokenMeta> = {
-  tWETH: { symbol: "tWETH", name: "ETH", decimals: 18, color: "#d9a441", metal: "gold", usdGuess: 4000 },
-  tWBTC: { symbol: "tWBTC", name: "BTC", decimals: 8, color: "#c47a4a", metal: "copper", usdGuess: 100000 },
-  tUSDC: { symbol: "tUSDC", name: "USDC", decimals: 6, color: "#b9c0c8", metal: "silver", usdGuess: 1 },
+  tWETH: { symbol: "tWETH", name: "ETH", decimals: 18, color: "#627eea", metal: "gold", usdGuess: 4000 },
+  tWBTC: { symbol: "tWBTC", name: "BTC", decimals: 8, color: "#f7931a", metal: "copper", usdGuess: 100000 },
+  tUSDC: { symbol: "tUSDC", name: "USDC", decimals: 6, color: "#2775ca", metal: "silver", usdGuess: 1 },
 };
 
 export function fmt(x: number, d = 4) {

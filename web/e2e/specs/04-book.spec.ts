@@ -36,6 +36,9 @@ test("live book: identical quotes per pair, a fill on one venue moves the other,
   await connect(page);
 
   const q0 = await quotes(page);
+  // the ETH/USDC row, whichever token address sorts first on this fork
+  const ETHUSDC = Object.keys(q0).find((k) => k.includes("tWETH") && k.includes("tUSDC"))!;
+  expect(ETHUSDC).toBeTruthy();
   for (const [pair, q] of Object.entries(q0)) {
     expect(q.ok, pair).toBe("true");
     expect(q.v4, pair).toBe(q.aqua);
@@ -44,7 +47,7 @@ test("live book: identical quotes per pair, a fill on one venue moves the other,
   // a Uniswap fill moves the 1inch quote
   await swap(page, "500", 0);
   await page.goto("/book");
-  await expect.poll(async () => (await quotes(page))["tWETH/tUSDC"]?.aqua).not.toBe(q0["tWETH/tUSDC"].aqua);
+  await expect.poll(async () => (await quotes(page))[ETHUSDC]?.aqua).not.toBe(q0[ETHUSDC].aqua);
   const q1 = await quotes(page);
   for (const [pair, q] of Object.entries(q1)) expect(q.v4, pair).toBe(q.aqua);
 
@@ -58,7 +61,7 @@ test("live book: identical quotes per pair, a fill on one venue moves the other,
   // a 1inch fill moves the Uniswap quote
   await swap(page, "500", 1);
   await page.goto("/book");
-  await expect.poll(async () => (await quotes(page))["tWETH/tUSDC"]?.v4).not.toBe(q1["tWETH/tUSDC"].v4);
+  await expect.poll(async () => (await quotes(page))[ETHUSDC]?.v4).not.toBe(q1[ETHUSDC].v4);
   for (const [pair, q] of Object.entries(await quotes(page))) expect(q.v4, pair).toBe(q.aqua);
 
   // venue limits on screen equal what MohurLens reports on-chain

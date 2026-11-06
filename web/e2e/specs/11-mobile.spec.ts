@@ -1,6 +1,6 @@
 import { test, expect, injectWallet, connect, ACCOUNTS, shot, deployments } from "../fixtures";
 
-const PAGES = ["/", "/swap", "/explore", "/book", "/my", "/arbitrage", "/privacy", "/how", "/demo", "/create", "/share"];
+const PAGES = ["/", "/swap", "/explore", "/book", "/my", "/arbitrage", "/privacy", "/how", "/demo", "/create", "/share", "/docs"];
 
 test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 
@@ -22,6 +22,12 @@ test("mobile: every page fits a 390px phone (no sideways scroll), menu works", a
   expect(wide, wide.join("\n")).toEqual([]);
   // burger menu opens and navigates
   await page.goto("/");
+  // landing: the site menu (story + docs + Launch app)
+  await page.getByRole("button", { name: "Menu" }).click();
+  await page.locator(".nav-mobile").getByRole("link", { name: "Docs" }).click();
+  await expect(page).toHaveURL(/\/docs/);
+  // inside the app: the screens menu
+  await page.goto("/swap");
   await page.getByRole("button", { name: "Menu" }).click();
   await page.locator(".nav-mobile").getByRole("link", { name: "Book" }).click();
   await expect(page).toHaveURL(/\/book/);

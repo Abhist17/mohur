@@ -1,6 +1,6 @@
 import { VenueLogo } from "./VenueMark";
 
-/** Three coin columns (ETH gold, BTC copper, USDC silver), scaled by `h` (0-1): the wallet at a glance. */
+/** Three bars (ETH, BTC, USDC in their usual colours), scaled by `h` (0-1): the wallet at a glance. */
 function Stack({ h = 1 }: { h?: number }) {
   return (
     <span className="ps-stack" aria-hidden="true">

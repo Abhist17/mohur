@@ -1,9 +1,11 @@
 import { TOKEN_STYLE } from "@/lib/mohur";
 
-/** A small metal coin with the asset's initial: gold ETH, copper BTC, silver USDC. */
+const GLYPH: Record<string, string> = { ETH: "Ξ", BTC: "₿", USDC: "$" };
+
+/** A flat token badge in the asset's usual colour (ETH blue, BTC orange, USDC blue) with its symbol glyph. */
 export function TokenIcon({ symbol, size = 22 }: { symbol: string; size?: number }) {
   const s = TOKEN_STYLE[symbol];
-  const c = s?.color ?? "#777";
+  const name = s?.name ?? symbol;
   return (
     <span
       aria-hidden
@@ -14,14 +16,14 @@ export function TokenIcon({ symbol, size = 22 }: { symbol: string; size?: number
         flex: "0 0 auto",
         display: "inline-grid",
         placeItems: "center",
-        fontSize: size * 0.46,
+        fontSize: size * 0.52,
         fontWeight: 700,
-        color: "#1a1206",
-        background: `radial-gradient(circle at 32% 30%, #fff8 0, ${c} 45%, #0006 120%)`,
-        boxShadow: `inset 0 0 0 1.5px #0004, 0 0 0 1px ${c}55`,
+        lineHeight: 1,
+        color: "#ffffff",
+        background: s?.color ?? "#777",
       }}
     >
-      {(s?.name ?? symbol).slice(0, 1)}
+      {GLYPH[name] ?? name.slice(0, 1)}
     </span>
   );
 }

@@ -1,302 +1,288 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import { parseUnits } from "viem";
-import dynamic from "next/dynamic";
-import type { SceneState } from "@/components/StacksScene";
-
-// three.js is ~150 kB: load the 3D scene after the page paints, so the headline and buttons appear first
-const StacksScene = dynamic(() => import("@/components/StacksScene").then((m) => m.StacksScene), {
-  ssr: false,
-  loading: () => <div className="scene-loading" aria-hidden="true" />,
-});
 import { deployment, NETWORK } from "@/lib/config";
-import { fmt, quoteRoute, readBook, sim, units, type Book } from "@/lib/mohur";
+import { amt, fmt, quoteBoth, quoteRoute, readBook, units } from "@/lib/mohur";
 import { usePoll } from "@/components/useIndex";
-import { VenueMark } from "@/components/VenueMark";
+import { AnonMark, VenueLogo } from "@/components/VenueMark";
+import { TokenIcon } from "@/components/TokenIcon";
 import { ProblemSolution } from "@/components/ProblemSolution";
 
-const BASE = { eth: 10, btc: 0.3, usdc: 30000 }; // $100k at $4,000 / $100,000
-const W = [0.4, 0.3, 0.3];
-type Stage = "hero" | "problem" | "mohur" | "oneprice" | "market" | "loops" | "private";
+const REPO = "https://github.com/Abhist17/mohur";
+// Measured on a Base Sepolia fork by ./scripts/demo.sh and the Foundry tests (used until an index is live on this network)
+const MEASURED = { out: "413.769069", loopPct: -0.808, price: 4000 };
+
+const FAQ: [string, string][] = [
+  ["What is Unison?", "A way to turn your own wallet into an index (say 40% ETH, 30% BTC, 30% USDC) that Uniswap v4 and 1inch Aqua both trade, from the same coins, at the same price."],
+  ["Do my coins leave my wallet?", "No. Your wallet approves one contract, 1inch Aqua, which gives each venue a selling limit. Coins move only when a trade fills, straight from your wallet to the trader."],
+  ["Why is the price the same on both venues?", "Both venues call the same pricing function over your real balances: a Uniswap v4 hook on one side, a 1inch SwapVM instruction (opcode 0xd0) on the other. There is nothing to keep in sync."],
+  ["Can someone arbitrage me between the venues?", "No. With one price on both venues there is no gap to trade, and any loop through your wallet loses money (−0.8% for a 1 ETH loop across both venues)."],
+  ["Does it remove LVR?", "No. When the outside market moves, the traders who rebalance you capture that move; you earn the 0.30% fee. We say so plainly on every screen that matters."],
+  ["Is it live?", "It runs on Base Sepolia (testnet) with test tokens that have no value. It is not externally audited; our own review found and fixed one critical bug."],
+];
 
 export default function Landing() {
   const d = deployment();
-  const [stage, setStage] = useState<Stage>("hero");
-  const [book, setBook] = useState<Book>();
-  const [loop, setLoop] = useState<{ out: number; bps: number }>();
-  const [k, setK] = useState(1.6); // ETH price multiple for "drag the market"
-  const [pour, setPour] = useState(false);
-  const [tradeTick, setTradeTick] = useState(0);
-  const refs = useRef<Record<string, HTMLElement | null>>({});
+  const live = !!d?.demoHook;
+  const [q, setQ] = useState<{ v4: bigint; aqua: bigint }>();
+  const [loopPct, setLoopPct] = useState<number>();
+  const [price, setPrice] = useState<number>();
 
-  // live demo index (falls back to the example book while loading)
   usePoll(
     async () => {
       if (!d?.demoHook) return;
-      const b = await readBook(d.demoHook, d.demoMaker);
-      setBook(b);
-      const p = [d.tWETH, d.tUSDC, d.tWBTC, d.tWETH];
-      const q = await quoteRoute(d.demoHook, p, [0, 1, 0], parseUnits("0.1", 18));
-      const out = units(q.amounts[3], 18);
-      setLoop({ out, bps: ((0.1 - out) / 0.1) * 10_000 });
+      const [b, both, route] = await Promise.all([
+        readBook(d.demoHook, d.demoMaker),
+        quoteBoth(d.demoHook, d.tWETH, d.tUSDC, parseUnits("0.1", 18)),
+        quoteRoute(d.demoHook, [d.tWETH, d.tUSDC, d.tWBTC, d.tWETH], [0, 1, 0], parseUnits("1", 18)),
+      ]);
+      const eth = b.tokens.find((t) => t.symbol === "tWETH"), usdc = b.tokens.find((t) => t.symbol === "tUSDC");
+      if (eth && usdc) setPrice(((Number(eth.weight) / Number(usdc.weight)) * units(usdc.effectiveBalance, 6)) / units(eth.effectiveBalance, 18));
+      setQ({ v4: both.v4Out, aqua: both.aquaOut });
+      setLoopPct((units(route.amounts[3], 18) - 1) * 100);
     },
-    NETWORK === "local" ? 6000 : 30000,
+    NETWORK === "local" ? 8000 : 60000,
     [d?.demoHook],
   );
 
-  useEffect(() => {
-    const io = new IntersectionObserver(
-      (es) => es.forEach((e) => e.isIntersecting && setStage(e.target.getAttribute("data-stage") as Stage)),
-      { rootMargin: "-45% 0px -45% 0px" },
-    );
-    Object.values(refs.current).forEach((el) => el && io.observe(el));
-    return () => io.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (stage !== "oneprice") return;
-    const id = setInterval(() => setTradeTick((t) => t + 1), 1400);
-    return () => clearInterval(id);
-  }, [stage]);
-
-  useEffect(() => {
-    setPour(true);
-    const id = setTimeout(() => setPour(false), 1100);
-    return () => clearTimeout(id);
-  }, [k]);
-
-  // live balances, if any
-  const live = book && book.tokens.length === 3;
-  const bal = live
-    ? { eth: units(book!.tokens[0].effectiveBalance, 18), btc: units(book!.tokens[1].effectiveBalance, 8), usdc: units(book!.tokens[2].effectiveBalance, 6) }
-    : BASE;
-  const ethPrice = live && book!.pairs.length ? sim.spot(bal.eth, W[0], bal.usdc, W[2]) : 4000;
-
-  const scene: SceneState = useMemo(() => {
-    const coins = (e: number, b: number, u: number, pe = 4000, pb = 100000) => [(e * pe) / 1000, (b * pb) / 1000, u / 1000] as [number, number, number];
-    if (stage === "problem") return { counts: coins(BASE.eth, BASE.btc, BASE.usdc), layout: "split", splitShare: [0.62, 0.41, 0.5], links: false };
-    if (stage === "oneprice") {
-      // simulated trades: alternate ETH sells and buys, moving coins between stacks
-      const s = tradeTick % 4;
-      const e = BASE.eth + (s === 1 ? 1 : s === 3 ? -0.8 : 0);
-      const u = BASE.usdc * Math.pow(BASE.eth / e, W[0] / W[2]);
-      return { counts: coins(e, BASE.btc, u), layout: "merged", links: true };
-    }
-    if (stage === "market") {
-      const [e, b, u] = pour ? [BASE.eth, BASE.btc, BASE.usdc] : sim.rebalanced([BASE.eth, BASE.btc, BASE.usdc], W, 0, k);
-      return { counts: coins(e, b, u, 4000 * k), layout: "merged", links: true };
-    }
-    return { counts: coins(bal.eth, bal.btc, bal.usdc, ethPrice), layout: "merged", links: stage !== "hero" };
-  }, [stage, tradeTick, k, pour, bal.eth, bal.btc, bal.usdc, ethPrice]);
-
-  // price tags on the two counters
-  const tradeEth = stage === "oneprice" ? (() => {
-    const s = tradeTick % 4;
-    const e = BASE.eth + (s === 1 ? 1 : s === 3 ? -0.8 : 0);
-    const u = BASE.usdc * Math.pow(BASE.eth / e, W[0] / W[2]);
-    return sim.spot(e, W[0], u, W[2]);
-  })() : undefined;
-  const tags =
-    stage === "problem"
-      ? { uni: 3962.4, inch: 4051.8, sim: true }
-      : stage === "market"
-        ? { uni: 4000 * k, inch: 4000 * k, sim: true }
-        : tradeEth
-          ? { uni: tradeEth, inch: tradeEth, sim: true }
-          : { uni: ethPrice, inch: ethPrice, sim: !live };
-
-  const holdV = 40000 * k + 60000;
-  const mohurV = 100000 * Math.pow(k, 0.4);
-
-  const sec = (s: Stage) => ({ ref: (el: HTMLElement | null) => { refs.current[s] = el; }, "data-stage": s });
+  const v4 = q ? amt(q.v4, 6, 9) : MEASURED.out;
+  const aqua = q ? amt(q.aqua, 6, 9) : MEASURED.out;
+  const gap = q ? (q.v4 > q.aqua ? q.v4 - q.aqua : q.aqua - q.v4).toString() : "0";
+  const loop = (loopPct ?? MEASURED.loopPct).toFixed(2).replace("-", "−");
+  const isLive = live && !!q;
 
   return (
-    <div>
-      <style>{`
-        .story { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 32px; }
-        .story-text section { min-height: 88vh; display: flex; flex-direction: column; justify-content: center; padding: 40px 0; }
-        .story-text section p { color: var(--muted); font-size: 19px; max-width: 440px; margin-top: 12px; }
-        .stage { position: sticky; top: 60px; height: calc(100vh - 60px); }
-        .tagbox { position: absolute; top: 18%; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--panel) 88%, transparent); box-shadow: var(--shadow); border: 1px solid var(--line-2); font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; }
-        .hero { min-height: calc(92vh - 60px); display: flex; flex-direction: column; justify-content: center; position: relative; }
-
-        @media (max-width: 860px) {
-          .story { grid-template-columns: 1fr; }
-          .stage { position: sticky; top: 60px; height: 46vh; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); }
-          .story-text { order: 2; }
-          .story-text section { min-height: 70vh; }
-        }
-      `}</style>
-
-      <div className="wrap">
-        <section className="hero">
-          <div className="hero-grid">
-            <div>
-              <div className="eyebrow">ETHGlobal · Uniswap v4 × 1inch Aqua × Anon-RPC</div>
-              <p className="hero-q" data-testid="hero-question">
-                To earn fees on Uniswap <i>and</i> 1inch today, you split your coins in two, and the two prices drift apart.{" "}
-                <b>What if one wallet could serve both?</b>
-              </p>
-              <h1 style={{ marginTop: 14 }}>
-                One wallet.
-                <br />
-                One price.
-                <br />
-                <span className="accent">Every venue.</span>
-                <br />
-                Nobody watching.
-              </h1>
-              <p className="hero-q">Your wallet becomes a 40/30/30 index that Uniswap and 1inch both trade, at one price, with no oracle.</p>
-              <div className="row" style={{ marginTop: 20, flexWrap: "wrap" }}>
-                <Link href="/demo" className="btn primary" data-testid="landing-demo">Run the demo</Link>
-                <Link href="/swap" className="btn">Start trading</Link>
-                <a href="#story" className="btn">How it works ↓</a>
-              </div>
-            </div>
-            <ProblemSolution price={live ? fmt(ethPrice) : "4,000"} live={!!live} />
-          </div>
-        </section>
-      </div>
-
-      <div className="wrap story" id="story">
-        <div className="story-text">
-          <section {...sec("hero")}>
-            <div className="eyebrow">One stockroom, two stalls</div>
-            <h2>Your wallet is the stockroom.</h2>
-            <p>Uniswap and 1inch are two stalls selling from it. One shelf, so one price.</p>
-            {live ? <span className="tag live">live balances from the demo index</span> : <span className="tag sim">example book</span>}
-          </section>
-          <section {...sec("problem")}>
-            <div className="eyebrow">1 · The problem</div>
-            <h2>Two venues, two piles, two prices.</h2>
-            <p>Today you split your coins across venues. Each pile drifts to its own price.</p>
-          </section>
-          <section {...sec("mohur")}>
-            <div className="eyebrow">2 · Unison</div>
-            <h2>One pile feeding both counters.</h2>
-            <p>A v4 hook and a 1inch opcode read the same balances. You approve only Aqua.</p>
-          </section>
-          <section {...sec("oneprice")}>
-            <div className="eyebrow">3 · One price</div>
-            <h2>A trade at either stall moves both tags.</h2>
-            <p>Fill on Uniswap, and 1inch&apos;s next quote already knows. <b className="mono">0 units</b> apart in tests.</p>
-            <span className="tag sim">simulated trades</span>
-          </section>
-          <section {...sec("market")}>
-            <div className="eyebrow">4 · Drag the market</div>
-            <h2>It rebalances itself.</h2>
-            <p>Drag ETH&apos;s price. Traders buy what&apos;s cheap until you&apos;re back on target, and you earn the fee.</p>
-            <label className="stack" style={{ gap: 6, maxWidth: 470 }}>
-              <span className="mono">ETH ${fmt(4000 * k)}</span>
-              <input type="range" min={0.5} max={2} step={0.01} value={k} onChange={(e) => setK(Number(e.target.value))} />
-            </label>
-            <div className="row" style={{ gap: 20, fontSize: 14 }}>
-              <span className="muted">Hold <b className="mono" style={{ color: "var(--text)" }}>${fmt(holdV)}</b></span>
-              <span className="muted">Unison <b className="mono" style={{ color: "var(--text)" }}>${fmt(mohurV)}</b></span>
-              {holdV > mohurV + 1 && <span className="muted" title="This gap is LVR: Unison does not remove it, the fee pays you for it">LVR <b className="mono bad">−${fmt(holdV - mohurV)}</b></span>}
-            </div>
-            <span className="tag sim">computed with the contracts&apos; formula</span>
-          </section>
-          <section {...sec("loops")}>
-            <div className="eyebrow">5 · Loops lose</div>
-            <h2>It can&apos;t be gamed.</h2>
-            <p>Any loop through your wallet, on one venue or both, comes back short.</p>
-            {loop ? (
-              <div className="card" style={{ maxWidth: 470 }}>
-                <div className="faint" style={{ fontSize: 12 }}>Live quote · ETH → USDC → BTC → ETH across both venues</div>
-                <div className="spread" style={{ marginTop: 8 }}>
-                  <span className="mono">0.1 → {loop.out.toFixed(5)} ETH</span>
-                  <span className="mono bad" style={{ fontSize: 24 }}>−{loop.bps.toFixed(1)} bps</span>
-                </div>
-              </div>
-            ) : d?.demoHook ? (
-              <span className="tag">loading live quote…</span>
-            ) : (
-              <div className="card" style={{ maxWidth: 470 }} data-testid="loop-measured">
-                <div className="faint" style={{ fontSize: 12 }}>Measured in the contract tests (CrossVenue.t.sol) · not deployed on this network yet</div>
-                <div className="spread" style={{ marginTop: 8 }}>
-                  <span className="mono">0.1 ETH → USDC → BTC → ETH</span>
-                  <span className="mono bad" style={{ fontSize: 24 }}>−88 bps</span>
-                </div>
-              </div>
-            )}
-            <Link href="/arbitrage" className="accent" style={{ marginTop: 12 }}>Try to beat it →</Link>
-          </section>
-          <section {...sec("private")}>
-            <div className="eyebrow">6 · Private</div>
-            <h2>Nobody watching.</h2>
-            <p>Every read goes through EF&apos;s Anon-RPC, so no RPC provider learns what you watch.</p>
-            <Link href="/privacy" className="accent">Watch every read →</Link>
-          </section>
+    <div className="lp">
+      {/* ---------- hero: one sentence ---------- */}
+      <section className="lp-hero wrap">
+        <div className="lp-chip">
+          <span className="lp-chip-i"><VenueLogo venue={0} size={14} /> Uniswap v4 hook</span>
+          <span className="faint">×</span>
+          <span className="lp-chip-i"><VenueLogo venue={1} size={14} /> 1inch Aqua</span>
+          <span className="faint">×</span>
+          <span className="lp-chip-i"><AnonMark size={12} label="Anon-RPC" /></span>
+        </div>
+        <h1 className="lp-title" data-testid="hero-title">One wallet, traded on every venue at one price.</h1>
+        <p className="lp-sub">
+          Uniswap and 1inch both trade your index from the same coins, at the same price. No oracle, no split capital, and nobody watching.
+        </p>
+        <div className="row lp-cta">
+          <Link href="/swap" className="btn primary lp-btn" data-testid="launch-app">Launch app</Link>
+          <Link href="/demo" className="btn lp-btn" data-testid="landing-demo">Run the demo</Link>
+        </div>
+        <div className="lp-trust" data-testid="trust-row">
+          <span className="lp-trust-label">Proven by</span>
+          <a href={`${REPO}/actions/workflows/test.yml`} target="_blank" rel="noreferrer" className="lp-trust-item"><b>59 contract tests</b><span>unit, fuzz, fork</span></a>
+          <a href={`${REPO}/tree/main/web/e2e`} target="_blank" rel="noreferrer" className="lp-trust-item"><b>Browser suite</b><span>every screen, real Chrome</span></a>
+          <a href={`${REPO}/blob/main/AUDIT.md`} target="_blank" rel="noreferrer" className="lp-trust-item"><b>Own security review</b><span>1 critical found, fixed</span></a>
         </div>
 
-        <div className="stage">
-          <StacksScene state={scene} />
-          <div className="tagbox" style={{ left: 8 }}>
-            <div style={{ color: "var(--uni)" }}><VenueMark venue={0} size={16} /></div>
-            <div>1 ETH = {fmt(tags.uni)} USDC</div>
+        {/* ---------- the product, live: same trade on both venues ---------- */}
+        <div className="lp-stage">
+          <div className="lp-float lp-float-l" data-testid="chip-loop">
+            <span className="faint">Arbitrage loop</span>
+            <b className="bad">{loop}%</b>
           </div>
-          <div className="tagbox" style={{ right: 8, textAlign: "right" }}>
-            <div style={{ color: "var(--inch)" }}><VenueMark venue={1} size={16} /></div>
-            <div>1 ETH = {fmt(tags.inch)} USDC</div>
+          <div className="card lp-live" data-testid="live-card">
+            <div className="spread lp-live-head">
+              <span className="row" style={{ gap: 8 }}>
+                <TokenIcon symbol="tWETH" size={22} /> <b>ETH / USDC</b> <span className="muted">{fmt(price ?? MEASURED.price)}</span>
+              </span>
+              <span className={`lp-status ${isLive ? "on" : ""}`}>{isLive ? "● Live · demo index" : "Measured on a Base Sepolia fork"}</span>
+            </div>
+            <div className="lp-live-title">Sell 0.1 ETH. Same trade, both venues:</div>
+            <div className="lp-venues">
+              <div className="lp-venue">
+                <span className="row" style={{ gap: 6 }}><VenueLogo venue={0} size={18} /> Uniswap v4</span>
+                <b data-testid="live-v4">{v4}</b>
+                <span className="faint">USDC</span>
+              </div>
+              <div className="lp-eq" aria-hidden="true">=</div>
+              <div className="lp-venue">
+                <span className="row" style={{ gap: 6 }}><VenueLogo venue={1} size={18} /> 1inch Aqua</span>
+                <b data-testid="live-aqua">{aqua}</b>
+                <span className="faint">USDC</span>
+              </div>
+            </div>
+            <div className="lp-live-foot">
+              <div><span className="faint">Difference</span><b className="good" data-testid="live-gap">{gap} wei</b></div>
+              <div><span className="faint">Paid from</span><b>the maker&apos;s wallet</b></div>
+              <div><span className="faint">Oracle</span><b>none</b></div>
+            </div>
           </div>
-          <div style={{ position: "absolute", bottom: 16, left: 0, right: 0, textAlign: "center" }} className="faint mono">
-            {stage === "problem" ? "two piles · prices drift apart" : "one wallet · ETH · BTC · USDC"}
-            {tags.sim ? " · simulated" : " · live"}
+          <div className="lp-float lp-float-r" data-testid="chip-private">
+            <span className="faint">Private reads</span>
+            <b className="good">100%</b>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="wrap" style={{ paddingTop: 80 }}>
-        <div className="eyebrow">Proven in tests</div>
-        <h2 style={{ margin: "12px 0 24px" }}>The numbers.</h2>
-        <div className="grid g4">
-          {[
-            ["0 units", "price gap between venues"],
-            ["−88 bps", "a loop across both venues"],
-            ["40 / 30 / 30", "restored by traders alone"],
-            ["$25", "to re-weight $100k (vs $1,991)"],
-          ].map(([n, t]) => (
-            <div key={n} className="card">
-              <div className="serif accent" style={{ fontSize: 40 }}>{n}</div>
-              <div className="muted" style={{ fontSize: 14 }}>{t}</div>
+      {/* ---------- one big number ---------- */}
+      <section className="lp-big wrap" id="number">
+        <div className="lp-big-n" data-testid="big-number">0 wei</div>
+        <h2 className="lp-big-t">between Uniswap and 1inch, on every trade</h2>
+        <p className="lp-big-s">Both venues ask one price function over one wallet, so there is nothing to keep in sync.</p>
+        <div className="lp-stats">
+          <div><b>{loop}%</b><span>any arbitrage loop</span></div>
+          <div><b>40 / 30 / 30</b><span>restored by traders alone</span></div>
+          <div><b>$25</b><span>to change the mix, not $1,991</span></div>
+        </div>
+      </section>
+
+      {/* ---------- the question, and the answer ---------- */}
+      <section className="lp-sec wrap" id="problem">
+        <div className="lp-head">
+          <div className="eyebrow">The problem</div>
+          <h2>Two venues shouldn&apos;t mean two piles</h2>
+          <p>To earn fees on Uniswap and 1inch today, you split your coins in two and the prices drift apart. What if one wallet could serve both?</p>
+        </div>
+        <div style={{ maxWidth: 760, margin: "0 auto" }}>
+          <ProblemSolution price={isLive && price ? fmt(price) : "4,000"} live={isLive} />
+        </div>
+      </section>
+
+      {/* ---------- how it works: three steps ---------- */}
+      <section className="lp-sec lp-tinted" id="how">
+        <div className="wrap">
+          <div className="lp-head">
+            <div className="eyebrow">How it works</div>
+            <h2>One wallet that both venues trade</h2>
+            <p>Unison is a Uniswap v4 hook and a 1inch Aqua instruction that share one price function. It reads only your balances, so there is no oracle to feed and no bot to run.</p>
+          </div>
+          <div className="grid g3">
+            {[
+              ["01", "One wallet", "Your coins stay put", "You approve one contract, 1inch Aqua. Each venue gets a selling limit, not your coins.", [["Uniswap venue", "limit, not coins"], ["1inch venue", "limit, not coins"]]],
+              ["02", "One price", "Both venues ask the same function", "A Uniswap v4 hook and a 1inch SwapVM opcode call one quote() over your real balances.", [["Uniswap", "v4 hook"], ["1inch", "opcode 0xd0"]]],
+              ["03", "Self-rebalancing", "Traders keep you on target", "When prices move, traders buy what is cheap from you until you are back at 40/30/30, and pay you the fee.", [["Rebalancing", "by traders"], ["Fee", "0.30% to you"]]],
+            ].map(([n, k, t, body, rows]) => (
+              <div key={n as string} className="card lp-step">
+                <div className="lp-step-n">{n as string} · {k as string}</div>
+                <h3>{t as string}</h3>
+                <p>{body as string}</p>
+                <div className="lp-step-rows">
+                  {(rows as string[][]).map(([a, b]) => (
+                    <div key={a} className="spread"><span className="muted">{a}</span><span className="tag live">{b}</span></div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p style={{ textAlign: "center", marginTop: 20 }}><Link href="/how" className="accent">The whole idea, step by step →</Link></p>
+        </div>
+      </section>
+
+      {/* ---------- measured, not promised ---------- */}
+      <section className="lp-dark" id="proof">
+        <div className="wrap">
+          <div className="lp-head">
+            <h2>Measured on a fork of the live chain</h2>
+            <p>Every number below comes from the contracts running against the real Uniswap v4 PoolManager on a Base Sepolia fork, checked by 59 contract tests and a browser suite that clicks every screen.</p>
+            <div className="row" style={{ justifyContent: "center", marginTop: 18 }}>
+              <Link href="/demo" className="btn lp-btn-light">Run the demo</Link>
+              <a href={`${REPO}#tests`} target="_blank" rel="noreferrer" className="btn lp-btn-ghost">Full results in the README ↗</a>
+            </div>
+          </div>
+          <div className="lp-stats lp-stats-4">
+            <div><b>0 wei</b><span>price gap between venues</span></div>
+            <div><b>{loop}%</b><span>a 1 ETH loop across both</span></div>
+            <div><b>40.01%</b><span>ETH weight back on target after a +25% move</span></div>
+            <div><b>$25</b><span>to re-weight $100k, vs $1,991</span></div>
+          </div>
+          <p className="lp-foot-note">Fork runs and Foundry tests, documented in the README. Not live trading volume.</p>
+        </div>
+      </section>
+
+      {/* ---------- change the mix ---------- */}
+      <section className="lp-sec wrap" id="reweight">
+        <div className="lp-head">
+          <div className="eyebrow">Changing your mix</div>
+          <h2>Less for arbitrageurs, more for you</h2>
+          <p>Moving a $100k index from 40/30/30 to 50/25/25: switch instantly and arbitrageurs take the whole gap; glide there and traders walk you over in small trades that pay you the fee.</p>
+        </div>
+        <div className="card lp-bars" data-testid="reweight-bars">
+          <div className="spread"><b>What it costs to change the mix</b><span className="faint mono" style={{ fontSize: 12 }}>$100k · 40/30/30 → 50/25/25 · Reweight.t.sol</span></div>
+          {[["Instant switch", 1991, false], ["Unison gradual glide (50 steps)", 25, true]].map(([label, v, us]) => (
+            <div key={label as string} className="lp-bar-row">
+              <div className="spread"><span className={us ? "" : "muted"} style={{ fontWeight: us ? 600 : 400 }}>{label as string}</span><b className={us ? "accent" : ""}>${(v as number).toLocaleString()}</b></div>
+              <div className="lp-bar"><span style={{ width: `${Math.max(1.5, ((v as number) / 1991) * 100)}%`, background: us ? "var(--accent-fill)" : "var(--line-2)" }} /></div>
             </div>
           ))}
         </div>
-        <p className="faint" style={{ fontSize: 13, marginTop: 12 }}>Foundry tests, incl. forks of Uniswap v4 on Base Sepolia.</p>
+      </section>
 
-        <hr className="sep" />
-        <div className="grid g2">
-          <div className="card">
-            <div className="eyebrow" style={{ color: "var(--uni)" }}><VenueMark venue={0} size={16} /></div>
-            <h3 style={{ marginTop: 8 }}>MohurHook</h3>
-            <p className="muted" style={{ fontSize: 15 }}>Custom-curve hook. Prices from your wallet, pays out through Aqua.</p>
+      {/* ---------- security ---------- */}
+      <section className="lp-sec lp-tinted" id="security">
+        <div className="wrap">
+          <div className="lp-head">
+            <div className="eyebrow">Security</div>
+            <h2>We attacked it ourselves</h2>
+            <p>Testnet only and not externally audited. Here is what we checked, and what we fixed.</p>
           </div>
-          <div className="card">
-            <div className="eyebrow" style={{ color: "var(--inch)" }}><VenueMark venue={1} size={16} /></div>
-            <h3 style={{ marginTop: 8 }}>PortfolioPrice · opcode 0xd0</h3>
-            <p className="muted" style={{ fontSize: 15 }}>Custom SwapVM instruction. Same price as the hook, by construction.</p>
+          <div className="grid g3">
+            <div className="card lp-step">
+              <div className="lp-step-n">Found and fixed</div>
+              <h3>A critical cross-venue bug</h3>
+              <p>A trade nested inside a 1inch fill could price on stale balances; the proof of concept took $752. A fail-closed fill lock now blocks it.</p>
+              <a className="accent" href={`${REPO}/blob/main/AUDIT.md`} target="_blank" rel="noreferrer">Read the review ↗</a>
+            </div>
+            <div className="card lp-step">
+              <div className="lp-step-n">By design</div>
+              <h3>One approval, to Aqua</h3>
+              <p>No allowance to the hook, the router or the PoolManager. Each venue can only sell up to the limit you give it.</p>
+              <Link className="accent" href="/my">Set your limits →</Link>
+            </div>
+            <div className="card lp-step">
+              <div className="lp-step-n">Private</div>
+              <h3>Nobody sees you watching</h3>
+              <p>Every chain read goes through the Ethereum Foundation&apos;s Anon-RPC, with a separate key per maker, pair and trader.</p>
+              <Link className="accent" href="/privacy">See every read →</Link>
+            </div>
           </div>
         </div>
+      </section>
 
-        <hr className="sep" />
-        <h2 style={{ marginBottom: 20 }}>Pick a way in</h2>
-        <div className="grid g4" style={{ marginBottom: 40 }}>
-          {[
-            ["/swap", "Swap", "Trade on either venue"],
-            ["/create", "Launch", "Your own index"],
-            ["/arbitrage", "Arbitrage me", "Try to beat it"],
-            ["/privacy", "Privacy", "See every read"],
-          ].map(([href, t, s]) => (
-            <Link key={href} href={href} className="card" style={{ display: "block" }}>
-              <h3>{t} →</h3>
-              <div className="muted" style={{ fontSize: 14 }}>{s}</div>
-            </Link>
-          ))}
+      {/* ---------- build on it ---------- */}
+      <section className="lp-sec wrap" id="build">
+        <div className="lp-build card">
+          <div>
+            <div className="eyebrow">For developers</div>
+            <h2 style={{ fontSize: "clamp(26px, 3vw, 36px)" }}>Use Unison in your own product</h2>
+            <p className="muted">Clone it, run the whole thing locally in one command, then launch an index, quote both venues, or route trades from your own app.</p>
+            <div className="row" style={{ marginTop: 14 }}>
+              <Link href="/docs" className="btn primary" data-testid="docs-cta">Read the docs</Link>
+              <a href={REPO} target="_blank" rel="noreferrer" className="btn">GitHub ↗</a>
+            </div>
+          </div>
+          <pre className="lp-code"><code>{`git clone --recursive ${REPO}
+cd mohur
+(cd contracts && npm ci) && (cd web && npm ci)
+./scripts/demo.sh`}</code></pre>
         </div>
-      </div>
+      </section>
+
+      {/* ---------- FAQ ---------- */}
+      <section className="lp-sec wrap" id="faq" style={{ maxWidth: 820 }}>
+        <div className="lp-head">
+          <div className="eyebrow">FAQ</div>
+          <h2>Questions people ask</h2>
+        </div>
+        {FAQ.map(([qq, a]) => (
+          <details key={qq} className="card more lp-faq">
+            <summary><h3>{qq}</h3></summary>
+            <p className="muted" style={{ margin: 0 }}>{a}</p>
+          </details>
+        ))}
+      </section>
+
+      <section className="lp-sec wrap" style={{ textAlign: "center", paddingTop: 0 }}>
+        <h2>Try it in a minute.</h2>
+        <div className="row" style={{ justifyContent: "center", marginTop: 18 }}>
+          <Link href="/swap" className="btn primary lp-btn">Launch app</Link>
+          <Link href="/demo" className="btn lp-btn">Run the demo</Link>
+        </div>
+      </section>
     </div>
   );
 }

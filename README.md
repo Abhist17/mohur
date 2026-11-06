@@ -159,13 +159,13 @@ python3 reference/mohur_math.py              # regenerates the 80-digit referenc
 | `fork/V4BaseSepolia.t.sol` | Official V4Quoter == hook quote; a real Universal Router swap pays from the maker wallet. |
 | `Gas.t.sol` | What each action costs, with regression bounds: Uniswap v4 swap ~290k gas (incl. the test router), 1inch Aqua fill ~216k, flush ~143k, `quote()` ~52k (measured in-test, before refunds, excluding the 21k base). |
 
-**Everything in one command:** `./scripts/check-all.sh` runs the contract tests (including fork tests), the web typecheck and lint, a fresh fork with deploy, the 36 smoke checks, 27 headless user flows and the 15 browser specs (about 6 minutes). CI runs the offline contract suite and the web checks on every push.
+**Everything in one command:** `./scripts/check-all.sh` runs the contract tests (including fork tests), the web typecheck and lint, a fresh fork with deploy, the 36 smoke checks, 27 headless user flows and the 16 browser specs (about 6 minutes). CI runs the offline contract suite and the web checks on every push.
 
 **Browser tests** (Playwright, system Chrome, no browser download). `cd web && npm run e2e` boots a fresh Base Sepolia fork, deploys, and drives the real app with an injected wallet backed by anvil's dev accounts:
 
 | Spec | Proves |
 | --- | --- |
-| `01-landing` | Landing and the 3D scene render with no console errors |
+| `01-landing` | One-sentence hero, the live same-trade card (both venues equal, 0 wei), every story section, no console errors |
 | `02-create` | Weights always sum to 100%; preview equals the contracts' math |
 | `03-launch` | Six real launch transactions; a reload mid-launch resumes from chain state |
 | `04-book` | Identical quotes per pair; a fill on one venue moves the other; flush; venue limits |
@@ -180,6 +180,7 @@ python3 reference/mohur_math.py              # regenerates the 80-digit referenc
 | `13-a11y` | Skip link is the first tab stop; keyboard focus is visible; the nav marks the current page; every image has alt text |
 | `14-gas` | A wallet with no ETH is told how to get gas (faucet links on Base Sepolia) on Demo, Swap and Launch; a funded wallet never sees it |
 | `15-wallet` | Switching accounts in the browser wallet updates the app; disconnecting there disconnects here |
+| `16-docs` | Docs render, code blocks copy, this build's contract addresses show, every section link resolves |
 
 `npm run e2e:testnet` checks the deployed site instead: reads really go through Anon-RPC (Tor, falling back to Nym) to Base Sepolia, and every chain screen either works or (before the contracts are deployed) explains itself with a labelled screenshot. Screenshots land in `web/e2e/artifacts/`.
 
@@ -189,7 +190,8 @@ Next.js 15 + viem + three.js. Everything shown comes from the chain or is labell
 Every transaction gets a toast (confirm in wallet → submitted, with explorer link → confirmed), and contract
 reverts are decoded into plain sentences ("Trade too large: one trade can move at most 30% of a balance").
 
-- **Landing:** a scroll-told 3D scene. The wallet is three stacks of coins (gold ETH, copper BTC, silver USDC) feeding two counters (Uniswap, 1inch) that show the same live price. Stages cover: the problem (two piles, drifting prices), one pile, one price, drag the market (rebalancing with the contracts' formula and the honest LVR cost), loops lose (a live on-chain loop quote), and private.
+- **Landing:** one sentence ("One wallet, traded on every venue at one price."), Launch app / Run the demo, a trust row, a live card quoting the same trade on both venues (0 wei apart), one big number, the problem (Today vs With Unison), how it works in three steps, a "Measured on a fork of the live chain" band, the re-weight cost chart, security, a developer teaser and an FAQ.
+- **Docs** (`/docs`): quickstart, run the app, deploy to Base Sepolia, launch an index, quote both venues, trade (router, Uniswap v4 pool key, 1inch order), private reads, contracts with this build's addresses, tests and limits; every code block has a copy button.
 - **Swap:** the everyday screen. Pay / receive, both venues' quotes side by side (identical, with each venue's remaining limit), rate, price impact, fee, minimum received (0.5% slippage), and one button that walks you through *get test tokens → approve → swap*. Defaults to the demo index so you trade against a real counterparty; makers can switch to their own.
 - **Create:** assets and weights (always sum to 100%), quote preview per pair computed by the contracts' own math (`MohurLens.previewSpot` / `previewOutGivenIn`).
 - **Launch:** six real steps from your wallet (deploy your own hook with an address mined in the browser, test tokens, approve Aqua only, set weights, open v4 pools + ship the Uniswap venue, ship 1inch Aqua strategies). Each step resumes from chain state.

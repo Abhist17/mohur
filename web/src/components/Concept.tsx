@@ -1,7 +1,7 @@
 import { asset, VENUE_LOGO } from "./VenueMark";
 
 /**
- * The Unison idea in one picture: one wallet (the stockroom: gold ETH, copper BTC, silver USDC) feeding two
+ * The Unison idea in one picture: one wallet (ETH, BTC and USDC at their target weights) feeding two
  * stalls (Uniswap v4, 1inch Aqua) that show the same price tag. Used across screens so every page says
  * where it sits in the story.
  */
@@ -10,14 +10,9 @@ export function Concept({ caption, highlight }: { caption: React.ReactNode; high
   return (
     <div className="concept">
       <svg viewBox="0 0 360 96" width="100%" role="img" aria-label="One wallet feeding Uniswap and 1inch at one price">
-        <defs>
-          <linearGradient id="cg" x1="0" x2="1"><stop offset="0" stopColor="#f3cf7a" /><stop offset="1" stopColor="#b98426" /></linearGradient>
-          <linearGradient id="cc" x1="0" x2="1"><stop offset="0" stopColor="#e09a6b" /><stop offset="1" stopColor="#9a5530" /></linearGradient>
-          <linearGradient id="cs" x1="0" x2="1"><stop offset="0" stopColor="#e3e7ec" /><stop offset="1" stopColor="#8b939c" /></linearGradient>
-        </defs>
         {/* links */}
-        <path d="M92 50 H148" stroke="#d6a64c" strokeWidth="1.5" strokeDasharray="4 4" opacity={dim("uniswap")} />
-        <path d="M212 50 H268" stroke="#d6a64c" strokeWidth="1.5" strokeDasharray="4 4" opacity={dim("1inch")} />
+        <path d="M92 50 H148" style={{ stroke: "var(--accent-2)" }} strokeWidth="1.5" strokeDasharray="4 4" opacity={dim("uniswap")} />
+        <path d="M212 50 H268" style={{ stroke: "var(--accent-2)" }} strokeWidth="1.5" strokeDasharray="4 4" opacity={dim("1inch")} />
         {/* stalls */}
         <g opacity={dim("uniswap")}>
           <rect x="4" y="30" width="88" height="40" rx="9" style={{ fill: "var(--panel)" }} stroke="#ff007a" />
@@ -31,12 +26,13 @@ export function Concept({ caption, highlight }: { caption: React.ReactNode; high
           <text x="293" y="47" fontSize="10.5" fill="#6fb0ff" fontWeight="600">1inch Aqua</text>
           <text x="293" y="61" fontSize="9.5" style={{ fill: "var(--muted)" }}>same price</text>
         </g>
-        {/* wallet: three coin stacks */}
+        {/* wallet: one card holding the three assets at their target weights */}
         <g opacity={dim("wallet")}>
-          {[0, 1, 2, 3, 4, 5].map((i) => <rect key={"g" + i} x="156" y={66 - i * 7} width="14" height="6" rx="3" fill="url(#cg)" />)}
-          {[0, 1, 2, 3].map((i) => <rect key={"c" + i} x="173" y={66 - i * 7} width="14" height="6" rx="3" fill="url(#cc)" />)}
-          {[0, 1, 2, 3].map((i) => <rect key={"s" + i} x="190" y={66 - i * 7} width="14" height="6" rx="3" fill="url(#cs)" />)}
-          <text x="180" y="88" textAnchor="middle" fontSize="10.5" style={{ fill: "var(--text)" }} fontWeight="600">your wallet</text>
+          <rect x="150" y="22" width="60" height="56" rx="10" style={{ fill: "var(--panel)", stroke: "var(--accent-2)" }} strokeWidth="1.5" />
+          {[["#627eea", 40], ["#f7931a", 30], ["#2775ca", 30]].map(([c, w], i) => (
+            <rect key={i} x="158" y={32 + i * 12} width={(Number(w) / 40) * 44} height="7" rx="3.5" fill={c as string} />
+          ))}
+          <text x="180" y="91" textAnchor="middle" fontSize="10.5" style={{ fill: "var(--text)" }} fontWeight="600">your wallet</text>
         </g>
       </svg>
       <div className="concept-cap">{caption}</div>

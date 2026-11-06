@@ -1,5 +1,7 @@
 # Mohur
 
+[![Tests](https://github.com/Abhist17/mohur/actions/workflows/test.yml/badge.svg)](https://github.com/Abhist17/mohur/actions/workflows/test.yml) [![Live app](https://img.shields.io/badge/live-abhist17.github.io%2Fmohur-d6a64c)](https://abhist17.github.io/mohur/)
+
 **One wallet, one price, every venue, nobody watching.**
 
 Mohur turns a self-custodial wallet into a weighted index (for example 40% ETH / 30% BTC / 30% USDC)

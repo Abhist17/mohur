@@ -1,0 +1,53 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    name: Contracts (forge, offline suite)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: contracts/package-lock.json
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.8.4
+      - name: Install Solidity deps (npm, as upstream 1inch does)
+        working-directory: contracts
+        run: npm ci
+      - name: Build the real v4 PoolManager artifact (solc 0.8.26)
+        working-directory: contracts
+        run: npm run build:v4
+      - name: forge test (unit, fuzz, invariants, audit PoC; fork tests need a live RPC and run locally)
+        working-directory: contracts
+        run: forge test --no-match-path 'test/fork/*'
+
+  web:
+    name: Web app (typecheck + lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - working-directory: web
+        run: npm ci
+      - working-directory: web
+        run: npx tsc --noEmit -p .
+      - working-directory: web
+        run: npx eslint src

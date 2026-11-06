@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
  */
 
 /** `under`: draw as a wide soft band beneath the others, so an identical line on top stays visible (e.g. two venues, one price). */
-export type Series = { name: string; color: string; points: (number | null)[]; endLabel?: boolean; under?: boolean };
+export type Series = { name: string; color: string; points: (number | null)[]; endLabel?: boolean; under?: boolean; dots?: boolean; line?: boolean };
 
 function useWidth<T extends HTMLElement>() {
   const ref = useRef<T>(null);
@@ -131,7 +131,8 @@ export function LineChart({
               {area && series.length === 1 && (
                 <path d={`${path(s.points)}L${sx(x1)},${sy(Math.max(y0, 0))}L${sx(x0)},${sy(Math.max(y0, 0))}Z`} fill={s.color} opacity={0.1} />
               )}
-              <path d={path(s.points)} fill="none" stroke={s.color} strokeWidth={s.under ? 7 : 2} strokeOpacity={s.under ? 0.35 : 1} strokeLinejoin="round" strokeLinecap="round" />
+              {s.line !== false && <path d={path(s.points)} fill="none" stroke={s.color} strokeWidth={s.under ? 7 : 2} strokeOpacity={s.under ? 0.35 : 1} strokeLinejoin="round" strokeLinecap="round" />}
+              {s.dots && s.points.map((v, i) => (v === null || !Number.isFinite(v) ? null : <circle key={i} cx={sx(x[i])} cy={sy(v)} r={4.5} fill={s.color} className="chart-ring" />))}
             </g>
           ))}
           {/* end dots + end labels */}

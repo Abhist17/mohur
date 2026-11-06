@@ -1,4 +1,4 @@
-import { test, expect, injectWallet, connect, ACCOUNTS, shot } from "../fixtures";
+import { test, expect, injectWallet, connect, ACCOUNTS, shot, deployments } from "../fixtures";
 import type { Locator } from "@playwright/test";
 
 /** Read a chart's table view (every chart has one) as rows of cell texts. */
@@ -24,6 +24,22 @@ test("charts: same price at every size (both venues identical), any loop size lo
   for (const [size, uni, inch] of rows) if (uni !== "–" && inch !== "–") expect(inch, size).toBe(uni);
   await curve.scrollIntoViewIfNeeded();
   await curve.screenshot({ path: "e2e/artifacts/19-chart-size.png" });
+
+  // Book: depth read from the wallet, and the price of every real fill
+  const depth = page.getByTestId("depth-chart");
+  await expect(depth).toBeVisible();
+  await expect(depth.locator("svg path[stroke]")).toHaveCount(2);
+  // a new index has no fills yet: the chart says so instead of disappearing
+  await expect(page.getByTestId("fill-price-empty")).toBeVisible({ timeout: 60_000 });
+  await depth.scrollIntoViewIfNeeded();
+  await page.locator(".grid.g2", { has: depth }).screenshot({ path: "e2e/artifacts/23-chart-market.png" });
+  // the demo index has real fills on both venues: one dot per fill
+  await page.goto(`/book?index=${deployments().demoHook}`);
+  const fillsChart = page.getByTestId("fill-price-chart");
+  await expect(fillsChart.locator("svg circle").first()).toBeVisible({ timeout: 60_000 });
+  expect(await fillsChart.locator("svg circle").count()).toBeGreaterThan(1);
+  await fillsChart.scrollIntoViewIfNeeded();
+  await page.locator(".grid.g2", { has: fillsChart }).screenshot({ path: "e2e/artifacts/24-chart-fills.png" });
 
   // Arbitrage: every size of the loop comes back short
   await page.goto("/arbitrage");

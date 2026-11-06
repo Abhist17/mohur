@@ -29,6 +29,39 @@ export default function BookPage() {
   // "same price at every size": sell 0.5%..24% of the wallet's ETH on each venue; price received per ETH
   const [curve, setCurve] = useState<{ x: number[]; v4: (number | null)[]; aqua: (number | null)[] }>();
 
+  // depth read from the curve (ETH/USDC sub-pair; weighted-pool math, fees ignored), capped at what the venues may trade
+  const depth = (() => {
+    const e = book?.tokens.find((t) => t.symbol === "tWETH"), u = book?.tokens.find((t) => t.symbol === "tUSDC");
+    if (!e || !u) return undefined;
+    const E0 = units(e.effectiveBalance, 18), U0 = units(u.effectiveBalance, 6);
+    const wE = Number(e.weight) / 1e18, wU = Number(u.weight) / 1e18;
+    if (!(E0 > 0 && U0 > 0 && wE > 0 && wU > 0)) return undefined;
+    const p0 = (wE / wU) * (U0 / E0);
+    const ethLimit = units(e.v4Limit + e.aquaLimit, 18), usdcLimit = units(u.v4Limit + u.aquaLimit, 6);
+    const Ep = (p: number) => E0 * Math.pow(p0 / p, wU / (wE + wU));
+    const Up = (p: number) => (p * wU * Ep(p)) / wE;
+    const x = Array.from({ length: 41 }, (_, i) => +(p0 * (0.7 + i * 0.015)).toFixed(2));
+    const buy = x.map((p) => (p <= p0 && Up(p) >= U0 - usdcLimit ? Ep(p) - E0 : null));
+    const sell = x.map((p) => (p >= p0 && E0 - Ep(p) <= ethLimit ? E0 - Ep(p) : null));
+    return { x, buy, sell, p0 };
+  })();
+
+  // execution price of every ETH/USDC fill, oldest first, split by venue
+  const priceFills = (() => {
+    const e = book?.tokens.find((t) => t.symbol === "tWETH"), u = book?.tokens.find((t) => t.symbol === "tUSDC");
+    if (!e || !u) return undefined;
+    const same = (a: Address, b: Address) => a.toLowerCase() === b.toLowerCase();
+    const rows = [...fills].reverse().filter((f) => (same(f.tokenIn, e.token) && same(f.tokenOut, u.token)) || (same(f.tokenIn, u.token) && same(f.tokenOut, e.token)));
+    if (rows.length < 2) return { x: [], v4: [], aqua: [], none: true };
+    const price = (f: FillRow) => (same(f.tokenIn, e.token) ? units(f.amountOut, 6) / units(f.amountIn, 18) : units(f.amountIn, 6) / units(f.amountOut, 18));
+    return {
+      x: rows.map((_, i) => i + 1),
+      v4: rows.map((f) => (f.venue === "Uniswap v4" ? price(f) : null)),
+      aqua: rows.map((f) => (f.venue === "1inch Aqua" ? price(f) : null)),
+      none: false,
+    };
+  })();
+
   usePoll(
     async () => {
       if (!hook || !maker) return;
@@ -242,6 +275,61 @@ export default function BookPage() {
           />
         </div>
       )}
+
+      <div className="grid g2" style={{ marginTop: 16 }}>
+        {depth && (
+          <div className="card" data-testid="depth-chart">
+            <div className="spread" style={{ alignItems: "baseline" }}>
+              <h3>Depth, read from the wallet</h3>
+              <span className="tag sim">pool formula</span>
+            </div>
+            <p className="muted" style={{ fontSize: 14, margin: "4px 0 12px" }}>
+              How much ETH this wallet will buy as the price falls, or sell as it rises, from the now-price of {fmt(depth.p0)} USDC. No order book: it is all read from the balances.
+            </p>
+            <LineChart
+              x={depth.x}
+              series={[
+                { name: "Wallet buys ETH", color: "var(--c-unison)", points: depth.buy },
+                { name: "Wallet sells ETH", color: "var(--c-hold)", points: depth.sell },
+              ]}
+              xFmt={(v) => fmt(v)}
+              yFmt={(v) => `${fmt(v)} ETH`}
+              xLabel="ETH price (USDC)"
+              yLabel="ETH, cumulative"
+              height={220}
+              caption="Fees ignored. Each side stops at what the venues may still trade (their limits)."
+            />
+          </div>
+        )}
+        {priceFills && (
+          <div className="card" data-testid="fill-price-chart">
+            <div className="spread" style={{ alignItems: "baseline" }}>
+              <h3>ETH price, fill by fill</h3>
+              <span className="tag live">on-chain fills</span>
+            </div>
+            <p className="muted" style={{ fontSize: 14, margin: "4px 0 12px" }}>
+              The price each ETH/USDC trade actually got, oldest first, on whichever venue it filled. One wallet, so both venues trade along the same path.
+            </p>
+            {priceFills.none ? (
+              <p className="faint" style={{ fontSize: 14 }} data-testid="fill-price-empty">No ETH/USDC fills on this index yet. Trade on <Link className="accent" href={`/swap?index=${hook}`}>Swap</Link> and they appear here.</p>
+            ) : (
+            <LineChart
+              x={priceFills.x}
+              series={[
+                { name: "Uniswap v4 fill", color: "var(--c-uni)", points: priceFills.v4, dots: true, line: false },
+                { name: "1inch Aqua fill", color: "var(--c-inch)", points: priceFills.aqua, dots: true, line: false },
+              ]}
+              xFmt={(v) => `#${v}`}
+              yFmt={(v) => fmt(v)}
+              xLabel="Fill"
+              yLabel="USDC per ETH"
+              height={220}
+              caption="Execution price including the 0.30% fee and price impact of each trade."
+            />
+            )}
+          </div>
+        )}
+      </div>
 
       {rb && (
         <div className="card" style={{ marginTop: 16 }}>

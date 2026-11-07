@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { NETWORK } from "@/lib/config";
+import { NETWORK, WORKERS } from "@/lib/config";
+import { useAnon } from "@/components/Providers";
 import { fmt, readFills, readIndexes, TOKEN_STYLE, units, type IndexCard } from "@/lib/tenbin";
 import { Sparkline } from "@/components/Sparkline";
 import { useWallet } from "@/lib/wallet";
@@ -15,20 +16,27 @@ import { Explain } from "@/components/Explain";
 // reference prices for sizing cards only (Tenbin itself never uses an oracle)
 const REF: Record<string, number> = { tWETH: 4000, tWBTC: 100000, tUSDC: 1 };
 
+type Stats = Record<string, { fills: number; fees: number; path: number[] }>;
+// the last real read this session: coming back to Explore shows it at once while a fresh read runs behind it
+let lastCards: IndexCard[] | undefined;
+let lastStats: Stats = {};
+
 export default function Explore() {
   const { deployed } = useIndex();
   const w = useWallet();
-  const [cards, setCards] = useState<IndexCard[]>();
+  const { status } = useAnon();
+  const [cards, setCards] = useState<IndexCard[] | undefined>(lastCards);
   const [err, setErr] = useState<string>();
 
   // per index: real fills -> count, fees, and the ETH/USDC price path for a sparkline
-  const [stats, setStats] = useState<Record<string, { fills: number; fees: number; path: number[] }>>({});
+  const [stats, setStats] = useState<Stats>(lastStats);
 
   usePoll(
     async () => {
       try {
         const cs = await readIndexes();
         setCards(cs);
+        lastCards = cs;
         setErr(undefined);
         const entries = await Promise.all(
           cs.filter((c) => c.book).map(async (c) => {
@@ -48,7 +56,8 @@ export default function Explore() {
             return [c.hook, { fills: fills.length, fees, path }] as const;
           }),
         );
-        setStats(Object.fromEntries(entries));
+        lastStats = Object.fromEntries(entries);
+        setStats(lastStats);
       } catch (e) {
         setErr(String((e as Error).message).slice(0, 160));
       }
@@ -67,6 +76,12 @@ export default function Explore() {
         <p>Each one is somebody&apos;s wallet, quoted on both venues at one price. Pick one to trade against.</p>
       </div>
       {err && <div className="err" style={{ marginBottom: 12 }}>{err}</div>}
+      {!cards && NETWORK !== "local" && (
+        <p className="faint" style={{ fontSize: 13, margin: "0 0 12px" }} data-testid="explore-loading">
+          {status.state === "booting" ? `Connecting to the ${WORKERS[status.worker].label} first` : `Reading every index privately through the ${WORKERS[status.worker].label}`}: the first load
+          takes a little while, then it&apos;s quick.
+        </p>
+      )}
       {!cards && (
         <div className="grid g3">
           {[0, 1, 2].map((i) => (

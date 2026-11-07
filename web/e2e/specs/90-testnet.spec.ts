@@ -5,10 +5,11 @@ test.describe("@testnet deployed Base Sepolia build", () => {
   test("@testnet reads go through Anon-RPC: Tor first, Nym fallback, Base Sepolia answers", async ({ page }) => {
     // start from Tor (the app falls back to Nym by itself if Tor cannot bootstrap in 35 s)
     await page.addInitScript(() => localStorage.setItem("tenbin.worker", "tor-js"));
+    test.setTimeout(420_000); // Tor 35 s, Nym up to 90 s, and an automatic Nym retry if the mixnet is slow to start
     await page.goto("privacy/");
     await page.getByTestId("probe").click();
     const result = page.getByTestId("probe-result");
-    await expect(result).toHaveAttribute("data-state", "ok", { timeout: 180_000 });
+    await expect(result).toHaveAttribute("data-state", "ok", { timeout: 380_000 });
     await expect(result).toContainText("chain 84532");
     const rows = page.getByTestId("read-row");
     const routes = await Promise.all((await rows.all()).map((r) => r.getAttribute("data-route")));
@@ -126,6 +127,35 @@ test.describe("@testnet deployed Base Sepolia build", () => {
     const [sw, iw] = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
     expect(sw).toBeLessThanOrEqual(iw + 1);
     await shot(page, "93-testnet-direct");
+  });
+
+  test("@testnet one dropped bootstrap RPC can't stop the private route (it tries the next one)", async ({ page }) => {
+    test.setTimeout(240_000);
+    // 7 Nov: ethereum-rpc.publicnode.com closed the connection once and the whole app lost its private route
+    await page.route("**/*", (route) => (new URL(route.request().url()).host === "ethereum-rpc.publicnode.com" ? route.abort("connectionclosed") : route.continue()));
+    await page.goto("privacy/");
+    await page.getByTestId("probe").click();
+    await expect(page.getByTestId("probe-result")).toHaveAttribute("data-state", "ok", { timeout: 200_000 });
+    await expect(page.getByTestId("probe-result")).toContainText("chain 84532");
+    await expect(page.locator('[data-testid="read-row"][data-route="direct"]')).toHaveCount(0);
+  });
+
+  test("@testnet when the private route drops, it comes back by itself and the screen fills in (no click, never direct)", async ({ page, baseURL }) => {
+    test.setTimeout(420_000);
+    const site = [new URL(baseURL ?? "http://127.0.0.1").host, "abhist17.github.io", "fonts.gstatic.com"];
+    let outage = true; // everything but the site itself fails until we lift it
+    await page.route("**/*", (route) => {
+      const host = new URL(route.request().url()).host;
+      return outage && !site.some((h) => host === h || host.endsWith(`.${h}`)) ? route.abort("connectionclosed") : route.continue();
+    });
+    await page.goto("explore/");
+    await expect(page.getByTestId("privacy-retrying")).toBeVisible({ timeout: 120_000 });
+    outage = false;
+    await expect(page.getByTestId("explore-stats").first()).toBeVisible({ timeout: 300_000 });
+    await expect(page.getByTestId("privacy-banner")).toHaveCount(0);
+    await page.getByRole("link", { name: "Privacy", exact: true }).first().click(); // same session, same read log
+    await expect(page.getByTestId("read-row").first()).toBeVisible();
+    await expect(page.locator('[data-testid="read-row"][data-route="direct"]')).toHaveCount(0);
   });
 
   test("@testnet logging proxy saw requests from anonymity-network exits", async ({ request }) => {

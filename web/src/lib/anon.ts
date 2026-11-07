@@ -1,7 +1,7 @@
 "use client";
 
 import { createPublicClient, custom, type PublicClient } from "viem";
-import { BOOTSTRAP_RPC, CHAIN, DEFAULT_WORKER, NETWORK, RPC_URLS, WORKERS, type WorkerId } from "./config";
+import { BOOTSTRAP_RPCS, CHAIN, DEFAULT_WORKER, NETWORK, RPC_URLS, WORKERS, type WorkerId } from "./config";
 
 /**
  * Every chain read the app makes goes through ONE function: `rpc()` below.
@@ -27,8 +27,9 @@ export type ReadLogEntry = {
   note?: string;
 };
 
-/** `direct`: the user chose to read without privacy because no anonymity network could start (never automatic). */
-export type AnonStatus = { worker: WorkerId; state: "idle" | "booting" | "ready" | "failed"; bootMs?: number; error?: string; direct?: boolean };
+/** `direct`: the user chose to read without privacy because no anonymity network could start (never automatic).
+ *  `retry`: which automatic retry this is (1..3) after every private route failed; absent on the first try. */
+export type AnonStatus = { worker: WorkerId; state: "idle" | "booting" | "ready" | "failed"; bootMs?: number; error?: string; direct?: boolean; retry?: number; retryAt?: number };
 
 type Listener = () => void;
 const listeners = new Set<Listener>();
@@ -74,28 +75,28 @@ function storedWorker(): WorkerId {
   return DEFAULT_WORKER;
 }
 
-/** Bootstrap provider: the ONE read that cannot be anonymised (it locates the anon client). */
+/** Bootstrap provider: the ONE read that cannot be anonymised (it locates the anon client).
+ *  Tries each mainnet RPC in turn, so one dropped connection can't stop the private route from starting. */
+const BOOTSTRAP_TIMEOUT_MS = 10_000;
 const bootstrapProvider = {
   request: async ({ method, params }: { method: string; params?: unknown }) => {
-    const t0 = performance.now();
-    const res = await fetch(BOOTSTRAP_RPC, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params: params ?? [] }),
-    });
-    const json = await res.json();
-    record({
-      method,
-      label: "read worker specifier (mainnet)",
-      isolationKey: "-",
-      route: "bootstrap",
-      ms: Math.round(performance.now() - t0),
-      ok: !json.error,
-      endpoint: BOOTSTRAP_RPC,
-      note: "not anonymised: happens before the anonymous client exists",
-    });
-    if (json.error) throw new Error(json.error.message);
-    return json.result;
+    const body = JSON.stringify({ jsonrpc: "2.0", id: 1, method, params: params ?? [] });
+    let lastErr: unknown;
+    for (const url of BOOTSTRAP_RPCS) {
+      const t0 = performance.now();
+      const host = new URL(url).host;
+      try {
+        const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body, signal: AbortSignal.timeout(BOOTSTRAP_TIMEOUT_MS) });
+        const json = await res.json();
+        if (json.error || json.result === undefined) throw new Error(json.error?.message ?? `no result (${res.status})`);
+        record({ method, label: "read worker specifier (mainnet)", isolationKey: "-", route: "bootstrap", ms: Math.round(performance.now() - t0), ok: true, endpoint: host, note: "not anonymised: happens before the anonymous client exists" });
+        return json.result;
+      } catch (e) {
+        lastErr = e;
+        record({ method, label: "read worker specifier (mainnet)", isolationKey: "-", route: "bootstrap", ms: Math.round(performance.now() - t0), ok: false, endpoint: host, note: `${String((e as Error)?.message ?? e).slice(0, 60)} - trying the next RPC` });
+      }
+    }
+    throw lastErr;
   },
 };
 
@@ -107,12 +108,43 @@ const ANON_FALLBACK: Partial<Record<WorkerId, WorkerId>> = { "tor-js": "nym" };
 let instance: AnonWorker | undefined; // the most recently constructed worker (ready or not)
 let generation = 0;
 
+/** When every private route fails (a gateway blip, a dropped connection), try again by itself a few times before
+ *  leaving it to the user. Still private: it only retries Tor/Nym, never reads directly. */
+const AUTO_RETRY_MS = [5_000, 20_000, 60_000];
+let autoRetry = 0;
+let retryTimer: ReturnType<typeof setTimeout> | undefined;
+let wasDown = false;
+function scheduleRetry(delay: number, id: WorkerId) {
+  clearTimeout(retryTimer);
+  const gen = generation;
+  retryTimer = setTimeout(() => {
+    if (gen !== generation || status.state !== "failed" || directAllowed()) return;
+    autoRetry++;
+    workerPromise = undefined;
+    // retry the network the chain ended on (Nym after a Tor fallback), not the one that already failed first
+    startWorker(id, true).catch(() => {});
+  }, delay);
+}
+
+/** Fires when reads can work again after the route was down (a retry got through, or the user chose direct reads),
+ *  so screens re-read at once instead of waiting for their next poll. */
+const routeListeners = new Set<() => void>();
+export function onRouteUp(l: () => void) {
+  routeListeners.add(l);
+  return () => {
+    routeListeners.delete(l);
+  };
+}
+function routeUp() {
+  routeListeners.forEach((l) => l());
+}
+
 export function startWorker(id: WorkerId = storedWorker(), isFallback = false): Promise<AnonWorker> {
   if (workerPromise && status.worker === id) return workerPromise;
   instance?.close(); // tear down the previous sandbox, even if it never became ready
   instance = undefined;
   const gen = ++generation;
-  status = { worker: id, state: "booting" };
+  status = { worker: id, state: "booting", retry: autoRetry || undefined };
   emit();
   const t0 = performance.now();
   workerPromise = (async () => {
@@ -137,13 +169,22 @@ export function startWorker(id: WorkerId = storedWorker(), isFallback = false): 
         workerPromise = undefined;
         return startWorker(next, true);
       }
-      status = { worker: id, state: "failed", error: msg };
+      wasDown = true;
+      const delay = AUTO_RETRY_MS[autoRetry];
+      status = { worker: id, state: "failed", error: msg, retry: autoRetry || undefined, retryAt: delay === undefined ? undefined : Date.now() + delay };
+      if (delay !== undefined) scheduleRetry(delay, id);
       emit();
       throw e;
     }
     if (gen !== generation) throw new Error("superseded");
     status = { worker: id, state: "ready", bootMs: Math.round(performance.now() - t0) };
+    autoRetry = 0;
+    clearTimeout(retryTimer);
     emit();
+    if (wasDown) {
+      wasDown = false;
+      routeUp();
+    }
     return w;
   })();
   return workerPromise;
@@ -156,14 +197,17 @@ export function startWorker(id: WorkerId = storedWorker(), isFallback = false): 
  */
 export function allowDirect() {
   try { sessionStorage.setItem("tenbin.direct", "1"); } catch {}
-  status = { ...status, direct: true };
+  clearTimeout(retryTimer);
+  status = { ...status, direct: true, retryAt: undefined };
   emit();
+  routeUp();
 }
 export function retryPrivate() {
   try { sessionStorage.removeItem("tenbin.direct"); } catch {}
   status = { ...status, direct: false };
   workerPromise = undefined;
   generation++;
+  autoRetry = 0;
   return startWorker(storedWorker());
 }
 function directAllowed() {
@@ -183,6 +227,28 @@ export function switchWorker(id: WorkerId) {
 // ------------------------------------------------------------------------------------------------
 // JSON-RPC
 // ------------------------------------------------------------------------------------------------
+
+/** The anonymous client for a read. If every network just failed and an automatic retry is scheduled, the read waits
+ *  for that retry instead of failing; if the user picks direct reads meanwhile, it switches at once. */
+async function privateWorker(): Promise<AnonWorker | "direct"> {
+  for (;;) {
+    if (directAllowed()) return "direct";
+    try {
+      return await (workerPromise ?? startWorker());
+    } catch (e) {
+      if (status.state !== "failed" || !status.retryAt) throw e;
+      await new Promise<void>((resolve) => {
+        const done = () => {
+          off();
+          clearTimeout(t);
+          resolve();
+        };
+        const off = subscribe(done);
+        const t = setTimeout(done, Math.max(0, status.retryAt! - Date.now()) + 100);
+      });
+    }
+  }
+}
 
 let rpcId = 1;
 /** Anonymity networks are slow; past this, try the next RPC instead of hanging the UI. */
@@ -228,7 +294,7 @@ export async function rpc(method: string, params: unknown[], scope: { label: str
     }
   }
 
-  if (directAllowed()) {
+  const readDirect = async () => {
     // the user chose this after every anonymity network failed; logged as not private
     let lastDirect: unknown;
     for (const url of RPC_URLS) {
@@ -243,9 +309,10 @@ export async function rpc(method: string, params: unknown[], scope: { label: str
       }
     }
     throw lastDirect;
-  }
+  };
 
-  const w = await (workerPromise ?? startWorker());
+  const w = await privateWorker();
+  if (w === "direct") return readDirect();
   let lastErr: unknown;
   for (const url of RPC_URLS) {
     try {

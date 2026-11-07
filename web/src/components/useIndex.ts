@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import type { Address } from "viem";
 import { deployment } from "@/lib/config";
 import { hookOf, TenbinHookAbi } from "@/lib/tenbin";
-import { keys, readClient } from "@/lib/anon";
+import { keys, onRouteUp, readClient } from "@/lib/anon";
 import { useWallet } from "@/lib/wallet";
 
 /** The index being viewed: one picked by link (?index=0x… from Explore), else the connected maker's own hook,
@@ -46,9 +46,11 @@ export function usePoll(fn: () => void | Promise<void>, ms: number, deps: unknow
     };
     tick();
     const id = setInterval(() => alive && tick(), ms);
+    const off = onRouteUp(() => alive && tick()); // the read route came back after an outage: re-read now
     return () => {
       alive = false;
       clearInterval(id);
+      off();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);

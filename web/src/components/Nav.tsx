@@ -89,7 +89,9 @@ export function ConnectButton() {
 export function PrivacyBanner() {
   const { status } = useAnon();
   const [busy, setBusy] = useState(false);
-  if (NETWORK === "local" || !(status.state === "failed" || status.direct)) return null;
+  const retrying = status.state === "booting" && !!status.retry;
+  if (NETWORK === "local" || !(status.state === "failed" || retrying || status.direct)) return null;
+  const auto = retrying || (status.state === "failed" && status.retryAt);
   if (status.direct)
     return (
       <div className="privacy-banner warn" data-testid="privacy-banner">
@@ -102,9 +104,15 @@ export function PrivacyBanner() {
   return (
     <div className="privacy-banner" data-testid="privacy-banner">
       <div className="wrap privacy-banner-in">
-        <span>
-          <b>The private routes are unreachable right now</b> (Tor and Nym gateways did not answer). Tenbin never reads without them unless you say so.
-        </span>
+        {auto ? (
+          <span data-testid="privacy-retrying">
+            <b>The private route dropped. Trying again by itself</b> ({retrying ? `attempt ${status.retry} of 3` : "in a few seconds"}). Nothing is read without privacy unless you say so.
+          </span>
+        ) : (
+          <span>
+            <b>The private routes are unreachable right now</b> (Tor and Nym gateways did not answer). Tenbin never reads without them unless you say so.
+          </span>
+        )}
         <span className="row" style={{ gap: 8 }}>
           <button className="btn small" disabled={busy} onClick={() => { setBusy(true); retryPrivate().catch(() => {}).finally(() => setBusy(false)); }}>{busy ? "Retrying…" : "Retry"}</button>
           <button className="btn small primary" onClick={allowDirect} data-testid="allow-direct">Continue without privacy</button>

@@ -35,7 +35,14 @@ export const SAFE_LOG_CHUNK = 200n;
 export const DEFAULT_WORKER = (process.env.NEXT_PUBLIC_TENBIN_WORKER as "tor-js" | "nym" | "passthrough" | undefined) ?? "tor-js";
 
 /** Mainnet RPC used ONCE to read the worker's specifier contract (documented exclusion). */
-export const BOOTSTRAP_RPC = "https://ethereum-rpc.publicnode.com";
+/** Mainnet RPCs for the one bootstrap read (the worker's specifier), tried in order. All answer CORS requests from
+ *  the site; several, because one dropped connection here used to leave the whole app without a private route. */
+export const BOOTSTRAP_RPCS = [
+  "https://ethereum-rpc.publicnode.com",
+  "https://eth.drpc.org",
+  "https://1rpc.io/eth",
+  "https://mainnet.gateway.tenderly.co",
+];
 
 export type WorkerId = "tor-js" | "nym" | "passthrough";
 

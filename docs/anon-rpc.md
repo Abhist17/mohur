@@ -13,6 +13,9 @@
 - Isolation keys: `maker:<addr>`, `strategy:<hook>:<pair>`, `trader:<addr>`, `public`.
 - Exclusions: the bootstrap specifier read (mainnet RPC, logged as "bootstrap"), and transactions
   (broadcast by the user's wallet). On the local fork, reads go to the local node directly.
+- Bootstrap fallbacks: the specifier read tries four mainnet RPCs in turn (publicnode, drpc, 1rpc, Tenderly; 10 s
+  each). On 7 Nov one dropped connection to the first of them stopped Nym from starting and left every screen empty;
+  now that read moves to the next RPC, and each attempt is logged.
 - Fallbacks: non-JSON responses (e.g. Cloudflare pages to Tor exits) retry the next Base Sepolia RPC.
 - Logging proxy: `proxy/server.mjs`; logs time, source IP, Tor-exit flag (from Tor's bulk exit list),
   method. `GET /log` feeds the Privacy screen.
@@ -24,7 +27,10 @@
 - Verified on the live site: `cd web && npm run e2e:testnet` opens the deployed Privacy page, starts on Tor,
   waits for the fallback, and checks that Base Sepolia (chain 84532) answered and that every chain read
   except the documented bootstrap went through Anon-RPC.
+- Self-recovery: if every private route fails (a gateway blip, a slow mixnet), the app tries the network again by
+  itself after 5 s, 20 s and 60 s (Nym again after a Tor fallback, not Tor), still private. Reads started meanwhile
+  wait for the retry instead of failing, and every screen re-reads the moment the route is back.
 - Both down: Tor gets 35 s and Nym 90 s to start. If both fail, a banner offers **Retry** or **Continue without
-  privacy**. Nothing is read until the user chooses; reads made that way go straight to a public Base Sepolia RPC and
+  privacy** (it also stays up during the automatic retries). Nothing is read until the user chooses; reads made that way go straight to a public Base Sepolia RPC and
   are logged with route `direct (not private)`, so the Privacy page's share of private reads drops honestly.
   `npm run e2e:testnet` includes a forced-outage test that blocks Tor and Nym to check exactly this.

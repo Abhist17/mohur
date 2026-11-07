@@ -69,9 +69,10 @@ export default function BookPage() {
       try {
         const b = await readBook(hook, maker);
         setBook(b);
-        // independent reads in parallel: over a mixnet each one costs seconds (each keeps its own isolation key)
-        const [qs, f] = await Promise.all([
-          Promise.all(
+        // independent reads in parallel: over a mixnet each one costs seconds (each keeps its own isolation key).
+        // allSettled: one slow or failed read (common over a mixnet) must not blank the rest of the book.
+        const [qs, f] = await Promise.allSettled([
+          Promise.allSettled(
             b.pairs.map(async (p): Promise<PairQuote> => {
               const ta = b.tokens.find((t) => t.token === p.tokenA)!;
               const tb = b.tokens.find((t) => t.token === p.tokenB)!;
@@ -82,8 +83,12 @@ export default function BookPage() {
           ),
           readFills(hook, maker),
         ]);
-        setQuotes(qs);
-        setFills(f);
+        if (qs.status === "fulfilled") {
+          const fresh = qs.value.filter((r): r is PromiseFulfilledResult<PairQuote> => r.status === "fulfilled").map((r) => r.value);
+          // a pair whose read failed this round keeps its last good quote
+          setQuotes((prev) => b.pairs.map((p) => fresh.find((q) => q.a === p.tokenA && q.b === p.tokenB) ?? prev.find((q) => q.a === p.tokenA && q.b === p.tokenB)).filter((q): q is PairQuote => !!q));
+        }
+        if (f.status === "fulfilled") setFills(f.value);
         setErr(undefined);
       } catch (e) {
         setErr((e as Error).message.slice(0, 200));
@@ -99,13 +104,19 @@ export default function BookPage() {
       const eth = book.tokens.find((t) => t.symbol === "tWETH"), usdc = book.tokens.find((t) => t.symbol === "tUSDC");
       if (!eth || !usdc) return;
       const bal = units(eth.effectiveBalance, 18);
-      const sizes = [0.005, 0.01, 0.02, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24].map((f) => +(bal * f).toPrecision(3));
-      const qs = await Promise.all(sizes.map((a) => quoteBoth(hook, eth.token, usdc.token, parseUnits(String(a), 18))));
-      const px = (out: bigint, ok: boolean, a: number) => (ok && out > 0n ? units(out, 6) / a : null);
-      setCurve({ x: sizes, v4: qs.map((q, i) => px(q.v4Out, q.v4Ok, sizes[i])), aqua: qs.map((q, i) => px(q.aquaOut, q.aquaOk, sizes[i])) });
+      const local = NETWORK === "local";
+      // over a mixnet: wait for the main quotes, then 5 sizes one at a time (a burst of reads chokes the route)
+      if (!local && quotes.length === 0) return;
+      const fracs = local ? [0.005, 0.01, 0.02, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24] : [0.01, 0.04, 0.08, 0.16, 0.24];
+      const sizes = fracs.map((f) => +(bal * f).toPrecision(3));
+      const quoteAt = (a: number) => quoteBoth(hook, eth.token, usdc.token, parseUnits(String(a), 18)).catch(() => undefined);
+      const qs = local ? await Promise.all(sizes.map(quoteAt)) : [];
+      if (!local) for (const a of sizes) qs.push(await quoteAt(a));
+      const px = (out: bigint | undefined, ok: boolean | undefined, a: number) => (ok && out && out > 0n ? units(out, 6) / a : null);
+      setCurve({ x: sizes, v4: qs.map((q, i) => px(q?.v4Out, q?.v4Ok, sizes[i])), aqua: qs.map((q, i) => px(q?.aquaOut, q?.aquaOk, sizes[i])) });
     },
-    NETWORK === "local" ? 15000 : 120000,
-    [hook, book?.tokens.map((t) => String(t.effectiveBalance)).join()],
+    NETWORK === "local" ? 15000 : 180000,
+    [hook, book?.tokens.map((t) => String(t.effectiveBalance)).join(), quotes.length > 0],
   );
 
   if (!deployed) return <NotDeployed />;

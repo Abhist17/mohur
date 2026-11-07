@@ -228,6 +228,21 @@ export function switchWorker(id: WorkerId) {
 // JSON-RPC
 // ------------------------------------------------------------------------------------------------
 
+/** Reads in a row where every RPC failed through a ready route, before the route counts as stalled. */
+const STALL_READS = 3;
+let stalledReads = 0;
+function markStalled(id: WorkerId) {
+  const msg = `${WORKERS[id].label} connected but stopped answering (${STALL_READS} reads in a row timed out); reconnecting`;
+  stalledReads = 0;
+  wasDown = true;
+  workerPromise = Promise.reject(new Error(msg));
+  workerPromise.catch(() => {});
+  const delay = AUTO_RETRY_MS[autoRetry] ?? AUTO_RETRY_MS[AUTO_RETRY_MS.length - 1];
+  status = { worker: id, state: "failed", error: msg, retry: autoRetry || undefined, retryAt: Date.now() + delay };
+  scheduleRetry(delay, id);
+  emit();
+}
+
 /** The anonymous client for a read. If every network just failed and an automatic retry is scheduled, the read waits
  *  for that retry instead of failing; if the user picks direct reads meanwhile, it switches at once. */
 async function privateWorker(): Promise<AnonWorker | "direct"> {
@@ -313,10 +328,12 @@ export async function rpc(method: string, params: unknown[], scope: { label: str
 
   const w = await privateWorker();
   if (w === "direct") return readDirect();
+  const bootedFrom = workerPromise;
   let lastErr: unknown;
   for (const url of RPC_URLS) {
     try {
       const json = await postJson(w.fetch, url, body, scope.key);
+      stalledReads = 0;
       record({ method, label: scope.label, isolationKey: scope.key, route: "anon-rpc", worker: status.worker, ms: Math.round(performance.now() - t0), ok: !json.error, endpoint: new URL(url).host });
       if (json.error) throw Object.assign(new Error(json.error.message), { code: json.error.code, data: json.error.data, rpc: true });
       return json.result;
@@ -326,6 +343,9 @@ export async function rpc(method: string, params: unknown[], scope: { label: str
       record({ method, label: scope.label, isolationKey: scope.key, route: "anon-rpc", worker: status.worker, ms: Math.round(performance.now() - t0), ok: false, endpoint: new URL(url).host, note: String((e as Error).message).slice(0, 80) + " - retrying next RPC" });
     }
   }
+  // every RPC failed through this route: after a few such reads in a row the route is up but carrying nothing
+  // (seen on Nym, 7 Nov). Reconnect (a new client picks a new route) instead of timing out forever.
+  if (++stalledReads >= STALL_READS && workerPromise === bootedFrom && status.state === "ready") markStalled(status.worker);
   throw lastErr;
 }
 

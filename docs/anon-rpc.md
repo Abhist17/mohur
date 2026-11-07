@@ -29,7 +29,8 @@
   except the documented bootstrap went through Anon-RPC.
 - Self-recovery: if every private route fails (a gateway blip, a slow mixnet), the app tries the network again by
   itself after 5 s, 20 s and 60 s (Nym again after a Tor fallback, not Tor), still private. Reads started meanwhile
-  wait for the retry instead of failing, and every screen re-reads the moment the route is back.
+  wait for the retry instead of failing, and every screen re-reads the moment the route is back. A route that connects
+  but then times out on 3 reads in a row (seen on Nym, 7 Nov) counts as down and reconnects the same way.
 - Both down: Tor gets 35 s and Nym 90 s to start. If both fail, a banner offers **Retry** or **Continue without
   privacy** (it also stays up during the automatic retries). Nothing is read until the user chooses; reads made that way go straight to a public Base Sepolia RPC and
   are logged with route `direct (not private)`, so the Privacy page's share of private reads drops honestly.

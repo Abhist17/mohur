@@ -48,7 +48,7 @@ test("guided demo: runs all six steps for real, resumes after reload, and is ide
 });
 
 test("guided demo stops at the first failed step (no cascade of wallet prompts)", async ({ page }) => {
-  await injectWallet(page, "0x756e69736f6e456d70747947617357616c657431"); // no ETH and not unlocked: every transaction fails
+  await injectWallet(page, "0x74656e62696e456d70747947617357616c657431"); // no ETH and not unlocked: every transaction fails
   await page.goto("/demo");
   await connect(page);
   await page.getByTestId("demo-run").click();

@@ -5,7 +5,7 @@
 | Decision | Outcome |
 |---|---|
 | Add-ons | 1 and 2 turned out to be built already, and are now covered by e2e `09-manage`. 3 (shareable index card) is built at `/share?index=0x…` and covered by `10-share`. 6 (mobile pass) is covered by `11-mobile`. 4 and 5 are not built (they need mainnet / a working Tor gateway). |
-| Name | First kept **Unison**; renamed to **Unison** on 6 Nov evening (user's pick, with an indigo accent). Contract names keep `Unison*`. |
+| Name | First kept **Tenbin**; renamed to **Tenbin** on 6 Nov evening (user's pick, with an indigo accent). Contract names keep `Tenbin*`. |
 | Look | **Ledger**: tabular figures everywhere, radius tokens, one `amt()` formatter, shorter nav, Anon-RPC / Ethereum Foundation mark. |
 
 The original analysis is kept below for the record.
@@ -14,10 +14,10 @@ The original analysis is kept below for the record.
 
 | # | Add-on | Value to users and judges | Effort | Risk |
 |---|---|---|---|---|
-| **1** | **Gradual weights in the UI** *(update: already built on My index; now covered by e2e `09-manage`)* | Already on chain (`scheduleWeights`; tests show a 50-step glide costs $25 vs $1,991 for an instant switch). It only needs a "Change weights over N hours" form on My index plus a progress bar. It is the most distinctive thing Unison does that a plain AMM cannot. | S (2–3 h) | Low: the contract is tested |
+| **1** | **Gradual weights in the UI** *(update: already built on My index; now covered by e2e `09-manage`)* | Already on chain (`scheduleWeights`; tests show a 50-step glide costs $25 vs $1,991 for an instant switch). It only needs a "Change weights over N hours" form on My index plus a progress bar. It is the most distinctive thing Tenbin does that a plain AMM cannot. | S (2–3 h) | Low: the contract is tested |
 | **2** | **Top up 1inch limits without reshipping** *(update: already built as "Top up / re-split", which re-ships at a new epoch; now covered by e2e `09-manage`)* | Today venue limits are fixed at launch (a stated limitation). Calling `Aqua.ship` again for the same strategy hash is not allowed, but a maker can re-ship under `venueNonce+1`, which the app already does for pause/resume. A "Raise 1inch limit" button that docks and re-ships at the new nonce in one flow removes the limitation for users. | M (3–4 h) | Medium: needs a fork test for dock → reship with live fills in between |
 | **3** | **Shareable index card page** | `/i/<hook>` with weights, price, fills and a "trade this index" link, plus a static OG image. It helps people share an index and costs nothing on chain. | S (2 h) | Low. Note: the static GitHub Pages export cannot render per-index OG images, so the card would be client-rendered. |
-| 4 | Uniswap Trading API routing | Lets the Swap page compare Unison's quote with the rest of Uniswap. The Trading API does not cover Base Sepolia test tokens, so on testnet it would always show "no route". A good pitch line, but weak in a demo. | M | High: needs an API key and mainnet |
+| 4 | Uniswap Trading API routing | Lets the Swap page compare Tenbin's quote with the rest of Uniswap. The Trading API does not cover Base Sepolia test tokens, so on testnet it would always show "no route". A good pitch line, but weak in a demo. | M | High: needs an API key and mainnet |
 | 5 | Anon-RPC depth | Per-scope isolation is already done (maker / strategy / trader / public). The next step would be routing writes (tx broadcast) through Anon-RPC as well. That's useful, but the EF Tor gateway is down today, so it can only be shown via Nym (~50 s per read). | M | High: depends on infrastructure we don't control |
 | 6 | Mobile pass | The layout already works at phone width (burger nav). A full pass would cover the Swap card, the Book table and the 3D scene on small screens. | S | Low |
 
@@ -27,7 +27,7 @@ The original analysis is kept below for the record.
 
 ## Phase 4: name
 
-**Unison**, chosen on 6 Nov from a shortlist (Unison, Tandem, Plumb, Shelf, Keel, Accord, Ballast, Poise). In music, unison means every voice on the same note at the same time: both venues, one price, same moment. Logo: two waves (the venues) merging into one line (the price). Everything was renamed, including the contracts (`UnisonHook`, `UnisonMath`, …) and the repository.
+**Tenbin** (天秤, the Japanese balance scale: a balanced index, two venues held level). Chosen on 7 Nov; earlier working names were Mohur and Unison. Logo: a balance beam held level over two pans (the two venues at one price). Everything was renamed, including the contracts (`TenbinHook`, `TenbinMath`, …) and the repository.
 
 ## Phase 5: UI audit and directions
 

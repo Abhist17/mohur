@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-const DOC = "https://github.com/Abhist17/unison/blob/main/docs/explained.md";
+const DOC = "https://github.com/Abhist17/tenbin/blob/main/docs/explained.md";
 
 /** Collapsed "How this page works" box: a few plain bullets, then a link to the matching section of docs/explained.md. */
 export function Explain({ points, anchor, title = "How this page works" }: { points: ReactNode[]; anchor: string; title?: string }) {

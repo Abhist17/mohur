@@ -3,9 +3,9 @@ pragma solidity 0.8.30;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-/// @title UnisonTestToken
+/// @title TenbinTestToken
 /// @notice Clearly labelled TESTNET faucet token (tWETH / tWBTC / tUSDC). No value.
-contract UnisonTestToken is ERC20 {
+contract TenbinTestToken is ERC20 {
     uint8 private immutable _dec;
     uint256 public immutable faucetAmount;
 

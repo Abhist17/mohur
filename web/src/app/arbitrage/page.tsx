@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { formatUnits, maxUint256, parseUnits, type Address } from "viem";
-import { UnisonLoopRouterAbi, UnisonTestTokenAbi } from "@/generated/abis";
+import { TenbinLoopRouterAbi, TenbinTestTokenAbi } from "@/generated/abis";
 import { deployment } from "@/lib/config";
 import { keys, readClient } from "@/lib/anon";
-import { amt, fmt, quoteRoute, TOKEN_STYLE } from "@/lib/unison";
+import { amt, fmt, quoteRoute, TOKEN_STYLE } from "@/lib/tenbin";
 import { useWallet } from "@/lib/wallet";
 import { useIndex } from "@/components/useIndex";
 import { NotDeployed } from "@/components/NotDeployed";
@@ -80,15 +80,15 @@ export default function ArbitragePage() {
       const c = readClient("arbitrage: balances", keys.trader(w.account));
       const t = addr(start);
       const need = parseUnits(amount, dec(start));
-      const bal = (await c.readContract({ address: t, abi: UnisonTestTokenAbi, functionName: "balanceOf", args: [w.account] })) as bigint;
-      if (bal < need) { setBusy("Getting test tokens…"); await w.write({ address: t, abi: UnisonTestTokenAbi, functionName: "faucet", label: "faucet" }); }
-      const al = (await c.readContract({ address: t, abi: UnisonTestTokenAbi, functionName: "allowance", args: [w.account, d.loopRouter] })) as bigint;
-      if (al < need) { setBusy("Approving the loop router…"); await w.write({ address: t, abi: UnisonTestTokenAbi, functionName: "approve", args: [d.loopRouter, maxUint256], label: "approve loop router" }); }
+      const bal = (await c.readContract({ address: t, abi: TenbinTestTokenAbi, functionName: "balanceOf", args: [w.account] })) as bigint;
+      if (bal < need) { setBusy("Getting test tokens…"); await w.write({ address: t, abi: TenbinTestTokenAbi, functionName: "faucet", label: "faucet" }); }
+      const al = (await c.readContract({ address: t, abi: TenbinTestTokenAbi, functionName: "allowance", args: [w.account, d.loopRouter] })) as bigint;
+      if (al < need) { setBusy("Approving the loop router…"); await w.write({ address: t, abi: TenbinTestTokenAbi, functionName: "approve", args: [d.loopRouter, maxUint256], label: "approve loop router" }); }
       setBusy("Running the route…");
-      const endBefore = (await c.readContract({ address: addr(end), abi: UnisonTestTokenAbi, functionName: "balanceOf", args: [w.account] })) as bigint;
-      const startBefore = (await c.readContract({ address: t, abi: UnisonTestTokenAbi, functionName: "balanceOf", args: [w.account] })) as bigint;
-      await w.write({ address: d.loopRouter, abi: UnisonLoopRouterAbi, functionName: "execute", args: [hook, path.map(addr), legs.map((l) => l.venue), need, 0n, w.account], label: "run route" });
-      const endAfter = (await c.readContract({ address: addr(end), abi: UnisonTestTokenAbi, functionName: "balanceOf", args: [w.account] })) as bigint;
+      const endBefore = (await c.readContract({ address: addr(end), abi: TenbinTestTokenAbi, functionName: "balanceOf", args: [w.account] })) as bigint;
+      const startBefore = (await c.readContract({ address: t, abi: TenbinTestTokenAbi, functionName: "balanceOf", args: [w.account] })) as bigint;
+      await w.write({ address: d.loopRouter, abi: TenbinLoopRouterAbi, functionName: "execute", args: [hook, path.map(addr), legs.map((l) => l.venue), need, 0n, w.account], label: "run route" });
+      const endAfter = (await c.readContract({ address: addr(end), abi: TenbinTestTokenAbi, functionName: "balanceOf", args: [w.account] })) as bigint;
       const got = end === start ? endAfter - (startBefore - need) : endAfter - endBefore;
       setRanQuote(quote.amounts);
       setResult([...quote.amounts.slice(0, -1), got]);

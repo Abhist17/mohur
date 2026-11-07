@@ -18,7 +18,7 @@ test("landing: the hook sentence, the live price board (both venues equal), the 
 
   // the story, the receipts, the docs
   for (const id of ["idea", "proof", "get", "security", "faq"]) await expect(page.locator(`#${id}`)).toBeAttached();
-  await expect(page.getByTestId("problem-solution")).toContainText("With Unison");
+  await expect(page.getByTestId("problem-solution")).toContainText("With Tenbin");
   await expect(page.getByTestId("receipt")).toContainText("difference 0 wei");
   await expect(page.getByTestId("docs-cta")).toHaveAttribute("href", /\/docs/);
   await expect(page.getByTestId("nav-launch")).toHaveText("Open the app");

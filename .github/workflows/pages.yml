@@ -1,4 +1,4 @@
-name: Deploy the Unison app to GitHub Pages
+name: Deploy the Tenbin app to GitHub Pages
 
 on:
   push:
@@ -32,9 +32,9 @@ jobs:
         working-directory: web
         env:
           STATIC_EXPORT: "1"
-          BASE_PATH: /unison
-          NEXT_PUBLIC_UNISON_NETWORK: base-sepolia
-          NEXT_PUBLIC_UNISON_WORKER: nym
+          BASE_PATH: /tenbin
+          NEXT_PUBLIC_TENBIN_NETWORK: base-sepolia
+          NEXT_PUBLIC_TENBIN_WORKER: nym
           NEXT_DIST_DIR: site
         run: npm run build && touch site/.nojekyll
       - uses: actions/upload-pages-artifact@v3

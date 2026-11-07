@@ -3,15 +3,15 @@ pragma solidity 0.8.30;
 
 import { IPoolManager } from "v4-core/interfaces/IPoolManager.sol";
 import { IAqua } from "@1inch/aqua/contracts/interfaces/IAqua.sol";
-import { UnisonHook } from "./UnisonHook.sol";
+import { TenbinHook } from "./TenbinHook.sol";
 
-/// @title UnisonHookFactory
-/// @notice Deploys one UnisonHook per maker with CREATE2, so the hook address (whose low bits encode
+/// @title TenbinHookFactory
+/// @notice Deploys one TenbinHook per maker with CREATE2, so the hook address (whose low bits encode
 ///         its v4 permissions) can be mined off-chain - in the browser - before deploying.
-contract UnisonHookFactory {
+contract TenbinHookFactory {
     IPoolManager public immutable poolManager;
     IAqua public immutable aqua;
-    /// @notice The Unison SwapVM router every hook trusts for 1inch fills.
+    /// @notice The Tenbin SwapVM router every hook trusts for 1inch fills.
     address public immutable swapVM;
 
     mapping(address maker => address hook) public hookOf;
@@ -26,7 +26,7 @@ contract UnisonHookFactory {
 
     /// @notice init code hash for a given maker; mine `salt` so that the CREATE2 address has the flags.
     function initCodeHash(address maker) public view returns (bytes32) {
-        return keccak256(abi.encodePacked(type(UnisonHook).creationCode, abi.encode(poolManager, aqua, swapVM, maker)));
+        return keccak256(abi.encodePacked(type(TenbinHook).creationCode, abi.encode(poolManager, aqua, swapVM, maker)));
     }
 
     function predict(address maker, bytes32 salt) external view returns (address) {
@@ -37,7 +37,7 @@ contract UnisonHookFactory {
 
     /// @notice Deploy the caller's hook. The caller becomes the hook's maker.
     function deploy(bytes32 salt) external returns (address hook) {
-        hook = address(new UnisonHook{ salt: salt }(poolManager, aqua, swapVM, msg.sender));
+        hook = address(new TenbinHook{ salt: salt }(poolManager, aqua, swapVM, msg.sender));
         hookOf[msg.sender] = hook;
         emit HookDeployed(msg.sender, hook, salt);
     }

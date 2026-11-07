@@ -25,7 +25,7 @@ test("screens: swap, explore, my index, how it works (light + dark)", async ({ p
   await shot(page, "10-how");
 
   // dark theme variants of the two most-shown screens
-  await page.evaluate(() => { document.documentElement.dataset.theme = "dark"; localStorage.setItem("unison-theme", "dark"); });
+  await page.evaluate(() => { document.documentElement.dataset.theme = "dark"; localStorage.setItem("tenbin-theme", "dark"); });
   await page.goto("/");
   await page.waitForTimeout(1500);
   await shot(page, "11-landing-dark", false);

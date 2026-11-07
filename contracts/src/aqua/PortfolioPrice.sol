@@ -2,7 +2,7 @@
 pragma solidity 0.8.30;
 
 import { Context } from "@1inch/swap-vm/contracts/libs/VM.sol";
-import { IUnisonPricer } from "../interfaces/IUnisonPricer.sol";
+import { ITenbinPricer } from "../interfaces/ITenbinPricer.sol";
 
 /// @title PortfolioPrice (SwapVM opcode 0xd0)
 /// @notice Custom SwapVM instruction: prices a 1inch Aqua fill from the maker wallet's *real* balances by
@@ -11,7 +11,7 @@ import { IUnisonPricer } from "../interfaces/IUnisonPricer.sol";
 ///         SwapVM pre-loads the Aqua virtual balances of this strategy into ctx.swap.balanceIn/balanceOut.
 ///         We keep those as *this venue's selling limit* (amountOut <= balanceOut) and ignore them for pricing.
 ///
-///         args (20 bytes): the UnisonHook / IUnisonPricer address. It is part of the maker's own (Aqua-shipped)
+///         args (20 bytes): the TenbinHook / ITenbinPricer address. It is part of the maker's own (Aqua-shipped)
 ///         program, so a taker cannot substitute another pricer.
 library PortfolioPrice {
     uint8 internal constant OPCODE = 0xd0;
@@ -27,7 +27,7 @@ library PortfolioPrice {
 
     function exec(Context memory ctx, bytes calldata args) internal {
         if (args.length != 20) revert PortfolioPriceBadArgs();
-        IUnisonPricer pricer = IUnisonPricer(address(bytes20(args)));
+        ITenbinPricer pricer = ITenbinPricer(address(bytes20(args)));
         address pricerMaker = pricer.maker();
         if (pricerMaker != ctx.query.maker) revert PortfolioPriceWrongMaker(pricerMaker, ctx.query.maker);
 

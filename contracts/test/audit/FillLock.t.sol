@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import { UnisonHook } from "../../src/UnisonHook.sol";
-import { UnisonFixture } from "../utils/UnisonFixture.sol";
+import { TenbinHook } from "../../src/TenbinHook.sol";
+import { TenbinFixture } from "../utils/TenbinFixture.sol";
 
-/// @notice The cross-venue fill lock can't be set, advanced or cleared by anyone but the Unison SwapVM router.
-contract FillLockTest is UnisonFixture {
+/// @notice The cross-venue fill lock can't be set, advanced or cleared by anyone but the Tenbin SwapVM router.
+contract FillLockTest is TenbinFixture {
     function setUp() public {
-        setUpUnison();
+        setUpTenbin();
     }
 
     function test_onlyRouterCanLock() public {
-        vm.expectRevert(UnisonHook.NotSwapVM.selector);
+        vm.expectRevert(TenbinHook.NotSwapVM.selector);
         hook.quoteAndLock(address(usdc), address(weth), 100e6, true);
     }
 
@@ -29,15 +29,15 @@ contract FillLockTest is UnisonFixture {
     }
 
     function test_outsiderCannotClearLock() public {
-        vm.expectRevert(UnisonHook.NotSwapVM.selector);
+        vm.expectRevert(TenbinHook.NotSwapVM.selector);
         hook.postTransferIn(maker, address(0), address(0), address(0), 0, 0, 0, bytes32(0), "", "");
-        vm.expectRevert(UnisonHook.NotSwapVM.selector);
+        vm.expectRevert(TenbinHook.NotSwapVM.selector);
         hook.postTransferOut(maker, address(0), address(0), address(0), 0, 0, 0, bytes32(0), "", "");
     }
 
     function test_makerHooksRejectOtherMakers() public {
         vm.prank(address(swapVM));
-        vm.expectRevert(UnisonHook.NotMaker.selector);
+        vm.expectRevert(TenbinHook.NotMaker.selector);
         hook.postTransferIn(makeAddr("other"), address(0), address(0), address(0), 0, 0, 0, bytes32(0), "", "");
     }
 
@@ -50,7 +50,7 @@ contract FillLockTest is UnisonFixture {
 }
 
 contract LockProbe {
-    function run(UnisonHook hook, address maker, address usdc, address weth)
+    function run(TenbinHook hook, address maker, address usdc, address weth)
         external
         returns (bool a, bool b, bool c, bool d, bool e)
     {

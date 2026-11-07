@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { parseUnits, type Address } from "viem";
-import { UnisonHookAbi } from "@/generated/abis";
+import { TenbinHookAbi } from "@/generated/abis";
 import { deployment, EXPLORER, NETWORK } from "@/lib/config";
-import { fmt, quoteBoth, readBook, readFills, TOKEN_STYLE, units, type Book, type FillRow } from "@/lib/unison";
+import { fmt, quoteBoth, readBook, readFills, TOKEN_STYLE, units, type Book, type FillRow } from "@/lib/tenbin";
 import { useWallet } from "@/lib/wallet";
 import { usePoll, useIndex } from "@/components/useIndex";
 import { NotDeployed } from "@/components/NotDeployed";
@@ -158,7 +158,7 @@ export default function BookPage() {
   const flush = async () => {
     setBusy(true);
     try {
-      await w.write({ address: hook, abi: UnisonHookAbi, functionName: "flush", label: "flush claims" });
+      await w.write({ address: hook, abi: TenbinHookAbi, functionName: "flush", label: "flush claims" });
     } catch (e) {
       setErr((e as Error).message.slice(0, 200));
     }
@@ -301,7 +301,7 @@ export default function BookPage() {
             <LineChart
               x={depth.x}
               series={[
-                { name: "Wallet buys ETH", color: "var(--c-unison)", points: depth.buy },
+                { name: "Wallet buys ETH", color: "var(--c-tenbin)", points: depth.buy },
                 { name: "Wallet sells ETH", color: "var(--c-hold)", points: depth.sell },
               ]}
               xFmt={(v) => fmt(v)}

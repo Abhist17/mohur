@@ -25,7 +25,7 @@ export default defineConfig({
     channel: "chrome",
     headless: !process.env.HEADED,
     viewport: { width: 1366, height: 900 },
-    baseURL: testnet ? process.env.E2E_BASE_URL || "https://abhist17.github.io/unison/" : `http://localhost:${PORT}`,
+    baseURL: testnet ? process.env.E2E_BASE_URL || "https://abhist17.github.io/tenbin/" : `http://localhost:${PORT}`,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
@@ -33,7 +33,7 @@ export default defineConfig({
     ? undefined
     : {
         // its own build dir, so it never clobbers a dev server you already run on :3000
-        command: `NEXT_DIST_DIR=.next-e2e NEXT_PUBLIC_UNISON_NETWORK=local npx next dev -p ${PORT}`,
+        command: `NEXT_DIST_DIR=.next-e2e NEXT_PUBLIC_TENBIN_NETWORK=local npx next dev -p ${PORT}`,
         cwd: "..",
         url: `http://localhost:${PORT}`,
         reuseExistingServer: false,

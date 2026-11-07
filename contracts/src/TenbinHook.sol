@@ -18,13 +18,13 @@ import { ModifyLiquidityParams, SwapParams } from "v4-core/types/PoolOperation.s
 import { IAqua } from "@1inch/aqua/contracts/interfaces/IAqua.sol";
 import { IMakerHooks } from "@1inch/swap-vm/contracts/interfaces/IMakerHooks.sol";
 
-import { UnisonMath } from "./libraries/UnisonMath.sol";
-import { IUnisonPricer } from "./interfaces/IUnisonPricer.sol";
+import { TenbinMath } from "./libraries/TenbinMath.sol";
+import { ITenbinPricer } from "./interfaces/ITenbinPricer.sol";
 
-/// @title UnisonHook
+/// @title TenbinHook
 /// @notice Uniswap v4 custom-curve hook that quotes from, and settles to, one maker wallet.
 ///
-///         - Prices every swap with UnisonMath over the wallet's *real* balances (plus pending claims).
+///         - Prices every swap with TenbinMath over the wallet's *real* balances (plus pending claims).
 ///         - Cancels the AMM with a beforeSwap return delta; no LP liquidity is ever used.
 ///         - Pays the trader straight out of the wallet: sync -> Aqua.pull(...) into the PoolManager -> settle.
 ///           The hook is an Aqua "app", so this venue can sell at most its Aqua virtual balance.
@@ -33,7 +33,7 @@ import { IUnisonPricer } from "./interfaces/IUnisonPricer.sol";
 ///           into the wallet via Aqua.push on the next swap or a permissionless {flush}.
 ///         - Exposes {quote}/{price}/{effectiveBalance} - the 1inch SwapVM instruction prices through these
 ///           same functions, so both venues quote identically by construction.
-contract UnisonHook is IHooks, IUnlockCallback, IUnisonPricer, IMakerHooks {
+contract TenbinHook is IHooks, IUnlockCallback, ITenbinPricer, IMakerHooks {
     using SafeERC20 for IERC20;
 
     // ---------------------------------------------------------------------------------------------
@@ -97,13 +97,13 @@ contract UnisonHook is IHooks, IUnlockCallback, IUnisonPricer, IMakerHooks {
     mapping(address token => uint256) public pending;
 
     /// @dev transient: claims minted in the current transaction (cannot be flushed yet).
-    bytes32 private constant _MINTED_THIS_TX_SLOT = keccak256("unison.hook.mintedThisTx");
+    bytes32 private constant _MINTED_THIS_TX_SLOT = keccak256("tenbin.hook.mintedThisTx");
     /// @dev transient: a 1inch fill has been priced but its coins have not finished moving (see quoteAndLock).
-    bytes32 private constant _FILL_LOCK_SLOT = keccak256("unison.hook.fillLock");
+    bytes32 private constant _FILL_LOCK_SLOT = keccak256("tenbin.hook.fillLock");
     /// @dev transient: how many of the fill's two transfers (in, out) have completed.
-    bytes32 private constant _FILL_DONE_SLOT = keccak256("unison.hook.fillDone");
+    bytes32 private constant _FILL_DONE_SLOT = keccak256("tenbin.hook.fillDone");
 
-    /// @notice The Unison SwapVM router: the only caller of quoteAndLock and of the maker hooks.
+    /// @notice The Tenbin SwapVM router: the only caller of quoteAndLock and of the maker hooks.
     address public immutable swapVM;
 
     uint256 internal constant MAX_TOKENS = 8;
@@ -154,8 +154,8 @@ contract UnisonHook is IHooks, IUnlockCallback, IUnisonPricer, IMakerHooks {
         if (newTokens.length != newWeights.length || newTokens.length < 2 || newTokens.length > MAX_TOKENS) {
             revert BadIndex();
         }
-        UnisonMath.validateWeights(newWeights);
-        UnisonMath.validateFee(_fee);
+        TenbinMath.validateWeights(newWeights);
+        TenbinMath.validateFee(_fee);
         for (uint256 i; i < _tokens.length; ++i) {
             address old = _tokens[i];
             // a token can't leave the index while Uniswap input for it is still held as claims (flush first)
@@ -171,7 +171,7 @@ contract UnisonHook is IHooks, IUnlockCallback, IUnisonPricer, IMakerHooks {
                 listed: true,
                 index: uint64(i),
                 weight: newWeights[i],
-                scale: UnisonMath.scaleFactor(IERC20Metadata(t).decimals())
+                scale: TenbinMath.scaleFactor(IERC20Metadata(t).decimals())
             });
             targetWeight[t] = newWeights[i];
             _tokens.push(t);
@@ -188,7 +188,7 @@ contract UnisonHook is IHooks, IUnlockCallback, IUnisonPricer, IMakerHooks {
     function scheduleWeights(uint256[] calldata newWeights, uint64 duration) external onlyMaker {
         uint256 n = _tokens.length;
         if (newWeights.length != n || duration == 0) revert BadIndex();
-        UnisonMath.validateWeights(newWeights);
+        TenbinMath.validateWeights(newWeights);
         uint256[] memory from = new uint256[](n);
         for (uint256 i; i < n; ++i) {
             address t = _tokens[i];
@@ -260,7 +260,7 @@ contract UnisonHook is IHooks, IUnlockCallback, IUnisonPricer, IMakerHooks {
 
     function price(address tokenIn, address tokenOut) external view override returns (uint256) {
         (TokenInfo memory a, TokenInfo memory b) = _pair(tokenIn, tokenOut);
-        return UnisonMath.spotPrice(
+        return TenbinMath.spotPrice(
             effectiveBalance(tokenIn) * a.scale, a.weight, effectiveBalance(tokenOut) * b.scale, b.weight
         );
     }
@@ -278,12 +278,12 @@ contract UnisonHook is IHooks, IUnlockCallback, IUnisonPricer, IMakerHooks {
         uint256 bo = effectiveBalance(tokenOut) * b.scale;
         if (isExactIn) {
             amountIn = amount;
-            uint256 outScaled = UnisonMath.outGivenIn(bi, a.weight, bo, b.weight, amount * a.scale, fee);
-            amountOut = UnisonMath.fromScaledDown(outScaled, b.scale);
+            uint256 outScaled = TenbinMath.outGivenIn(bi, a.weight, bo, b.weight, amount * a.scale, fee);
+            amountOut = TenbinMath.fromScaledDown(outScaled, b.scale);
         } else {
             amountOut = amount;
-            uint256 inScaled = UnisonMath.inGivenOut(bi, a.weight, bo, b.weight, amount * b.scale, fee);
-            amountIn = UnisonMath.fromScaledUp(inScaled, a.scale);
+            uint256 inScaled = TenbinMath.inGivenOut(bi, a.weight, bo, b.weight, amount * b.scale, fee);
+            amountIn = TenbinMath.fromScaledUp(inScaled, a.scale);
         }
     }
 
@@ -421,7 +421,7 @@ contract UnisonHook is IHooks, IUnlockCallback, IUnisonPricer, IMakerHooks {
         aqua.pull(maker, strategyHash(), tokenOut, amountOut, address(poolManager));
         poolManager.settle();
 
-        emit Fill(sender, tokenIn, tokenOut, amountIn, amountOut, UnisonMath.mulUp(amountIn, fee));
+        emit Fill(sender, tokenIn, tokenOut, amountIn, amountOut, TenbinMath.mulUp(amountIn, fee));
 
         BeforeSwapDelta delta = exactIn
             ? toBeforeSwapDelta(int128(int256(amountIn)), -int128(int256(amountOut)))

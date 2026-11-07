@@ -7,17 +7,17 @@ import { Aqua } from "@1inch/aqua/contracts/Aqua.sol";
 import { IAqua } from "@1inch/aqua/contracts/interfaces/IAqua.sol";
 import { ISwapVM } from "@1inch/swap-vm/contracts/interfaces/ISwapVM.sol";
 
-import { UnisonSwapVMRouter } from "../src/aqua/UnisonSwapVMRouter.sol";
-import { UnisonHookFactory } from "../src/UnisonHookFactory.sol";
-import { UnisonLens } from "../src/UnisonLens.sol";
-import { UnisonLoopRouter } from "../src/UnisonLoopRouter.sol";
-import { UnisonTestToken } from "../src/UnisonTestToken.sol";
-import { UnisonScriptBase } from "./UnisonScriptBase.sol";
+import { TenbinSwapVMRouter } from "../src/aqua/TenbinSwapVMRouter.sol";
+import { TenbinHookFactory } from "../src/TenbinHookFactory.sol";
+import { TenbinLens } from "../src/TenbinLens.sol";
+import { TenbinLoopRouter } from "../src/TenbinLoopRouter.sol";
+import { TenbinTestToken } from "../src/TenbinTestToken.sol";
+import { TenbinScriptBase } from "./TenbinScriptBase.sol";
 
-/// @notice Deploys the shared Unison infrastructure. Uses the live Uniswap v4 PoolManager when it exists
+/// @notice Deploys the shared Tenbin infrastructure. Uses the live Uniswap v4 PoolManager when it exists
 ///         (Base Sepolia or a fork of it); deploys the official Aqua source (Aqua is not on any testnet).
-/// forge script script/DeployUnison.s.sol --rpc-url <rpc> --broadcast (--private-key | --account)
-contract DeployUnison is UnisonScriptBase {
+/// forge script script/DeployTenbin.s.sol --rpc-url <rpc> --broadcast (--private-key | --account)
+contract DeployTenbin is TenbinScriptBase {
     function run() external {
         uint256 startBlock = block.number;
         vm.startBroadcast();
@@ -27,13 +27,13 @@ contract DeployUnison is UnisonScriptBase {
         require(address(pm).code.length > 0, "no v4 PoolManager: run on Base Sepolia or a fork of it");
 
         Aqua aqua = new Aqua();
-        UnisonSwapVMRouter swapVM = new UnisonSwapVMRouter(address(aqua), BASE_SEPOLIA_WETH, deployer);
-        UnisonHookFactory factory = new UnisonHookFactory(pm, IAqua(address(aqua)), address(swapVM));
-        UnisonLens lens = new UnisonLens();
-        UnisonLoopRouter loop = new UnisonLoopRouter(pm, ISwapVM(address(swapVM)));
-        UnisonTestToken tWETH = new UnisonTestToken("Unison Test WETH (testnet, no value)", "tWETH", 18, 10e18);
-        UnisonTestToken tWBTC = new UnisonTestToken("Unison Test WBTC (testnet, no value)", "tWBTC", 8, 0.3e8);
-        UnisonTestToken tUSDC = new UnisonTestToken("Unison Test USDC (testnet, no value)", "tUSDC", 6, 30_000e6);
+        TenbinSwapVMRouter swapVM = new TenbinSwapVMRouter(address(aqua), BASE_SEPOLIA_WETH, deployer);
+        TenbinHookFactory factory = new TenbinHookFactory(pm, IAqua(address(aqua)), address(swapVM));
+        TenbinLens lens = new TenbinLens();
+        TenbinLoopRouter loop = new TenbinLoopRouter(pm, ISwapVM(address(swapVM)));
+        TenbinTestToken tWETH = new TenbinTestToken("Tenbin Test WETH (testnet, no value)", "tWETH", 18, 10e18);
+        TenbinTestToken tWBTC = new TenbinTestToken("Tenbin Test WBTC (testnet, no value)", "tWBTC", 8, 0.3e8);
+        TenbinTestToken tUSDC = new TenbinTestToken("Tenbin Test USDC (testnet, no value)", "tUSDC", 6, 30_000e6);
         vm.stopBroadcast();
 
         string memory o = "deploy";

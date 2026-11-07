@@ -3,20 +3,20 @@ pragma solidity 0.8.30;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ISwapVM } from "@1inch/swap-vm/contracts/interfaces/ISwapVM.sol";
-import { UnisonStrategy } from "../src/aqua/UnisonStrategy.sol";
-import { UnisonLens } from "../src/UnisonLens.sol";
-import { UnisonLoopRouter } from "../src/UnisonLoopRouter.sol";
-import { UnisonFixture } from "./utils/UnisonFixture.sol";
+import { TenbinStrategy } from "../src/aqua/TenbinStrategy.sol";
+import { TenbinLens } from "../src/TenbinLens.sol";
+import { TenbinLoopRouter } from "../src/TenbinLoopRouter.sol";
+import { TenbinFixture } from "./utils/TenbinFixture.sol";
 
 /// @notice The maker stays in control: pause both venues at once, then resume (and top up) under a new epoch.
-contract ManageTest is UnisonFixture {
-    UnisonLens lens;
-    UnisonLoopRouter loop;
+contract ManageTest is TenbinFixture {
+    TenbinLens lens;
+    TenbinLoopRouter loop;
 
     function setUp() public {
-        setUpUnison();
-        lens = new UnisonLens();
-        loop = new UnisonLoopRouter(manager, ISwapVM(address(swapVM)));
+        setUpTenbin();
+        lens = new TenbinLens();
+        loop = new TenbinLoopRouter(manager, ISwapVM(address(swapVM)));
         vm.startPrank(trader);
         usdc.approve(address(loop), type(uint256).max);
         vm.stopPrank();
@@ -90,7 +90,7 @@ contract ManageTest is UnisonFixture {
         _pause();
         _resume(8000, 4000); // top up: Uniswap may sell 80% of each balance, 1inch 40% per pair
         assertEq(hook.venueLimit(address(weth)), ETH0 * 8 / 10);
-        UnisonLens.Book memory b = lens.book(hook, address(swapVM));
+        TenbinLens.Book memory b = lens.book(hook, address(swapVM));
         assertEq(b.tokens[0].aquaLimit, ETH0 * 4 / 10 * 2);
 
         (address[] memory path, uint8[] memory v) = _route(0);
@@ -109,6 +109,6 @@ contract ManageTest is UnisonFixture {
 
     function test_epochZeroOrder_isUnchanged() public view {
         (ISwapVM.Order memory o,,) = lens.activeAquaOrder(hook, address(weth), address(usdc));
-        assertEq(keccak256(abi.encode(o)), keccak256(abi.encode(UnisonStrategy.order(maker, address(hook), address(weth), address(usdc), 0))));
+        assertEq(keccak256(abi.encode(o)), keccak256(abi.encode(TenbinStrategy.order(maker, address(hook), address(weth), address(usdc), 0))));
     }
 }

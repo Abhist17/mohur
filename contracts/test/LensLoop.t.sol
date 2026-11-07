@@ -2,19 +2,19 @@
 pragma solidity 0.8.30;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { UnisonLens } from "../src/UnisonLens.sol";
-import { UnisonLoopRouter } from "../src/UnisonLoopRouter.sol";
+import { TenbinLens } from "../src/TenbinLens.sol";
+import { TenbinLoopRouter } from "../src/TenbinLoopRouter.sol";
 import { ISwapVM } from "@1inch/swap-vm/contracts/interfaces/ISwapVM.sol";
-import { UnisonFixture } from "./utils/UnisonFixture.sol";
+import { TenbinFixture } from "./utils/TenbinFixture.sol";
 
-contract LensLoopTest is UnisonFixture {
-    UnisonLens lens;
-    UnisonLoopRouter loop;
+contract LensLoopTest is TenbinFixture {
+    TenbinLens lens;
+    TenbinLoopRouter loop;
 
     function setUp() public {
-        setUpUnison();
-        lens = new UnisonLens();
-        loop = new UnisonLoopRouter(manager, ISwapVM(address(swapVM)));
+        setUpTenbin();
+        lens = new TenbinLens();
+        loop = new TenbinLoopRouter(manager, ISwapVM(address(swapVM)));
         vm.prank(trader);
         weth.approve(address(loop), type(uint256).max);
     }
@@ -54,7 +54,7 @@ contract LensLoopTest is UnisonFixture {
     }
 
     function test_book() public view {
-        UnisonLens.Book memory b = lens.book(hook, address(swapVM));
+        TenbinLens.Book memory b = lens.book(hook, address(swapVM));
         assertEq(b.maker, maker);
         assertEq(b.tokens.length, 3);
         assertEq(b.pairs.length, 3);
@@ -64,7 +64,7 @@ contract LensLoopTest is UnisonFixture {
         assertEq(b.tokens[2].effectiveBalance, USDC0);
     }
 
-    /// The Create screen's preview runs the same UnisonMath as a live hook: identical on identical balances.
+    /// The Create screen's preview runs the same TenbinMath as a live hook: identical on identical balances.
     function test_preview_matchesLiveQuote() public view {
         uint256 bi = hook.effectiveBalance(address(weth)); // 18 dec
         uint256 bo = hook.effectiveBalance(address(usdc)) * 1e12; // scaled to 18 dec

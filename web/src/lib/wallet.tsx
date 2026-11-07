@@ -47,7 +47,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setAccount(acct.address);
     setKind("local");
     try {
-      localStorage.setItem("unison.wallet", `local:${i}`);
+      localStorage.setItem("tenbin.wallet", `local:${i}`);
     } catch {}
   }, []);
 
@@ -73,7 +73,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setAccount(a);
       setKind("injected");
       try {
-        localStorage.setItem("unison.wallet", "injected");
+        localStorage.setItem("tenbin.wallet", "injected");
       } catch {}
     } catch (e) {
       setError((e as Error).message);
@@ -87,14 +87,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setClient(undefined);
     setKind(undefined);
     try {
-      localStorage.removeItem("unison.wallet");
+      localStorage.removeItem("tenbin.wallet");
     } catch {}
   }, []);
 
   useEffect(() => {
     let saved: string | null = null;
     try {
-      saved = localStorage.getItem("unison.wallet");
+      saved = localStorage.getItem("tenbin.wallet");
     } catch {}
     if (saved?.startsWith("local:") && NETWORK === "local") connectLocal(Number(saved.split(":")[1]));
     // a browser wallet the user already connected: reconnect silently (eth_accounts never prompts)

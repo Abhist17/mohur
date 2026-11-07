@@ -1,4 +1,4 @@
-// Unison logging JSON-RPC proxy - dependency-free.
+// Tenbin logging JSON-RPC proxy - dependency-free.
 // Forwards JSON-RPC to UPSTREAM and logs ONLY: time, source IP, whether that IP is a Tor exit, method.
 // GET /log returns the last 500 entries (feeds the dashboard's Privacy screen).
 //
@@ -70,4 +70,4 @@ http
       res.end(JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32603, message: "upstream error" } }));
     }
   })
-  .listen(PORT, () => console.log(`unison proxy on :${PORT} -> ${UPSTREAM}`));
+  .listen(PORT, () => console.log(`tenbin proxy on :${PORT} -> ${UPSTREAM}`));

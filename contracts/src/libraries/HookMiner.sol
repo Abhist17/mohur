@@ -6,7 +6,7 @@ pragma solidity ^0.8.24;
 library HookMiner {
     uint160 internal constant FLAG_MASK = uint160((1 << 14) - 1);
     /// beforeInitialize | beforeAddLiquidity | beforeSwap | beforeSwapReturnDelta
-    uint160 internal constant UNISON_FLAGS = uint160((1 << 13) | (1 << 11) | (1 << 7) | (1 << 3));
+    uint160 internal constant TENBIN_FLAGS = uint160((1 << 13) | (1 << 11) | (1 << 7) | (1 << 3));
 
     error SaltNotFound();
 

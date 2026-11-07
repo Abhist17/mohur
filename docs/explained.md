@@ -1,6 +1,6 @@
-# Unison, explained
+# Tenbin, explained
 
-Every part of Unison in plain words, with a picture for each. If you only have a minute, read the first two sections. The [README](../README.md) has the judge-facing evidence and links into the code.
+Every part of Tenbin in plain words, with a picture for each. If you only have a minute, read the first two sections. The [README](../README.md) has the judge-facing evidence and links into the code.
 
 **Contents**
 1. [The problem](#1-the-problem)
@@ -19,7 +19,7 @@ Every part of Unison in plain words, with a picture for each. If you only have a
 14. [Every screen](#14-every-screen)
 15. [Every contract](#15-every-contract)
 16. [How we know it works](#16-how-we-know-it-works)
-17. [What Unison does not do](#17-what-unison-does-not-do)
+17. [What Tenbin does not do](#17-what-tenbin-does-not-do)
 18. [Glossary](#18-glossary)
 
 ---
@@ -39,9 +39,9 @@ On top of that, watching your own positions through a normal RPC provider tells 
 
 ```mermaid
 flowchart LR
-    T1([Trader on Uniswap]) --> U[Uniswap v4 stall<br/>UnisonHook]
+    T1([Trader on Uniswap]) --> U[Uniswap v4 stall<br/>TenbinHook]
     T2([Trader on 1inch]) --> A[1inch Aqua stall<br/>SwapVM opcode 0xd0]
-    U -- "asks the price" --> P{{One price rule<br/>UnisonMath over the<br/>wallet's real balances}}
+    U -- "asks the price" --> P{{One price rule<br/>TenbinMath over the<br/>wallet's real balances}}
     A -- "asks the price" --> P
     P -. reads .-> W[(Maker's wallet<br/>40% ETH · 30% BTC · 30% USDC)]
     U -- "coins move via Aqua" --> W
@@ -54,7 +54,7 @@ flowchart LR
 
 ## 3. The price rule
 
-Unison uses the weighted-pool rule (the same family as Balancer). `w` is a token's target weight, `B` its balance in the wallet, `f` the 0.30% fee:
+Tenbin uses the weighted-pool rule (the same family as Balancer). `w` is a token's target weight, `B` its balance in the wallet, `f` the 0.30% fee:
 
 ```
 price of i in j        p = (w_i / w_j) · (B_j / B_i)
@@ -67,14 +67,14 @@ Example from the demo: with 10 ETH, 0.3 BTC and 30,000 USDC at 40/30/30, the boa
 
 ## 4. A trade on Uniswap v4
 
-Uniswap v4 lets a pool attach a **hook**. Unison's hook replaces the pool's own curve: the pool holds nothing, and the hook fills every trade from the wallet.
+Uniswap v4 lets a pool attach a **hook**. Tenbin's hook replaces the pool's own curve: the pool holds nothing, and the hook fills every trade from the wallet.
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant T as Trader (any v4 router)
     participant PM as Uniswap PoolManager
-    participant H as UnisonHook
+    participant H as TenbinHook
     participant AQ as 1inch Aqua
     participant W as Maker wallet
     T->>PM: swap 1,000 USDC for ETH
@@ -95,15 +95,15 @@ sequenceDiagram
 
 ## 5. A trade on 1inch Aqua
 
-1inch Aqua lets a wallet "ship" a strategy: an order program that SwapVM runs when a taker fills it. The wallet keeps its coins; Aqua only records how much each strategy may sell (a **virtual balance**). Unison adds one instruction to SwapVM, **opcode `0xd0` (PortfolioPrice)**, which asks the hook for the price.
+1inch Aqua lets a wallet "ship" a strategy: an order program that SwapVM runs when a taker fills it. The wallet keeps its coins; Aqua only records how much each strategy may sell (a **virtual balance**). Tenbin adds one instruction to SwapVM, **opcode `0xd0` (PortfolioPrice)**, which asks the hook for the price.
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant T as Taker (1inch)
-    participant VM as UnisonSwapVMRouter
+    participant VM as TenbinSwapVMRouter
     participant PP as PortfolioPrice (0xd0)
-    participant H as UnisonHook
+    participant H as TenbinHook
     participant AQ as 1inch Aqua
     participant W as Maker wallet
     T->>VM: swap(order, 1,000 USDC)
@@ -144,7 +144,7 @@ flowchart LR
 
 ## 8. How the wallet rebalances itself
 
-When the outside market moves (say ETH goes from $4,000 to $5,000), Unison's ETH is now cheap compared with the market. Traders buy ETH from the wallet until Unison's price matches the market again, and at that point the wallet's value is back at 40/30/30.
+When the outside market moves (say ETH goes from $4,000 to $5,000), Tenbin's ETH is now cheap compared with the market. Traders buy ETH from the wallet until Tenbin's price matches the market again, and at that point the wallet's value is back at 40/30/30.
 
 | | ETH | BTC | USDC |
 |---|---|---|---|
@@ -194,7 +194,7 @@ The Create and Launch pages turn any wallet into an index in six transactions, a
 5. **Open the Uniswap pools and ship the Uniswap venue to Aqua.**
 6. **Ship the 1inch strategy for each pair.**
 
-The Create page's preview comes from the contracts' own math (`UnisonLens.previewSpot` / `previewOutGivenIn`), not a JavaScript copy.
+The Create page's preview comes from the contracts' own math (`TenbinLens.previewSpot` / `previewOutGivenIn`), not a JavaScript copy.
 
 ## 12. Safety: the fill lock
 
@@ -203,7 +203,7 @@ Our own review found one critical bug (C-1 in [AUDIT.md](../AUDIT.md)), and it i
 ```mermaid
 sequenceDiagram
     participant VM as 1inch fill
-    participant H as UnisonHook
+    participant H as TenbinHook
     participant U as Uniswap trade (nested)
     VM->>H: quoteAndLock() → lock ON
     VM->>U: taker callback tries a second trade
@@ -222,11 +222,11 @@ The lock fails closed: if anything skips the unlock, pricing stays blocked for t
 
 ## 13. Privacy: Anon-RPC
 
-A normal RPC provider sees every read: which hook you check, which pairs you quote, when you look. Unison's app sends **every** chain read through the Ethereum Foundation's Anon-RPC, which routes it through an anonymity network (Tor, falling back to Nym).
+A normal RPC provider sees every read: which hook you check, which pairs you quote, when you look. Tenbin's app sends **every** chain read through the Ethereum Foundation's Anon-RPC, which routes it through an anonymity network (Tor, falling back to Nym).
 
 ```mermaid
 flowchart LR
-    App[Unison app in your browser] -->|"key: maker"| AR
+    App[Tenbin app in your browser] -->|"key: maker"| AR
     App -->|"key: strategy per pair"| AR
     App -->|"key: trader"| AR
     App -->|"key: public"| AR
@@ -259,20 +259,20 @@ flowchart LR
 
 | Contract | One line |
 |---|---|
-| `UnisonMath` | The price rule, rounding toward the maker; trades capped at 30% of a balance |
-| `UnisonHook` | Uniswap v4 hook: prices from the wallet, pays out via Aqua, holds input as claims, fill lock, gradual weights |
-| `UnisonHookFactory` | One hook per maker at a CREATE2 address with the right permission bits |
+| `TenbinMath` | The price rule, rounding toward the maker; trades capped at 30% of a balance |
+| `TenbinHook` | Uniswap v4 hook: prices from the wallet, pays out via Aqua, holds input as claims, fill lock, gradual weights |
+| `TenbinHookFactory` | One hook per maker at a CREATE2 address with the right permission bits |
 | `PortfolioPrice` | SwapVM opcode `0xd0`: 1inch fills priced by the hook, venue limit enforced |
-| `UnisonSwapVMRouter` | Official AquaSwapVMRouter plus that one opcode |
-| `UnisonStrategy` | Builds the 1inch order (with the unlock hooks) that the wallet ships to Aqua |
-| `UnisonLens` | Read helper: whole book in one call, quotes on both venues, route quotes, previews |
-| `UnisonLoopRouter` | Multi-leg trades across both venues in one transaction (used by Swap, Arbitrage and Demo) |
+| `TenbinSwapVMRouter` | Official AquaSwapVMRouter plus that one opcode |
+| `TenbinStrategy` | Builds the 1inch order (with the unlock hooks) that the wallet ships to Aqua |
+| `TenbinLens` | Read helper: whole book in one call, quotes on both venues, route quotes, previews |
+| `TenbinLoopRouter` | Multi-leg trades across both venues in one transaction (used by Swap, Arbitrage and Demo) |
 
 **What it costs** (`Gas.t.sol`, measured inside a Foundry test, before refunds, excluding the 21,000 base cost of a transaction):
 
 | Action | Gas |
 |---|---|
-| Swap on Uniswap v4 through UnisonHook (including the test router) | ~290k |
+| Swap on Uniswap v4 through TenbinHook (including the test router) | ~290k |
 | Fill on 1inch Aqua through opcode `0xd0` | ~216k |
 | `flush()`: move Uniswap claims into the wallet | ~143k |
 | `quote()`: the price both venues use | ~52k |
@@ -287,7 +287,7 @@ flowchart LR
 | Testnet check (`npm run e2e:testnet`) | 3 | Against the deployed site: reads really go through Anon-RPC; every chain screen either works or explains itself; optional logging-proxy check |
 | One-click demo (`./scripts/demo.sh`) | | Prints the key numbers straight from chain |
 
-## 17. What Unison does not do
+## 17. What Tenbin does not do
 
 - **It does not reduce LVR.** When the market moves, the traders who rebalance you capture that move; you earn the fee. The landing page shows the cost.
 - **Round trips don't always lose a full fee.** They always lose, with a proven floor, but not always the full 0.30%.
@@ -305,11 +305,11 @@ flowchart LR
 | **Index / weights** | The target split of the wallet's value, e.g. 40/30/30 |
 | **Maker** | The wallet owner who runs the index |
 | **Venue** | A place traders can fill against the index: Uniswap v4 or 1inch Aqua |
-| **Hook** | A contract Uniswap v4 calls during a swap; Unison's replaces the pool's curve |
+| **Hook** | A contract Uniswap v4 calls during a swap; Tenbin's replaces the pool's curve |
 | **Aqua** | 1inch's shared-liquidity layer: coins stay in the wallet, strategies get virtual balances |
-| **SwapVM / opcode** | 1inch's order-execution machine; `0xd0` is Unison's added pricing instruction |
+| **SwapVM / opcode** | 1inch's order-execution machine; `0xd0` is Tenbin's added pricing instruction |
 | **Venue limit (cap)** | The most a venue may sell, enforced by Aqua |
-| **Claims (ERC-6909)** | Uniswap's IOU tokens; Unison holds trader input as claims until `flush()` |
+| **Claims (ERC-6909)** | Uniswap's IOU tokens; Tenbin holds trader input as claims until `flush()` |
 | **Epoch / venueNonce** | A version number for the venue setup; reopening bumps it |
 | **LVR** | Loss-versus-rebalancing: what a passive maker loses to better-informed traders when prices move |
 | **Anon-RPC** | The Ethereum Foundation's private RPC access over Tor or Nym |

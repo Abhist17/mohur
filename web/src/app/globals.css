@@ -31,7 +31,7 @@
   --c-uni: #d6006b;
   --c-inch: #1f6fd1;
   --c-hold: #c2701f;
-  --c-unison: #0d7349;
+  --c-tenbin: #0d7349;
   --c-1: #0d7349;
   --inch: #1f6fd1;
   --radius: 16px;
@@ -74,7 +74,7 @@
   --c-uni: #e8378c;
   --c-inch: #3f8ae6;
   --c-hold: #b97a33;
-  --c-unison: #24a065;
+  --c-tenbin: #24a065;
   --c-1: #24a065;
   --inch: #6fb0ff;
   color-scheme: dark;
@@ -223,7 +223,7 @@ hr.sep { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
 .menu button { display: flex; width: 100%; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-sm); background: none; border: 0; color: var(--text); cursor: pointer; font-size: 14px; }
 .menu button:hover { background: var(--bg-2); }
 
-/* concept strip: the Unison idea on every screen */
+/* concept strip: the Tenbin idea on every screen */
 .concept { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 20px; align-items: center; padding: 14px 18px; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(90deg, var(--tint), var(--bg)); margin-bottom: 24px; }
 .concept-cap { color: var(--muted); font-size: 15px; line-height: 1.55; }
 .concept-cap b { color: var(--text); font-weight: 600; }
@@ -294,7 +294,7 @@ body { font-variant-numeric: tabular-nums; }
 .ps-col { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); padding: 14px 16px; display: grid; gap: 10px; }
 .ps-body { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: center; }
 .ps-today { background: var(--bg-2); }
-.ps-unison { border-color: var(--tint-line); background: linear-gradient(180deg, var(--tint), var(--panel)); box-shadow: var(--shadow); }
+.ps-tenbin { border-color: var(--tint-line); background: linear-gradient(180deg, var(--tint), var(--panel)); box-shadow: var(--shadow); }
 .ps-label { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
 .ps-label.accent { color: var(--accent); }
 .ps-pic { display: flex; align-items: flex-end; justify-content: space-around; gap: 8px; min-height: 92px; }

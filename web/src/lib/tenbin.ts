@@ -1,7 +1,7 @@
 "use client";
 
 import { getContractAddress, parseAbiItem, type Address, type Hex } from "viem";
-import { UnisonHookAbi, UnisonHookFactoryAbi, UnisonLensAbi } from "@/generated/abis";
+import { TenbinHookAbi, TenbinHookFactoryAbi, TenbinLensAbi } from "@/generated/abis";
 import { deployment, LOG_CHUNK, SAFE_LOG_CHUNK } from "./config";
 import { keys, readClient } from "./anon";
 
@@ -29,7 +29,7 @@ export const units = (v: bigint, d: number) => Number(v) / 10 ** d;
 export const amt = (v: bigint, d: number, sig = 6) => fmt(units(v, d), sig);
 
 // ------------------------------------------------------------------------------------------------
-// Float weighted-pool math (for simulations and previews only - the chain uses UnisonMath)
+// Float weighted-pool math (for simulations and previews only - the chain uses TenbinMath)
 // ------------------------------------------------------------------------------------------------
 
 export const sim = {
@@ -62,7 +62,7 @@ export type Book = { maker: Address; hook: Address; fee: bigint; v4StrategyHash:
 export async function readBook(hook: Address, maker?: Address): Promise<Book> {
   const d = deployment()!;
   const c = readClient("book (lens)", keys.maker(maker ?? hook));
-  return (await c.readContract({ address: d.lens, abi: UnisonLensAbi, functionName: "book", args: [hook, d.swapVM] })) as unknown as Book;
+  return (await c.readContract({ address: d.lens, abi: TenbinLensAbi, functionName: "book", args: [hook, d.swapVM] })) as unknown as Book;
 }
 
 export async function quoteBoth(hook: Address, tokenIn: Address, tokenOut: Address, amount: bigint, exactIn = true) {
@@ -71,7 +71,7 @@ export async function quoteBoth(hook: Address, tokenIn: Address, tokenOut: Addre
   const c = readClient("quote both venues", keys.strategy(hook, a, b));
   const { result } = await c.simulateContract({
     address: d.lens,
-    abi: UnisonLensAbi,
+    abi: TenbinLensAbi,
     functionName: "quoteBoth",
     args: [hook, d.swapVM, tokenIn, tokenOut, amount, exactIn],
   });
@@ -84,7 +84,7 @@ export async function quoteRoute(hook: Address, path: Address[], venues: number[
   const c = readClient("quote route", keys.trader(trader));
   const [amounts, ok] = (await c.readContract({
     address: d.lens,
-    abi: UnisonLensAbi,
+    abi: TenbinLensAbi,
     functionName: "quoteRoute",
     args: [hook, d.swapVM, path, venues, amountIn],
   })) as readonly [readonly bigint[], boolean];
@@ -95,15 +95,15 @@ export async function hookOf(maker: Address): Promise<Address | undefined> {
   const d = deployment();
   if (!d) return;
   const c = readClient("find my hook", keys.maker(maker));
-  const h = (await c.readContract({ address: d.hookFactory, abi: UnisonHookFactoryAbi, functionName: "hookOf", args: [maker] })) as Address;
+  const h = (await c.readContract({ address: d.hookFactory, abi: TenbinHookFactoryAbi, functionName: "hookOf", args: [maker] })) as Address;
   return h === ZERO ? undefined : h;
 }
 
-/** Mine a CREATE2 salt whose hook address carries exactly Unison's v4 permission bits - in the browser. */
+/** Mine a CREATE2 salt whose hook address carries exactly Tenbin's v4 permission bits - in the browser. */
 export async function mineHookSalt(maker: Address, onProgress?: (n: number) => void) {
   const d = deployment()!;
   const c = readClient("hook init code hash", keys.maker(maker));
-  const bytecodeHash = (await c.readContract({ address: d.hookFactory, abi: UnisonHookFactoryAbi, functionName: "initCodeHash", args: [maker] })) as Hex;
+  const bytecodeHash = (await c.readContract({ address: d.hookFactory, abi: TenbinHookFactoryAbi, functionName: "initCodeHash", args: [maker] })) as Hex;
   const FLAGS = (1n << 13n) | (1n << 11n) | (1n << 7n) | (1n << 3n);
   const MASK = (1n << 14n) - 1n;
   for (let i = 0; i < 2_000_000; i++) {
@@ -214,4 +214,4 @@ export async function readIndexes(): Promise<IndexCard[]> {
   return cards;
 }
 
-export { UnisonHookAbi };
+export { TenbinHookAbi };

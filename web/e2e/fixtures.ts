@@ -31,12 +31,12 @@ export async function injectWallet(page: Page, address: Address) {
       let current = address;
       const listeners: Record<string, ((...a: unknown[]) => void)[]> = {};
       // test hook: switch the wallet's account like a user would in MetaMask (fires accountsChanged)
-      (window as unknown as { __unisonSwitchAccount: (a: string) => void }).__unisonSwitchAccount = (a: string) => {
+      (window as unknown as { __tenbinSwitchAccount: (a: string) => void }).__tenbinSwitchAccount = (a: string) => {
         current = a as typeof address;
         for (const f of listeners.accountsChanged ?? []) f(a ? [a] : []);
       };
       (window as unknown as { ethereum: unknown }).ethereum = {
-        isUnisonTestWallet: true,
+        isTenbinTestWallet: true,
         request: async ({ method, params }: { method: string; params?: unknown[] }) => {
           if (method === "eth_requestAccounts" || method === "eth_accounts") return [current];
           if (method === "eth_chainId") return "0x7a69";
@@ -87,4 +87,4 @@ export { base as test, expect };
 
 /** Switch the injected test wallet to another account (as a user would in their wallet). */
 export const switchAccount = (page: Page, address: Address | "") =>
-  page.evaluate((a) => (window as unknown as { __unisonSwitchAccount: (a: string) => void }).__unisonSwitchAccount(a), address);
+  page.evaluate((a) => (window as unknown as { __tenbinSwitchAccount: (a: string) => void }).__tenbinSwitchAccount(a), address);

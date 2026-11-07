@@ -2,18 +2,18 @@ import Link from "next/link";
 import { Concept } from "@/components/Concept";
 import { TradeFlow } from "@/components/TradeFlow";
 
-export const metadata = { title: "How Unison works" };
+export const metadata = { title: "How Tenbin works" };
 
 const GLOSSARY: [string, string][] = [
   ["Index", "A wallet that holds several assets at fixed target shares by value, for example 40% ETH, 30% BTC, 30% USDC."],
-  ["Weight", "An asset's target share of the index. The weights are the whole strategy: every price Unison quotes keeps the wallet on them."],
-  ["Venue", "A place traders can buy from you. Unison has two: Uniswap v4 and 1inch Aqua."],
+  ["Weight", "An asset's target share of the index. The weights are the whole strategy: every price Tenbin quotes keeps the wallet on them."],
+  ["Venue", "A place traders can buy from you. Tenbin has two: Uniswap v4 and 1inch Aqua."],
   ["Venue limit", "The most each venue may sell of each coin, tracked by 1inch Aqua (at launch: Uniswap 50% of each coin, 1inch 25% per pair). The wallet keeps the rest; Top up on My index changes it."],
   ["1inch Aqua", "A registry that lets one wallet back many strategies without moving coins. It is the only contract your wallet approves."],
-  ["Hook", "A small contract Uniswap v4 calls during a swap. Unison's hook replaces the pool's own pricing with your wallet's price."],
+  ["Hook", "A small contract Uniswap v4 calls during a swap. Tenbin's hook replaces the pool's own pricing with your wallet's price."],
   ["Opcode 0xd0", "A custom instruction added to 1inch's SwapVM. It asks the same hook for the price, so 1inch quotes exactly what Uniswap quotes."],
   ["Claims", "Uniswap pays traders' input to the hook a moment after the swap. The hook holds it as ERC-6909 claims for you, counts it as yours immediately, and moves it into your wallet on the next swap (a flush)."],
-  ["LVR", "Loss-versus-rebalancing: what an index gives up to the traders who move it back on target after a price change. Unison earns fees on those trades but does not remove LVR."],
+  ["LVR", "Loss-versus-rebalancing: what an index gives up to the traders who move it back on target after a price change. Tenbin earns fees on those trades but does not remove LVR."],
   ["Isolation key", "A label passed to Anon-RPC so reads about different things travel separately and can't be linked to one person."],
 ];
 
@@ -21,10 +21,10 @@ export default function How() {
   return (
     <div className="wrap page" style={{ maxWidth: 900 }}>
       <div className="page-head">
-        <div className="eyebrow">How Unison works</div>
+        <div className="eyebrow">How Tenbin works</div>
         <h1 style={{ fontSize: "clamp(40px, 6vw, 72px)", marginTop: 10 }}>One wallet. One price. Every venue.</h1>
         <p className="lead" style={{ marginTop: 16 }}>The whole idea in 11 lines. Tap any one for more.</p>
-        <p style={{ marginTop: 8, fontSize: 14 }}><a className="accent" href="https://github.com/Abhist17/unison/blob/main/docs/explained.md" target="_blank" rel="noreferrer">The long version, with diagrams ↗</a></p>
+        <p style={{ marginTop: 8, fontSize: 14 }}><a className="accent" href="https://github.com/Abhist17/tenbin/blob/main/docs/explained.md" target="_blank" rel="noreferrer">The long version, with diagrams ↗</a></p>
       </div>
 
       <Concept caption={<><b>One stockroom, two stalls.</b> One shelf, so one price.</>} />
@@ -81,7 +81,7 @@ export default function How() {
       </Section>
 
       <Section n="5" title="It rebalances itself" tldr="ETH $4k → $5k: traders alone bring you back to 40/30/30, paying you fees.">
-        When ETH rises outside, your ETH is briefly cheap at Unison. Traders buy it from you until your price matches the market, and that is
+        When ETH rises outside, your ETH is briefly cheap at Tenbin. Traders buy it from you until your price matches the market, and that is
         exactly when each holding is back to its target share. In the tests, after ETH moved from $4,000 to $5,000, arbitrage alone brought
         the wallet back to 40.0 / 30.0 / 30.0. You earn the fee on every one of those trades.
       </Section>
@@ -89,7 +89,7 @@ export default function How() {
       <Section n="6" title="Change your mind, cheaply" tldr="Glide to new weights: $25 instead of $1,991 on a $100k index.">
         <p>
           Want 50/25/25 instead of 40/30/30? Flip the weights instantly and the whole price gap opens at once: arbitrageurs take it in one go.
-          Or let Unison <b>glide</b> the weights on both venues over an hour, a day, or three days. Each moment&apos;s gap stays near the fee, so
+          Or let Tenbin <b>glide</b> the weights on both venues over an hour, a day, or three days. Each moment&apos;s gap stays near the fee, so
           the market walks your wallet to the new allocation through ordinary, fee-paying trades.
         </p>
         <p>
@@ -111,7 +111,7 @@ export default function How() {
 
       <Section n="8" title="Honest limits" tldr="LVR stays, per-trade caps, testnet only, not externally audited.">
         <ul className="steps">
-          <li>Unison doesn&apos;t remove LVR: the traders who rebalance you capture the move; you earn the fee.</li>
+          <li>Tenbin doesn&apos;t remove LVR: the traders who rebalance you capture the move; you earn the fee.</li>
           <li>One trade can move at most 30% of a balance, and each venue sells only up to its limit.</li>
           <li>Uniswap input waits as claims until the next swap or a flush. It&apos;s priced in at once, but 1inch can only sell what&apos;s already in the wallet.</li>
           <li>Use a dedicated maker wallet. Prices come from what the wallet holds, so spending the index tokens elsewhere moves the price (and gifting tokens to it only enriches the maker).</li>
@@ -132,9 +132,9 @@ export default function How() {
         </dl>
       </Section>
 
-      <Section n="10" title="Why “Unison”" tldr="Both venues move in unison: one price, at the same moment.">
-        In music, unison means every voice on the same note at the same time. Unison makes Uniswap and 1inch quote the same price at the
-        same moment, from the same wallet.
+      <Section n="10" title="Why “Tenbin”" tldr="A balance scale: two pans, one beam, held level.">
+        Tenbin (天秤) is the Japanese balance scale: one beam, two pans, held perfectly level. Tenbin keeps your index balanced at its target weights and holds Uniswap and 1inch level: the
+        same price, at the same moment, from the same wallet.
       </Section>
 
       <div className="row" style={{ marginTop: 32 }}>

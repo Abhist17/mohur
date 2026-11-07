@@ -4,7 +4,7 @@ pragma solidity 0.8.30;
 import { Script } from "forge-std/Script.sol";
 import { stdJson } from "forge-std/StdJson.sol";
 
-abstract contract UnisonScriptBase is Script {
+abstract contract TenbinScriptBase is Script {
     using stdJson for string;
 
     address constant BASE_SEPOLIA_POOL_MANAGER = 0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408;

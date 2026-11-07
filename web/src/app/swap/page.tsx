@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatUnits, maxUint256, parseEventLogs, parseUnits, type Address } from "viem";
-import { UnisonHookAbi, UnisonLoopRouterAbi, UnisonTestTokenAbi } from "@/generated/abis";
+import { TenbinHookAbi, TenbinLoopRouterAbi, TenbinTestTokenAbi } from "@/generated/abis";
 import { deployment, NETWORK } from "@/lib/config";
 import { keys, readClient } from "@/lib/anon";
 import { prettyError } from "@/lib/errors";
-import { fillEvt, quoteBoth, readBook, swappedEvt, TOKEN_STYLE, type Book } from "@/lib/unison";
+import { fillEvt, quoteBoth, readBook, swappedEvt, TOKEN_STYLE, type Book } from "@/lib/tenbin";
 import { useWallet } from "@/lib/wallet";
 import { TokenIcon } from "@/components/TokenIcon";
 import { NotDeployed } from "@/components/NotDeployed";
@@ -98,9 +98,9 @@ export default function SwapPage() {
     if (!d || !w.account) return;
     const c = readClient("swap: balances", keys.trader(w.account));
     const b: Record<string, bigint> = {};
-    for (const s of SYMS) b[s] = (await c.readContract({ address: addr(s), abi: UnisonTestTokenAbi, functionName: "balanceOf", args: [w.account] })) as bigint;
+    for (const s of SYMS) b[s] = (await c.readContract({ address: addr(s), abi: TenbinTestTokenAbi, functionName: "balanceOf", args: [w.account] })) as bigint;
     setBal(b);
-    setAllow((await c.readContract({ address: addr(tin), abi: UnisonTestTokenAbi, functionName: "allowance", args: [w.account, d.loopRouter] })) as bigint);
+    setAllow((await c.readContract({ address: addr(tin), abi: TenbinTestTokenAbi, functionName: "allowance", args: [w.account, d.loopRouter] })) as bigint);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, w.account, tin]);
   useEffect(() => { refreshWallet().catch(() => {}); }, [refreshWallet]);
@@ -115,7 +115,7 @@ export default function SwapPage() {
       const [q, spot] = await Promise.all([
         quoteBoth(hook, addr(tin), addr(tout), amountIn),
         readClient("swap: spot price", keys.strategy(hook, addr(tin), addr(tout))).readContract({
-          address: hook, abi: UnisonHookAbi, functionName: "price", args: [addr(tin), addr(tout)],
+          address: hook, abi: TenbinHookAbi, functionName: "price", args: [addr(tin), addr(tout)],
         }) as Promise<bigint>,
       ]);
       setQuote({ ...q, spot, err: !q.v4Ok && !q.aquaOk ? "Trade too large for either venue: one trade can move at most 30% of a balance, and each venue sells only up to its limit." : undefined });
@@ -177,7 +177,7 @@ export default function SwapPage() {
       : { label: "Connect wallet", onClick: () => w.connectInjected(), primary: true };
   } else if (amountIn === 0n) cta = { label: "Enter an amount" };
   else if (balIn < amountIn)
-    cta = { label: `Get test ${TOKEN_STYLE[tin].name}`, primary: true, onClick: () => act(() => w.write({ address: addr(tin), abi: UnisonTestTokenAbi, functionName: "faucet", label: `Get test ${tin}` }), "Getting test tokens…") };
+    cta = { label: `Get test ${TOKEN_STYLE[tin].name}`, primary: true, onClick: () => act(() => w.write({ address: addr(tin), abi: TenbinTestTokenAbi, functionName: "faucet", label: `Get test ${tin}` }), "Getting test tokens…") };
   else if (!quote) cta = { label: quoting ? "Fetching quote…" : "Getting a quote…" }; // also before the first request fires: never show a limit message without a quote
   else if (quote?.err) cta = { label: "Amount too large" };
   else if (!ok) {
@@ -189,7 +189,7 @@ export default function SwapPage() {
       : { label: "Over both venues' limits · try a smaller amount" };
   }
   else if (allow < amountIn)
-    cta = { label: `Approve ${TOKEN_STYLE[tin].name}`, primary: true, onClick: () => act(() => w.write({ address: addr(tin), abi: UnisonTestTokenAbi, functionName: "approve", args: [d.loopRouter, maxUint256], label: `Approve ${tin}` }), "Approving…") };
+    cta = { label: `Approve ${TOKEN_STYLE[tin].name}`, primary: true, onClick: () => act(() => w.write({ address: addr(tin), abi: TenbinTestTokenAbi, functionName: "approve", args: [d.loopRouter, maxUint256], label: `Approve ${tin}` }), "Approving…") };
   else
     cta = {
       label: `Swap on ${VENUES[venue]}`,
@@ -199,7 +199,7 @@ export default function SwapPage() {
           // remember both venues' quotes for this exact trade, then read what actually arrived from the trade's own event
           const q = quote!;
           const chosen = venue;
-          const tx = await w.write({ address: d.loopRouter, abi: UnisonLoopRouterAbi, functionName: "execute", args: [hook, [addr(tin), addr(tout)], [venue], amountIn, minOut, w.account], label: `Swap ${amount} ${TOKEN_STYLE[tin].name} → ${TOKEN_STYLE[tout].name}` });
+          const tx = await w.write({ address: d.loopRouter, abi: TenbinLoopRouterAbi, functionName: "execute", args: [hook, [addr(tin), addr(tout)], [venue], amountIn, minOut, w.account], label: `Swap ${amount} ${TOKEN_STYLE[tin].name} → ${TOKEN_STYLE[tout].name}` });
           const rcpt = await readClient("swap: receipt", keys.trader(w.account)).getTransactionReceipt({ hash: tx });
           const ev = parseEventLogs({ abi: [fillEvt, swappedEvt], logs: rcpt.logs })
             .map((l) => l.args as { tokenOut: Address; amountOut: bigint })
@@ -318,7 +318,7 @@ export default function SwapPage() {
       </div>
       <Explain anchor="4-a-trade-on-uniswap-v4" points={[
         "Both venue quotes come from one function over the maker's wallet, which is why they match to the wei.",
-        "Uniswap v4 fills through the Unison hook; 1inch fills through SwapVM opcode 0xd0. Coins move between your wallet and the maker's through 1inch Aqua.",
+        "Uniswap v4 fills through the Tenbin hook; 1inch fills through SwapVM opcode 0xd0. Coins move between your wallet and the maker's through 1inch Aqua.",
         "“Can sell” is that venue's remaining limit. One trade can move at most 30% of a balance.",
         "Every trade changes the maker's balances, so the next quote moves the same way on both venues.",
       ]} />

@@ -15,14 +15,14 @@ export type Receipt = {
   tx: string;
 };
 
-const SITE = "https://abhist17.github.io/unison/";
+const SITE = "https://abhist17.github.io/tenbin/";
 const VENUE = ["Uniswap v4", "1inch Aqua"] as const;
 
 /** Shown after a real swap: what you got, what the other venue would have given (the same), and a way to share it. */
 export function TradeReceipt({ r, onClose }: { r: Receipt; onClose: () => void }) {
   const [copied, setCopied] = useState(false);
   const other = r.venue === 0 ? 1 : 0;
-  const text = `I swapped ${r.amountIn} ${r.symbolIn} for ${r.got} ${r.symbolOut} on ${VENUE[r.venue]} with Unison. ${VENUE[other]} quoted exactly the same: ${r.gapWei} wei apart. One wallet, one price, every venue.`;
+  const text = `I swapped ${r.amountIn} ${r.symbolIn} for ${r.got} ${r.symbolOut} on ${VENUE[r.venue]} with Tenbin. ${VENUE[other]} quoted exactly the same: ${r.gapWei} wei apart. One wallet, one price, every venue.`;
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(`${text} ${SITE}`);

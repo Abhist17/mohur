@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# One-command Base Sepolia deploy of Unison, end to end:
-#   1. shared contracts (official Aqua source, UnisonSwapVMRouter, hook factory, lens, loop router, test tokens)
+# One-command Base Sepolia deploy of Tenbin, end to end:
+#   1. shared contracts (official Aqua source, TenbinSwapVMRouter, hook factory, lens, loop router, test tokens)
 #   2. a 40/30/30 demo index launched from your wallet (hook, approvals, weights, v4 pools, Aqua strategies)
 #   3. real demo fills on both venues
 #   4. sync the web app, run the on-chain smoke test, commit + push (GitHub Pages then rebuilds the live site)
 #
 # One-time setup (stored encrypted by Foundry; the key is never printed):
-#   ./scripts/setup-deployer.sh            (fresh testnet wallet)   or   cast wallet import unison-deployer --interactive
+#   ./scripts/setup-deployer.sh            (fresh testnet wallet)   or   cast wallet import tenbin-deployer --interactive
 # Then fund that address with ~0.01 Base Sepolia ETH and run:
 #   ./scripts/deploy-base-sepolia.sh
 # Optional: PASSWORD_FILE=<file with the keystore password>  ACCOUNT=<keystore name>  RPC=<rpc url, default: first of publicnode / sepolia.base.org / drpc that answers>  FRESH=1 (redeploy everything)  NO_PUSH=1
 set -euo pipefail
-ACCOUNT="${ACCOUNT:-unison-deployer}"
+ACCOUNT="${ACCOUNT:-tenbin-deployer}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 J="$ROOT/contracts/deployments/base-sepolia.json"
 export PATH="$HOME/.foundry/bin:$PATH"
@@ -71,7 +71,7 @@ cd "$ROOT/contracts"
 run() { forge script "script/$1.s.sol" --rpc-url "$RPC" --account "$ACCOUNT" "${PW[@]}" --sender "$SENDER" --broadcast --slow; }
 
 if [ -n "${FRESH:-}" ] || [ ! -f "$J" ] || [ "$(jq -r '.lens // empty' "$J")" = "" ]; then
-  say "1/4 deploying shared contracts"; run DeployUnison
+  say "1/4 deploying shared contracts"; run DeployTenbin
 else say "1/4 shared contracts already deployed (FRESH=1 to redeploy)"; fi
 
 if [ -n "${FRESH:-}" ] || [ "$(jq -r '.demoHook // empty' "$J")" = "" ]; then
@@ -87,7 +87,7 @@ cd "$ROOT/web" && npm run sync
 if [ -z "${NO_PUSH:-}" ]; then
   cd "$ROOT"
   git add contracts/deployments/base-sepolia.json web/src/generated contracts/broadcast 2>/dev/null || true
-  git commit -qm "Deploy Unison to Base Sepolia (demo index $(jq -r .demoHook "$J"))" && git push -q && \
-    echo "pushed: the live site rebuilds at https://abhist17.github.io/unison/ in ~2 minutes"
+  git commit -qm "Deploy Tenbin to Base Sepolia (demo index $(jq -r .demoHook "$J"))" && git push -q && \
+    echo "pushed: the live site rebuilds at https://abhist17.github.io/tenbin/ in ~2 minutes"
 fi
 say "done. addresses: contracts/deployments/base-sepolia.json"

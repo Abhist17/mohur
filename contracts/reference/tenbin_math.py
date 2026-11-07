@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""80-digit reference for UnisonMath (weighted-pool curve over real balances).
+"""80-digit reference for TenbinMath (weighted-pool curve over real balances).
 
-Generates contracts/reference/vectors.json, consumed by test/UnisonMath.t.sol.
+Generates contracts/reference/vectors.json, consumed by test/TenbinMath.t.sol.
 All numbers are 18-decimal fixed point integers (scaled), like the Solidity library.
 """
 import json
@@ -33,7 +33,7 @@ def spot(bi, wi, bj, wj):
 
 
 def main():
-    rng = random.Random(0x4D4F485552)  # fixed seed: the reference vectors in UnisonMath.t.sol depend on it
+    rng = random.Random(0x4D4F485552)  # fixed seed: the reference vectors in TenbinMath.t.sol depend on it
     weights = [
         (0.4e18, 0.3e18), (0.3e18, 0.4e18), (0.3e18, 0.3e18), (0.5e18, 0.25e18),
         (0.25e18, 0.5e18), (0.8e18, 0.1e18), (0.1e18, 0.8e18), (0.02e18, 0.49e18),

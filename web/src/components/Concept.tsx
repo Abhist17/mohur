@@ -1,7 +1,7 @@
 import { asset, VENUE_LOGO } from "./VenueMark";
 
 /**
- * The Unison idea in one picture: one wallet (ETH, BTC and USDC at their target weights) feeding two
+ * The Tenbin idea in one picture: one wallet (ETH, BTC and USDC at their target weights) feeding two
  * stalls (Uniswap v4, 1inch Aqua) that show the same price tag. Used across screens so every page says
  * where it sits in the story.
  */

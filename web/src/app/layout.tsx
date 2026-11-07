@@ -12,7 +12,7 @@ const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 const display = Fraunces({ subsets: ["latin"], variable: "--font-display", weight: ["500", "600", "700"] });
 
 // set the theme before first paint (saved choice, else the system setting) so there is no flash
-const THEME_SCRIPT = `try{var t=localStorage.getItem("unison-theme");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="light"}`;
+const THEME_SCRIPT = `try{var t=localStorage.getItem("tenbin-theme");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="light"}`;
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const DESCRIPTION =
@@ -20,15 +20,15 @@ const DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE ? "https://abhist17.github.io" : "http://localhost:3000"),
-  title: "Unison: one wallet, one price, every venue",
+  title: "Tenbin: one wallet, one price, every venue",
   description: DESCRIPTION,
   openGraph: {
-    title: "Unison: one wallet, one price, every venue",
+    title: "Tenbin: one wallet, one price, every venue",
     description: DESCRIPTION,
-    images: [{ url: `${BASE}/og.png`, width: 1200, height: 630, alt: "Unison: stop splitting your coins across exchanges. One wallet, Uniswap v4 and 1inch Aqua, 0 wei apart." }],
+    images: [{ url: `${BASE}/og.png`, width: 1200, height: 630, alt: "Tenbin: stop splitting your coins across exchanges. One wallet, Uniswap v4 and 1inch Aqua, 0 wei apart." }],
     type: "website",
   },
-  twitter: { card: "summary_large_image", title: "Unison", description: DESCRIPTION, images: [`${BASE}/og.png`] },
+  twitter: { card: "summary_large_image", title: "Tenbin", description: DESCRIPTION, images: [`${BASE}/og.png`] },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -45,7 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <footer className="foot">
             <div className="wrap foot-grid">
               <div>
-                <div className="brand" style={{ fontSize: 24 }}><Logo size={26} /> Unison</div>
+                <div className="brand" style={{ fontSize: 24 }}><Logo size={26} /> Tenbin</div>
                 <p style={{ marginTop: 10, maxWidth: 340 }}>One wallet, one price, every venue, nobody watching.</p>
               </div>
               <div className="foot-col">
@@ -61,7 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Link href="/how">How it works</Link>
                 <Link href="/privacy">Privacy</Link>
                 <Link href="/docs">Docs</Link>
-                <a href="https://github.com/Abhist17/unison" target="_blank" rel="noreferrer">Source code ↗</a>
+                <a href="https://github.com/Abhist17/tenbin" target="_blank" rel="noreferrer">Source code ↗</a>
               </div>
               <div className="foot-col">
                 <b>Built on</b>

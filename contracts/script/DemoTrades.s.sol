@@ -3,15 +3,15 @@ pragma solidity 0.8.30;
 
 import { console2 } from "forge-std/console2.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { UnisonHook } from "../src/UnisonHook.sol";
-import { UnisonLoopRouter } from "../src/UnisonLoopRouter.sol";
-import { UnisonTestToken } from "../src/UnisonTestToken.sol";
-import { UnisonScriptBase } from "./UnisonScriptBase.sol";
+import { TenbinHook } from "../src/TenbinHook.sol";
+import { TenbinLoopRouter } from "../src/TenbinLoopRouter.sol";
+import { TenbinTestToken } from "../src/TenbinTestToken.sol";
+import { TenbinScriptBase } from "./TenbinScriptBase.sol";
 
 /// @notice A handful of real fills on both venues against the demo index (so the dashboard has a fill feed).
-contract DemoTrades is UnisonScriptBase {
+contract DemoTrades is TenbinScriptBase {
     function run() external {
-        UnisonLoopRouter loop = UnisonLoopRouter(readDeployment("loopRouter"));
+        TenbinLoopRouter loop = TenbinLoopRouter(readDeployment("loopRouter"));
         address hook = readDeployment("demoHook");
         address weth = readDeployment("tWETH");
         address wbtc = readDeployment("tWBTC");
@@ -19,9 +19,9 @@ contract DemoTrades is UnisonScriptBase {
 
         vm.startBroadcast();
         address trader = broadcaster();
-        UnisonTestToken(weth).faucet();
-        UnisonTestToken(wbtc).faucet();
-        UnisonTestToken(usdc).faucet();
+        TenbinTestToken(weth).faucet();
+        TenbinTestToken(wbtc).faucet();
+        TenbinTestToken(usdc).faucet();
         IERC20(weth).approve(address(loop), type(uint256).max);
         IERC20(wbtc).approve(address(loop), type(uint256).max);
         IERC20(usdc).approve(address(loop), type(uint256).max);
@@ -30,12 +30,12 @@ contract DemoTrades is UnisonScriptBase {
         _leg(loop, hook, usdc, wbtc, 1, 1_500e6, trader); // buy BTC on 1inch
         _leg(loop, hook, wbtc, weth, 0, 0.004e8, trader); // BTC -> ETH on Uniswap
         _leg(loop, hook, usdc, weth, 1, 800e6, trader); // buy ETH on 1inch
-        UnisonHook(hook).flush(); // move Uniswap input (claims) into the wallet
+        TenbinHook(hook).flush(); // move Uniswap input (claims) into the wallet
         vm.stopBroadcast();
         console2.log("demo fills done for trader", trader);
     }
 
-    function _leg(UnisonLoopRouter loop, address hook, address a, address b, uint8 venue, uint256 amt, address to)
+    function _leg(TenbinLoopRouter loop, address hook, address a, address b, uint8 venue, uint256 amt, address to)
         internal
     {
         address[] memory path = new address[](2);

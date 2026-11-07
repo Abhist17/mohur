@@ -5,7 +5,7 @@ import { deployments, type Deployment } from "@/generated/deployments";
 export type NetworkId = "local" | "base-sepolia";
 
 export const NETWORK: NetworkId =
-  (process.env.NEXT_PUBLIC_UNISON_NETWORK as NetworkId) === "base-sepolia" ? "base-sepolia" : "local";
+  (process.env.NEXT_PUBLIC_TENBIN_NETWORK as NetworkId) === "base-sepolia" ? "base-sepolia" : "local";
 
 export const localFork = defineChain({
   id: 31337,
@@ -20,7 +20,7 @@ export const CHAIN: Chain = NETWORK === "base-sepolia" ? baseSepolia : localFork
 export const RPC_URLS: string[] =
   NETWORK === "base-sepolia"
     ? [
-        ...(process.env.NEXT_PUBLIC_UNISON_PROXY_URL ? [process.env.NEXT_PUBLIC_UNISON_PROXY_URL] : []),
+        ...(process.env.NEXT_PUBLIC_TENBIN_PROXY_URL ? [process.env.NEXT_PUBLIC_TENBIN_PROXY_URL] : []),
         "https://base-sepolia-rpc.publicnode.com", // allows wide eth_getLogs ranges
         "https://sepolia.base.org", // caps eth_getLogs at 200 blocks
       ]
@@ -32,7 +32,7 @@ export const LOG_CHUNK = 10_000n;
 export const SAFE_LOG_CHUNK = 200n;
 
 /** Default anonymising network; Tor falls back to Nym automatically if it can't bootstrap. */
-export const DEFAULT_WORKER = (process.env.NEXT_PUBLIC_UNISON_WORKER as "tor-js" | "nym" | "passthrough" | undefined) ?? "tor-js";
+export const DEFAULT_WORKER = (process.env.NEXT_PUBLIC_TENBIN_WORKER as "tor-js" | "nym" | "passthrough" | undefined) ?? "tor-js";
 
 /** Mainnet RPC used ONCE to read the worker's specifier contract (documented exclusion). */
 export const BOOTSTRAP_RPC = "https://ethereum-rpc.publicnode.com";

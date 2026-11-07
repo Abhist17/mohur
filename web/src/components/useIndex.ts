@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Address } from "viem";
 import { deployment } from "@/lib/config";
-import { hookOf, UnisonHookAbi } from "@/lib/unison";
+import { hookOf, TenbinHookAbi } from "@/lib/tenbin";
 import { keys, readClient } from "@/lib/anon";
 import { useWallet } from "@/lib/wallet";
 
@@ -22,7 +22,7 @@ export function useIndex(preferDemo = false) {
     const h = new URLSearchParams(window.location.search).get("index");
     if (!h || !/^0x[0-9a-fA-F]{40}$/.test(h)) return;
     readClient("picked index", keys.public)
-      .readContract({ address: h as Address, abi: UnisonHookAbi, functionName: "maker" })
+      .readContract({ address: h as Address, abi: TenbinHookAbi, functionName: "maker" })
       .then((m) => setPicked({ hook: h as Address, maker: m as Address }))
       .catch(() => {});
   }, []);

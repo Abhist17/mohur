@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Read-only smoke test of a Unison deployment. Usage: scripts/smoke.sh [local|base-sepolia]
+# Read-only smoke test of a Tenbin deployment. Usage: scripts/smoke.sh [local|base-sepolia]
 # Checks, on-chain: contracts exist, hook permission bits, index config, the SAME quote on both venues for
 # every pair and direction, the maker's ONLY approval is Aqua, venue limits, the official V4Quoter agrees,
 # and that fills happened on both venues.
@@ -23,7 +23,7 @@ check() { if [ "$1" = "1" ]; then ok "$2"; else bad "$2"; fi; }
 
 HOOK=$(g demoHook); MAKER=$(g demoMaker); LENS=$(g lens); SVM=$(g swapVM); AQUA=$(g aqua); PM=$(g poolManager)
 T=($(g tWETH) $(g tWBTC) $(g tUSDC)); SYM=(tWETH tWBTC tUSDC); AMT=(100000000000000000 300000 300000000)
-echo "Unison smoke test on $NET ($RPC)"
+echo "Tenbin smoke test on $NET ($RPC)"
 
 echo "contracts"
 for k in aqua swapVM hookFactory lens loopRouter tWETH tWBTC tUSDC demoHook; do

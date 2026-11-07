@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { DEFAULT_DRAFT, loadDraft, saveDraft, setWeight, type Draft } from "@/lib/draft";
-import { fmt, sim, TOKEN_STYLE } from "@/lib/unison";
-import { UnisonLensAbi } from "@/generated/abis";
+import { fmt, sim, TOKEN_STYLE } from "@/lib/tenbin";
+import { TenbinLensAbi } from "@/generated/abis";
 import { deployment } from "@/lib/config";
 import { keys, readClient } from "@/lib/anon";
 import { TokenIcon } from "@/components/TokenIcon";
@@ -42,7 +42,7 @@ export default function CreatePage() {
   const pairs: [string, string][] = [];
   for (let i = 0; i < active.length; i++) for (let j = i + 1; j < active.length; j++) pairs.push([active[i], active[j]]);
 
-  // the preview runs the contracts' own UnisonMath through UnisonLens (pure functions), not a JS copy
+  // the preview runs the contracts' own TenbinMath through TenbinLens (pure functions), not a JS copy
     const scaled = (s: string) => BigInt(Math.round(bal(s) * 1e6)) * 10n ** 12n; // 18-dec example balance
   const wOf = (s: string) => BigInt(d.weights[s]) * 10n ** 16n;
   const [onchain, setOnchain] = useState<Record<string, { spot: bigint; out: bigint; amt: bigint }>>({});
@@ -50,14 +50,14 @@ export default function CreatePage() {
   const key = JSON.stringify([d.weights, size]);
   useEffect(() => {
     if (!lens) return;
-    const c = readClient("create: preview (UnisonMath)", keys.public);
+    const c = readClient("create: preview (TenbinMath)", keys.public);
     let alive = true;
     Promise.all(
       pairs.map(async ([a, b]) => {
         const amt = scaled(a) / 100n; // sell 1%
         const [spot, out] = await Promise.all([
-          c.readContract({ address: lens, abi: UnisonLensAbi, functionName: "previewSpot", args: [scaled(a), wOf(a), scaled(b), wOf(b)] }) as Promise<bigint>,
-          c.readContract({ address: lens, abi: UnisonLensAbi, functionName: "previewOutGivenIn", args: [scaled(a), wOf(a), scaled(b), wOf(b), amt, 3n * 10n ** 15n] }) as Promise<bigint>,
+          c.readContract({ address: lens, abi: TenbinLensAbi, functionName: "previewSpot", args: [scaled(a), wOf(a), scaled(b), wOf(b)] }) as Promise<bigint>,
+          c.readContract({ address: lens, abi: TenbinLensAbi, functionName: "previewOutGivenIn", args: [scaled(a), wOf(a), scaled(b), wOf(b), amt, 3n * 10n ** 15n] }) as Promise<bigint>,
         ]);
         return [a + b, { spot, out, amt }] as const;
       }),
@@ -106,7 +106,7 @@ export default function CreatePage() {
         <div className="card">
           <div className="spread">
             <h3>Preview</h3>
-            <span className="tag sim" title="Example balances; the numbers come from the contracts' own math via UnisonLens">
+            <span className="tag sim" title="Example balances; the numbers come from the contracts' own math via TenbinLens">
               {Object.keys(onchain).length ? "example book · contract math" : "example book · approx"}
             </span>
           </div>
@@ -145,7 +145,7 @@ export default function CreatePage() {
         </div>
       </div>
       <Explain anchor="11-launching-an-index" points={[
-        "Pick tokens and target weights. Preview prices come from the contracts' own math (UnisonLens), not a JavaScript copy.",
+        "Pick tokens and target weights. Preview prices come from the contracts' own math (TenbinLens), not a JavaScript copy.",
         "Use a dedicated wallet: quotes read its live balances, so spending index coins elsewhere moves the prices.",
       ]} />
     </div>

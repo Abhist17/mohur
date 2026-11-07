@@ -4,7 +4,7 @@ import { test, expect, shot } from "../fixtures";
 test.describe("@testnet deployed Base Sepolia build", () => {
   test("@testnet reads go through Anon-RPC: Tor first, Nym fallback, Base Sepolia answers", async ({ page }) => {
     // start from Tor (the app falls back to Nym by itself if Tor cannot bootstrap in 35 s)
-    await page.addInitScript(() => localStorage.setItem("unison.worker", "tor-js"));
+    await page.addInitScript(() => localStorage.setItem("tenbin.worker", "tor-js"));
     await page.goto("privacy/");
     await page.getByTestId("probe").click();
     const result = page.getByTestId("probe-result");
@@ -130,7 +130,7 @@ test.describe("@testnet deployed Base Sepolia build", () => {
 
   test("@testnet logging proxy saw requests from anonymity-network exits", async ({ request }) => {
     const proxy = process.env.E2E_PROXY_URL;
-    test.skip(!proxy, "set E2E_PROXY_URL to a public proxy/server.mjs (the build must use it as NEXT_PUBLIC_UNISON_PROXY_URL)");
+    test.skip(!proxy, "set E2E_PROXY_URL to a public proxy/server.mjs (the build must use it as NEXT_PUBLIC_TENBIN_PROXY_URL)");
     const log = await (await request.get(new URL("/log", proxy).toString())).json();
     expect(log.entries.length).toBeGreaterThan(0);
     expect(log.entries.some((e: { tor: boolean }) => e.tor)).toBe(true);

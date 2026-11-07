@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { NETWORK } from "@/lib/config";
-import { fmt, readBook, readFills, TOKEN_STYLE, units, type Book } from "@/lib/unison";
+import { fmt, readBook, readFills, TOKEN_STYLE, units, type Book } from "@/lib/tenbin";
 import { NotDeployed } from "@/components/NotDeployed";
 import { TokenIcon } from "@/components/TokenIcon";
 import { AnonMark, VenueMark } from "@/components/VenueMark";
@@ -37,7 +37,7 @@ export default function Share() {
   if (!idx.deployed) return <NotDeployed />;
   const hook = idx.hook;
   const sym = (a: string) => book?.tokens.find((t) => t.token.toLowerCase() === a.toLowerCase())?.symbol ?? "?";
-  // spot prices straight from the hook's own math (UnisonLens.book → priceAinB, 18 decimals, fee excluded)
+  // spot prices straight from the hook's own math (TenbinLens.book → priceAinB, 18 decimals, fee excluded)
   const prices = (book?.pairs ?? []).map((p) => {
     const a = sym(p.tokenA), b = sym(p.tokenB);
     const ab = units(p.priceAinB, 18);
@@ -60,7 +60,7 @@ export default function Share() {
       {err && <div className="err" style={{ marginBottom: 12 }}>{err}</div>}
       <div className="card stack share-card" data-testid="share-card" style={{ gap: 16, padding: 28 }}>
         <div className="spread">
-          <span className="brand" style={{ fontSize: 18 }}><Logo size={22} /> Unison index</span>
+          <span className="brand" style={{ fontSize: 18 }}><Logo size={22} /> Tenbin index</span>
           <span className={`tag ${live ? "live" : "sim"}`}>{!book ? "loading" : live ? "live" : "paused"}</span>
         </div>
         {!book ? (

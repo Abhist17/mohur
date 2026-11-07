@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-click Unison demo on a local Base Sepolia fork:
+# One-click Tenbin demo on a local Base Sepolia fork:
 #   boot fork -> deploy -> launch a 40/30/30 index -> real fills on Uniswap v4 and 1inch Aqua
 #   -> narrated numbers read straight from the contracts -> start the app and open it.
 # Everything printed is read from chain on the fork. Nothing here is simulated in JS.
@@ -15,7 +15,7 @@ step() { printf '\n%s%s%s\n' "$B$G" "$*" "$N"; }
 c() { cast call "$@" --rpc-url $R; }
 first() { awk '{print $1}'; }
 
-step "1/5  Booting a local fork of Base Sepolia (real Uniswap v4 PoolManager) and deploying Unison"
+step "1/5  Booting a local fork of Base Sepolia (real Uniswap v4 PoolManager) and deploying Tenbin"
 if [ "${SKIP_FORK:-}" = 1 ] && cast block-number --rpc-url $R >/dev/null 2>&1 && [ -f "$ROOT/contracts/deployments/local.json" ]; then
   say "  ${D}reusing the fork on :8545${N}"
 else
@@ -76,7 +76,7 @@ say "  ${D}Local fork only: reads here go straight to the node. On Base Sepolia 
 step "Starting the app (local fork mode) on http://localhost:3000"
 cd "$ROOT/web"
 if ! curl -s -o /dev/null http://localhost:3000; then
-  (NEXT_PUBLIC_UNISON_NETWORK=local setsid nohup npx next dev -p 3000 > /tmp/unison-web.log 2>&1 &)
+  (NEXT_PUBLIC_TENBIN_NETWORK=local setsid nohup npx next dev -p 3000 > /tmp/tenbin-web.log 2>&1 &)
   for i in $(seq 1 60); do curl -s -o /dev/null http://localhost:3000 && break; sleep 1; done
 fi
 URL="http://localhost:3000/book?index=$HOOK"

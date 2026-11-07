@@ -2,20 +2,20 @@
 pragma solidity 0.8.30;
 
 import { console2 } from "forge-std/console2.sol";
-import { UnisonFixture } from "./utils/UnisonFixture.sol";
+import { TenbinFixture } from "./utils/TenbinFixture.sol";
 
 /// @notice What a trade costs on each venue (each test is its own cold transaction, like a real one).
 ///         Bounds catch regressions; the logged numbers are what docs/explained.md quotes.
-contract GasTest is UnisonFixture {
+contract GasTest is TenbinFixture {
     function setUp() public {
-        setUpUnison();
+        setUpTenbin();
     }
 
     function test_gas_uniswapSwap() public {
         uint256 g = gasleft();
         _v4SwapCall(trader, address(usdc), address(weth), 1_000e6, true);
         g -= gasleft();
-        console2.log("gas: Uniswap v4 swap via UnisonHook (PoolSwapTest router):", g);
+        console2.log("gas: Uniswap v4 swap via TenbinHook (PoolSwapTest router):", g);
         assertLt(g, 400_000);
     }
 

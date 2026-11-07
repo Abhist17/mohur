@@ -7,18 +7,18 @@ import { PoolKey } from "v4-core/types/PoolKey.sol";
 import { Currency } from "v4-core/types/Currency.sol";
 import { ModifyLiquidityParams } from "v4-core/types/PoolOperation.sol";
 
-import { UnisonHook } from "../src/UnisonHook.sol";
-import { UnisonTestToken } from "../src/UnisonTestToken.sol";
+import { TenbinHook } from "../src/TenbinHook.sol";
+import { TenbinTestToken } from "../src/TenbinTestToken.sol";
 import { HookMiner } from "../src/libraries/HookMiner.sol";
-import { UnisonFixture } from "./utils/UnisonFixture.sol";
+import { TenbinFixture } from "./utils/TenbinFixture.sol";
 
-contract UnisonHookTest is UnisonFixture {
+contract TenbinHookTest is TenbinFixture {
     function setUp() public {
-        setUpUnison();
+        setUpTenbin();
     }
 
-    function test_hookAddressHasExactlyUnisonFlags() public view {
-        assertEq(uint160(address(hook)) & HookMiner.FLAG_MASK, HookMiner.UNISON_FLAGS);
+    function test_hookAddressHasExactlyTenbinFlags() public view {
+        assertEq(uint160(address(hook)) & HookMiner.FLAG_MASK, HookMiner.TENBIN_FLAGS);
         assertEq(hook.maker(), maker);
         assertEq(factory.hookOf(maker), address(hook));
     }
@@ -91,12 +91,12 @@ contract UnisonHookTest is UnisonFixture {
     function test_revert_addLiquidity() public {
         PoolKey memory key = poolKey(address(weth), address(usdc));
         vm.prank(address(manager));
-        vm.expectRevert(UnisonHook.LiquidityNotAccepted.selector);
+        vm.expectRevert(TenbinHook.LiquidityNotAccepted.selector);
         hook.beforeAddLiquidity(address(this), key, ModifyLiquidityParams(-60, 60, 1e18, 0), "");
     }
 
     function test_revert_onlyMakerCreatesPools_onlyIndexTokens() public {
-        UnisonTestToken other = new UnisonTestToken("x", "X", 18, 0);
+        TenbinTestToken other = new TenbinTestToken("x", "X", 18, 0);
         (address t0, address t1) = _sort(address(other), address(usdc));
         PoolKey memory key = PoolKey(Currency.wrap(t0), Currency.wrap(t1), 0, 10, IHooks(address(hook)));
         vm.prank(maker);
@@ -111,7 +111,7 @@ contract UnisonHookTest is UnisonFixture {
     }
 
     function test_revert_onlyMakerConfigures() public {
-        vm.expectRevert(UnisonHook.NotMaker.selector);
+        vm.expectRevert(TenbinHook.NotMaker.selector);
         hook.setIndex(tokens, weights, FEE);
     }
 
@@ -137,7 +137,7 @@ contract UnisonHookTest is UnisonFixture {
         w2[0] = 0.5e18;
         w2[1] = 0.5e18;
         vm.prank(maker);
-        vm.expectRevert(abi.encodeWithSelector(UnisonHook.PendingClaims.selector, address(usdc)));
+        vm.expectRevert(abi.encodeWithSelector(TenbinHook.PendingClaims.selector, address(usdc)));
         hook.setIndex(t2, w2, FEE);
         hook.flush();
         vm.prank(maker);

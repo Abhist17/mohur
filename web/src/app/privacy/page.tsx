@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import { keys as anonKeys, readClient, switchWorker } from "@/lib/anon";
 import { parseUnits } from "viem";
-import { quoteBoth, readBook } from "@/lib/unison";
+import { quoteBoth, readBook } from "@/lib/tenbin";
 import { usePoll, useIndex } from "@/components/useIndex";
 import { NETWORK, WORKERS, type WorkerId } from "@/lib/config";
 import { useAnon } from "@/components/Providers";
 import { AnonMark } from "@/components/VenueMark";
 import { ColumnChart } from "@/components/Chart";
 
-const PROXY = process.env.NEXT_PUBLIC_UNISON_PROXY_URL;
+const PROXY = process.env.NEXT_PUBLIC_TENBIN_PROXY_URL;
 
 type ProxyRow = { t: number; ip: string; tor: boolean; method: string };
 
@@ -138,7 +138,7 @@ export default function PrivacyPage() {
         <summary><h3>Who learns what</h3></summary>
         <div className="table-scroll">
           <table>
-            <thead><tr><th>Party</th><th>Plain RPC</th><th>Unison via Anon-RPC</th></tr></thead>
+            <thead><tr><th>Party</th><th>Plain RPC</th><th>Tenbin via Anon-RPC</th></tr></thead>
             <tbody>
               <tr><td>RPC provider</td><td>Your IP + every wallet, pair and quote you poll</td><td className="good">A Tor exit (or mix exit) and the requests; not who you are</td></tr>
               <tr><td>Tor relays / gateway</td><td>-</td><td>Guard sees your IP but not the content; exit sees content but not your IP</td></tr>
@@ -204,7 +204,7 @@ export default function PrivacyPage() {
         <summary><h3>What the RPC server sees</h3></summary>
         {!PROXY ? (
           <p className="muted" style={{ fontSize: 14 }}>
-            Run <span className="addr">proxy/server.mjs</span> and set <span className="addr">NEXT_PUBLIC_UNISON_PROXY_URL</span> to see requests arrive from Tor exits.
+            Run <span className="addr">proxy/server.mjs</span> and set <span className="addr">NEXT_PUBLIC_TENBIN_PROXY_URL</span> to see requests arrive from Tor exits.
           </p>
         ) : (
           <div className="table-scroll" style={{ maxHeight: 360, overflowY: "auto" }}>

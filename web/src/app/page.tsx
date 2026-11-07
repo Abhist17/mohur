@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { parseUnits } from "viem";
 import { deployment, NETWORK } from "@/lib/config";
-import { fmt, quoteBoth, quoteRoute, readBook, TOKEN_STYLE, units, type Book } from "@/lib/unison";
+import { fmt, quoteBoth, quoteRoute, readBook, TOKEN_STYLE, units, type Book } from "@/lib/tenbin";
 import { usePoll } from "@/components/useIndex";
 import { VenueLogo } from "@/components/VenueMark";
 import { TokenIcon } from "@/components/TokenIcon";
@@ -12,7 +12,7 @@ import { ProblemSolution } from "@/components/ProblemSolution";
 import { Concept } from "@/components/Concept";
 import { TradeFlow } from "@/components/TradeFlow";
 
-const REPO = "https://github.com/Abhist17/unison";
+const REPO = "https://github.com/Abhist17/tenbin";
 const T = (f: string, line?: number) => `${REPO}/blob/main/contracts/test/${f}${line ? `#L${line}` : ""}`;
 
 // Shown until an index is live on this network: measured by ./scripts/demo.sh on a Base Sepolia fork
@@ -20,7 +20,7 @@ const MEASURED = { eth: 10, btc: 0.3, usdc: 30000, out: 413.769069, loopPct: -0.
 
 /** The real output of ./scripts/demo.sh on a Base Sepolia fork (6 Nov 2026), shortened. */
 const RECEIPT = `$ ./scripts/demo.sh
-  DeployUnison ok · LaunchIndex ok · DemoTrades ok
+  DeployTenbin ok · LaunchIndex ok · DemoTrades ok
 
 Same trade, both venues
   sell 0.1 ETH    Uniswap 413.769069 USDC   1inch 413.769069 USDC   difference 0 wei
@@ -78,7 +78,7 @@ export default function Landing() {
           <div className="u-kicker">For market makers and index holders</div>
           <h1 className="u-title" data-testid="hero-title">Stop splitting your coins across exchanges.</h1>
           <p className="u-lede">
-            Unison lets Uniswap and 1inch trade <b>one wallet</b> at <b>one price</b>. Your coins stay put, both venues quote the same number, and nobody sees you watching.
+            Tenbin lets Uniswap and 1inch trade <b>one wallet</b> at <b>one price</b>. Your coins stay put, both venues quote the same number, and nobody sees you watching.
           </p>
           <div className="u-actions">
             <Link href="/swap" className="btn primary u-btn" data-testid="launch-app">Open the app</Link>
@@ -125,7 +125,7 @@ export default function Landing() {
           <span className="u-num">01</span>
           <div>
             <h2>The idea, in a shop</h2>
-            <p>Raju keeps mangoes, rice and cash in one stockroom and opens two stalls in two markets. That&apos;s Unison.</p>
+            <p>Raju keeps mangoes, rice and cash in one stockroom and opens two stalls in two markets. That&apos;s Tenbin.</p>
           </div>
         </div>
         <div className="u-row">
@@ -137,7 +137,7 @@ export default function Landing() {
         </div>
         <div className="u-row u-row-flip">
           <div className="u-row-text">
-            <h3>With Unison, both stalls sell from one shelf</h3>
+            <h3>With Tenbin, both stalls sell from one shelf</h3>
             <p>Your wallet is the stockroom. Uniswap and 1inch are the stalls. A sale at either one changes the shelf, so both price tags move together. Nothing to sync.</p>
             <Link href="/book" className="accent">See the live book →</Link>
           </div>
@@ -159,7 +159,7 @@ export default function Landing() {
           <span className="u-num">02</span>
           <div>
             <h2>Don&apos;t trust us. Run it.</h2>
-            <p>One command forks Base Sepolia with the real Uniswap v4 contracts, deploys Unison, trades on both venues and prints this:</p>
+            <p>One command forks Base Sepolia with the real Uniswap v4 contracts, deploys Tenbin, trades on both venues and prints this:</p>
           </div>
         </div>
         <div className="u-receipt-wrap">
@@ -208,7 +208,7 @@ export default function Landing() {
           <span className="u-num">04</span>
           <div>
             <h2>Honest about it</h2>
-            <p>Testnet only, not externally audited. Here is what we checked, and what Unison does not do.</p>
+            <p>Testnet only, not externally audited. Here is what we checked, and what Tenbin does not do.</p>
           </div>
         </div>
         <div className="grid g2">
@@ -245,7 +245,7 @@ export default function Landing() {
             </div>
           </div>
           <pre className="u-receipt"><code>{`git clone --recursive ${REPO}
-cd unison
+cd tenbin
 (cd contracts && npm ci) && (cd web && npm ci)
 ./scripts/demo.sh`}</code></pre>
         </div>
@@ -264,7 +264,7 @@ cd unison
             ["Can someone arbitrage me between the venues?", "No. There is no gap between them, and any loop through your wallet loses money."],
             ["Is there an oracle or a bot?", "No. Prices come only from your balances, and traders do the rebalancing."],
             ["Is it live?", "On Base Sepolia (testnet) with test tokens that have no value."],
-            ["Why the name?", "In music, unison means every voice on the same note at the same time: both venues, one price, same moment."],
+            ["Why the name?", "Tenbin (天秤) is the Japanese balance scale. A balanced index, and two venues held perfectly level: one price."],
           ].map(([qq, a]) => (
             <div key={qq} className="u-qa"><b>{qq}</b><p className="muted">{a}</p></div>
           ))}

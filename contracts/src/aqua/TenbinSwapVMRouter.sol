@@ -5,12 +5,12 @@ import { Context } from "@1inch/swap-vm/contracts/libs/VM.sol";
 import { AquaSwapVMRouter } from "@1inch/swap-vm/contracts/routers/AquaSwapVMRouter.sol";
 import { PortfolioPrice } from "./PortfolioPrice.sol";
 
-/// @title UnisonSwapVMRouter
+/// @title TenbinSwapVMRouter
 /// @notice The official 1inch AquaSwapVMRouter, unchanged, plus one extra opcode (0xd0 = PortfolioPrice)
 ///         in the unallocated 0xd0-0xef bank. Every stock Aqua opcode still dispatches exactly as upstream.
-contract UnisonSwapVMRouter is AquaSwapVMRouter {
+contract TenbinSwapVMRouter is AquaSwapVMRouter {
     constructor(address aqua, address weth, address owner)
-        AquaSwapVMRouter(aqua, weth, owner, "UnisonSwapVMRouter", "1")
+        AquaSwapVMRouter(aqua, weth, owner, "TenbinSwapVMRouter", "1")
     { }
 
     function _runOpcode(Context memory ctx, uint256 opcode, bytes calldata args) internal override {

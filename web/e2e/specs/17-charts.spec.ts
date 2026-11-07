@@ -9,7 +9,7 @@ async function table(chart: Locator) {
   );
 }
 
-test("charts: same price at every size (both venues identical), any loop size loses, hold vs Unison, read latency", async ({ page }) => {
+test("charts: same price at every size (both venues identical), any loop size loses, hold vs Tenbin, read latency", async ({ page }) => {
   test.setTimeout(180_000);
   await injectWallet(page, ACCOUNTS.launcher); // owns an index after 03-launch
   await page.goto("/book");
@@ -52,12 +52,12 @@ test("charts: same price at every size (both venues identical), any loop size lo
   await loops.scrollIntoViewIfNeeded();
   await loops.screenshot({ path: "e2e/artifacts/20-chart-loops.png" });
 
-  // My index: hold vs Unison, two labelled lines
+  // My index: hold vs Tenbin, two labelled lines
   await page.goto("/my");
   const hold = page.getByTestId("hold-chart");
   await expect(hold).toBeVisible({ timeout: 60_000 });
   await expect(hold.locator(".chart-legend")).toContainText("Just holding");
-  await expect(hold.locator(".chart-legend")).toContainText("Unison");
+  await expect(hold.locator(".chart-legend")).toContainText("Tenbin");
   await hold.scrollIntoViewIfNeeded();
   await hold.screenshot({ path: "e2e/artifacts/21-chart-hold.png" });
 

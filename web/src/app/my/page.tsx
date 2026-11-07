@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { Address, Hex } from "viem";
-import { AquaAbi, UnisonHookAbi, UnisonLensAbi, UnisonTestTokenAbi } from "@/generated/abis";
+import { AquaAbi, TenbinHookAbi, TenbinLensAbi, TenbinTestTokenAbi } from "@/generated/abis";
 import { deployment, NETWORK } from "@/lib/config";
 import { keys, readClient } from "@/lib/anon";
-import { fmt, hookOf, readBook, readFills, TOKEN_STYLE, units, type Book, type FillRow } from "@/lib/unison";
+import { fmt, hookOf, readBook, readFills, TOKEN_STYLE, units, type Book, type FillRow } from "@/lib/tenbin";
 import { useWallet } from "@/lib/wallet";
 import { Concept } from "@/components/Concept";
 import { NotDeployed } from "@/components/NotDeployed";
@@ -43,11 +43,11 @@ export default function MyIndex() {
     const b = await readBook(h, w.account);
     setBook(b);
     const [nonce, sh, rwStart, rwEnd, target] = await Promise.all([
-      c.readContract({ address: h, abi: UnisonHookAbi, functionName: "venueNonce" }) as Promise<bigint>,
-      c.readContract({ address: h, abi: UnisonHookAbi, functionName: "strategyHash" }) as Promise<Hex>,
-      c.readContract({ address: h, abi: UnisonHookAbi, functionName: "reweightStart" }) as Promise<bigint>,
-      c.readContract({ address: h, abi: UnisonHookAbi, functionName: "reweightEnd" }) as Promise<bigint>,
-      c.readContract({ address: h, abi: UnisonHookAbi, functionName: "targetWeights" }) as Promise<readonly bigint[]>,
+      c.readContract({ address: h, abi: TenbinHookAbi, functionName: "venueNonce" }) as Promise<bigint>,
+      c.readContract({ address: h, abi: TenbinHookAbi, functionName: "strategyHash" }) as Promise<Hex>,
+      c.readContract({ address: h, abi: TenbinHookAbi, functionName: "reweightStart" }) as Promise<bigint>,
+      c.readContract({ address: h, abi: TenbinHookAbi, functionName: "reweightEnd" }) as Promise<bigint>,
+      c.readContract({ address: h, abi: TenbinHookAbi, functionName: "targetWeights" }) as Promise<readonly bigint[]>,
     ]);
     const count = async (app: Address, hash: Hex, t: Address) => ((await c.readContract({ address: d.aqua, abi: AquaAbi, functionName: "rawBalances", args: [w.account!, app, hash, t] })) as [bigint, number])[1];
     const state = (n: number) => (n === 0 ? "none" : n === DOCKED ? "paused" : "live") as "live" | "paused" | "none";
@@ -151,7 +151,7 @@ export default function MyIndex() {
 
   const pause = () => run("Pausing…", async () => {
     if (!st || !hook || !book) return;
-    const sh = (await c().readContract({ address: hook, abi: UnisonHookAbi, functionName: "strategyHash" })) as Hex;
+    const sh = (await c().readContract({ address: hook, abi: TenbinHookAbi, functionName: "strategyHash" })) as Hex;
     if (st.v4 === "live") await w.write({ address: d.aqua, abi: AquaAbi, functionName: "dock", args: [hook, sh, tokens.map((t) => t.token)], label: "Pause Uniswap venue" });
     for (let k = 0; k < book.pairs.length; k++) {
       if (st.aqua[k] !== "live") continue;
@@ -165,16 +165,16 @@ export default function MyIndex() {
     if (st.v4 === "live" || st.aqua.includes("live")) await pause();
     setBusy("Opening venues…");
     const n = st.nonce + 1n;
-    await w.write({ address: hook, abi: UnisonHookAbi, functionName: "setVenueNonce", args: [n], label: "Start a new venue epoch" });
-    const bal = async (t: Address) => (await c().readContract({ address: t, abi: UnisonTestTokenAbi, functionName: "balanceOf", args: [w.account!] })) as bigint;
+    await w.write({ address: hook, abi: TenbinHookAbi, functionName: "setVenueNonce", args: [n], label: "Start a new venue epoch" });
+    const bal = async (t: Address) => (await c().readContract({ address: t, abi: TenbinTestTokenAbi, functionName: "balanceOf", args: [w.account!] })) as bigint;
     if (splitV4 > 0) {
-      const strat = (await c().readContract({ address: hook, abi: UnisonHookAbi, functionName: "strategy", args: [n] })) as Hex;
+      const strat = (await c().readContract({ address: hook, abi: TenbinHookAbi, functionName: "strategy", args: [n] })) as Hex;
       const amts = await Promise.all(tokens.map(async (t) => ((await bal(t.token)) * BigInt(splitV4)) / 100n));
       await w.write({ address: d.aqua, abi: AquaAbi, functionName: "ship", args: [hook, strat, tokens.map((t) => t.token), amts], label: `Open Uniswap (${splitV4}% limit)` });
     }
     if (splitAqua > 0)
       for (const [a, b] of st.pairs) {
-        const [, strat] = (await c().readContract({ address: d.lens, abi: UnisonLensAbi, functionName: "activeAquaOrder", args: [hook, a, b] })) as [unknown, Hex, Hex];
+        const [, strat] = (await c().readContract({ address: d.lens, abi: TenbinLensAbi, functionName: "activeAquaOrder", args: [hook, a, b] })) as [unknown, Hex, Hex];
         const amts = [((await bal(a)) * BigInt(splitAqua)) / 100n, ((await bal(b)) * BigInt(splitAqua)) / 100n];
         await w.write({ address: d.aqua, abi: AquaAbi, functionName: "ship", args: [d.swapVM, strat, [a, b], amts], label: `Open 1inch ${sym(a)}/${sym(b)} (${splitAqua}%)` });
       }
@@ -183,8 +183,8 @@ export default function MyIndex() {
   const reweight = () => run("Re-weighting…", async () => {
     if (!hook || !newW || !book) return;
     const ws = tokens.map((t) => BigInt(newW[t.symbol]) * 10n ** 16n);
-    if (dur === 0) await w.write({ address: hook, abi: UnisonHookAbi, functionName: "setIndex", args: [tokens.map((t) => t.token), ws, book.fee], label: "Switch allocation now" });
-    else await w.write({ address: hook, abi: UnisonHookAbi, functionName: "scheduleWeights", args: [ws, BigInt(dur)], label: "Start gradual re-weight" });
+    if (dur === 0) await w.write({ address: hook, abi: TenbinHookAbi, functionName: "setIndex", args: [tokens.map((t) => t.token), ws, book.fee], label: "Switch allocation now" });
+    else await w.write({ address: hook, abi: TenbinHookAbi, functionName: "scheduleWeights", args: [ws, BigInt(dur)], label: "Start gradual re-weight" });
   });
 
   const live = st && (st.v4 === "live" || st.aqua.includes("live"));
@@ -229,7 +229,7 @@ export default function MyIndex() {
       </div>
 
       {(() => {
-        // value of this wallet if ETH moves by k, at your prices: just holding vs Unison (traders rebalance it back to target)
+        // value of this wallet if ETH moves by k, at your prices: just holding vs Tenbin (traders rebalance it back to target)
         const wEth = Number(tokens.find((t) => t.symbol === "tWETH")?.weight ?? 0n) / 1e18;
         if (!tokens.length || !(vNow > 0) || !(wEth > 0)) return null;
         const ks = Array.from({ length: 16 }, (_, i) => +(0.5 + i * 0.1).toFixed(2));
@@ -240,23 +240,23 @@ export default function MyIndex() {
         return (
           <div className="card" style={{ marginTop: 16 }} data-testid="hold-chart">
             <div className="spread" style={{ alignItems: "baseline" }}>
-              <h3>If ETH moves: Unison vs just holding</h3>
+              <h3>If ETH moves: Tenbin vs just holding</h3>
               <span className="tag sim">computed with the pool formula</span>
             </div>
             <p className="muted" style={{ fontSize: 14, margin: "4px 0 12px" }}>
-              Unison sells ETH as it rises and buys it as it falls, to stay on target. When prices swing far, just holding ends up ahead: that gap is LVR, and the 0.30% fee on every trade is what pays you for it.
+              Tenbin sells ETH as it rises and buys it as it falls, to stay on target. When prices swing far, just holding ends up ahead: that gap is LVR, and the 0.30% fee on every trade is what pays you for it.
             </p>
             <LineChart
               x={ks.map((k) => (px.tWETH ?? 0) * k)}
               series={[
                 { name: "Just holding", color: "var(--c-hold)", points: hold, endLabel: true },
-                { name: "Unison", color: "var(--c-unison)", points: uni, endLabel: true },
+                { name: "Tenbin", color: "var(--c-tenbin)", points: uni, endLabel: true },
               ]}
               xFmt={usd}
               yFmt={usd}
               xLabel="ETH price"
               yLabel="Value of this wallet"
-              caption="Your balances and weights now, at the prices above; fees ignored, so the real Unison line sits a little higher."
+              caption="Your balances and weights now, at the prices above; fees ignored, so the real Tenbin line sits a little higher."
             />
           </div>
         );

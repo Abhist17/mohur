@@ -21,7 +21,7 @@ function Tag({ venue, text, tone }: { venue: 0 | 1; text: string; tone?: "bad" |
 
 /**
  * The question and the answer, in one picture: today a maker splits coins per venue and the two prices drift;
- * with Unison one wallet feeds both venues at one price. `price` is the live ETH price when an index is deployed.
+ * with Tenbin one wallet feeds both venues at one price. `price` is the live ETH price when an index is deployed.
  */
 export function ProblemSolution({ price, live }: { price: string; live: boolean }) {
   return (
@@ -47,8 +47,8 @@ export function ProblemSolution({ price, live }: { price: string; live: boolean 
         </div>
       </div>
       <div className="ps-arrow" aria-hidden="true">↓</div>
-      <div className="ps-col ps-unison">
-        <div className="ps-label accent">With Unison</div>
+      <div className="ps-col ps-tenbin">
+        <div className="ps-label accent">With Tenbin</div>
         <div className="ps-body">
         <div className="ps-pic ps-one">
           <Stack />
@@ -65,7 +65,7 @@ export function ProblemSolution({ price, live }: { price: string; live: boolean 
         </div>
       </div>
       <div className="ps-note faint">
-        {live ? "With Unison prices are live from the demo index; Today prices illustrate the problem." : "Prices illustrate the idea."} 0 wei and −0.8% are measured on a Base Sepolia fork (
+        {live ? "With Tenbin prices are live from the demo index; Today prices illustrate the problem." : "Prices illustrate the idea."} 0 wei and −0.8% are measured on a Base Sepolia fork (
         <code>./scripts/demo.sh</code>).
       </div>
     </div>

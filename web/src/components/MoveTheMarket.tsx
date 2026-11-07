@@ -1,6 +1,6 @@
 "use client";
 
-import { fmt, units, type Book } from "@/lib/unison";
+import { fmt, units, type Book } from "@/lib/tenbin";
 import { LineChart } from "./Chart";
 
 type Row = { sym: string; delta: number; p: number };
@@ -65,7 +65,7 @@ export function MoveTheMarket({
         x={xs}
         series={[
           { name: "If nobody trades", color: "var(--c-hold)", points: xs.map((p) => ((E * p) / (E * p + others)) * 100), endLabel: true },
-          { name: "After traders rebalance", color: "var(--c-unison)", points: xs.map(() => wE * 100), endLabel: true },
+          { name: "After traders rebalance", color: "var(--c-tenbin)", points: xs.map(() => wE * 100), endLabel: true },
         ]}
         xFmt={usd}
         yFmt={(v) => `${v.toFixed(0)}%`}

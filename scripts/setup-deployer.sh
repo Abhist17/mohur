@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# One-time: create a fresh, testnet-only deployer wallet for Unison, stored encrypted by Foundry.
+# One-time: create a fresh, testnet-only deployer wallet for Tenbin, stored encrypted by Foundry.
 # You type the password (hidden); the private key is never printed and never leaves ~/.foundry/keystores.
 #   ./scripts/setup-deployer.sh      then fund the printed address, then ./scripts/deploy-base-sepolia.sh
-# Already have a testnet key you'd rather use?  cast wallet import unison-deployer --interactive
+# Already have a testnet key you'd rather use?  cast wallet import tenbin-deployer --interactive
 set -euo pipefail
 export PATH="$HOME/.foundry/bin:$PATH"
-ACCOUNT="${ACCOUNT:-unison-deployer}"
+ACCOUNT="${ACCOUNT:-tenbin-deployer}"
 command -v cast >/dev/null || { echo "Foundry not found: curl -L https://foundry.paradigm.xyz | bash && foundryup"; exit 1; }
 if cast wallet list 2>/dev/null | grep -q "^$ACCOUNT"; then
   echo "Keystore '$ACCOUNT' already exists."

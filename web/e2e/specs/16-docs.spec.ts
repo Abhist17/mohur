@@ -4,7 +4,7 @@ test("docs: quickstart, copyable code, live contract addresses, every section li
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/docs");
   const docs = page.getByTestId("docs");
-  await expect(docs.getByRole("heading", { level: 1 })).toHaveText("Build with Unison");
+  await expect(docs.getByRole("heading", { level: 1 })).toHaveText("Build with Tenbin");
   await expect(docs).toContainText("./scripts/demo.sh");
   // copy the quickstart
   await docs.getByRole("button", { name: "Copy code" }).first().click();

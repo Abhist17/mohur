@@ -10,7 +10,7 @@
 
 | Time | Screen | Show | Say |
 |---|---|---|---|
-| 0:00–0:15 | Home | The hook line and the live **price board** (one wallet, Uniswap = 1inch, 0 wei) | "Today, to earn fees on Uniswap and 1inch you split your coins in two and the prices drift apart. Unison lets both trade one wallet at one price." |
+| 0:00–0:15 | Home | The hook line and the live **price board** (one wallet, Uniswap = 1inch, 0 wei) | "Today, to earn fees on Uniswap and 1inch you split your coins in two and the prices drift apart. Tenbin lets both trade one wallet at one price." |
 | 0:15–0:45 | **Demo** | Press **Run the demo**; step 3 shows *difference 0 wei*; steps 4 and 5 trade 100 USDC on each venue | "Same trade, both venues: zero wei apart, because both call one pricing function over the wallet's real balances. No oracle, nothing to sync." |
 | 0:45–1:10 | Demo → Book | Step 6 shows the loop losing; open the Book: both fills in one feed, quotes still equal | "Try to arbitrage across both venues: the loop loses. A fill on one venue moves the other venue's price instantly." |
 | 1:10–1:35 | Book | **Move the market**: drag the slider to 1.5×; the "if nobody trades" line drifts, "after traders rebalance" stays at 40%; the fee the wallet earns appears | "When the market moves, traders rebalance the wallet back to 40/30/30 and pay it the fee. That's the index managing itself." |

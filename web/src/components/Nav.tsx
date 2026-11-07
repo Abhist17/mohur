@@ -16,7 +16,7 @@ const SITE_LINKS = [
   ["/docs", "Docs"],
   ["/#faq", "FAQ"],
 ] as const;
-const REPO = "https://github.com/Abhist17/unison";
+const REPO = "https://github.com/Abhist17/tenbin";
 
 const LINKS = [
   ["/swap", "Swap"],
@@ -103,7 +103,7 @@ export function PrivacyBanner() {
     <div className="privacy-banner" data-testid="privacy-banner">
       <div className="wrap privacy-banner-in">
         <span>
-          <b>The private routes are unreachable right now</b> (Tor and Nym gateways did not answer). Unison never reads without them unless you say so.
+          <b>The private routes are unreachable right now</b> (Tor and Nym gateways did not answer). Tenbin never reads without them unless you say so.
         </span>
         <span className="row" style={{ gap: 8 }}>
           <button className="btn small" disabled={busy} onClick={() => { setBusy(true); retryPrivate().catch(() => {}).finally(() => setBusy(false)); }}>{busy ? "Retrying…" : "Retry"}</button>
@@ -120,7 +120,7 @@ export function ThemeToggle() {
   const flip = () => {
     const next = theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
-    try { localStorage.setItem("unison-theme", next); } catch {}
+    try { localStorage.setItem("tenbin-theme", next); } catch {}
     setTheme(next);
   };
   return (
@@ -144,7 +144,7 @@ export function Nav() {
         <a href="#main" className="skip">Skip to content</a>
         <div className="wrap nav-in">
           <Link href="/" className="brand">
-            <Logo size={24} /> Unison
+            <Logo size={24} /> Tenbin
           </Link>
           <nav className="nav-links nav-site" aria-label="Main">
             {SITE_LINKS.map(([href, label]) => (
@@ -176,7 +176,7 @@ export function Nav() {
       <a href="#main" className="skip">Skip to content</a>
       <div className="wrap nav-in">
         <Link href="/" className="brand">
-          <Logo size={24} /> Unison
+          <Logo size={24} /> Tenbin
         </Link>
         <nav className="nav-links" aria-label="Main">
           {LINKS.map(([href, label]) => (
